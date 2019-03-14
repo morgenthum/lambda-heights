@@ -1,0 +1,76 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.1.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 92f69c5fdf4690e4c8cc74e1f0069cb182038ff9145ee33889d2b15a894d4573
+
+name:           lambda-tower
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/morgenthum/lambda-tower#readme>
+homepage:       https://github.com/morgenthum/lambda-tower#readme
+bug-reports:    https://github.com/morgenthum/lambda-tower/issues
+author:         Mario Morgenthum
+maintainer:     mario.morgenthum@gmail.com
+copyright:      2019 Mario Morgenthum
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/morgenthum/lambda-tower
+
+library
+  exposed-modules:
+      LambdaTower.Ingame.Events
+    , LambdaTower.Ingame.Input
+    , LambdaTower.Ingame.Layer
+    , LambdaTower.Ingame.Player
+    , LambdaTower.Ingame.Renderer
+    , LambdaTower.Ingame.State
+    , LambdaTower.Ingame.Update
+    , LambdaTower.Game
+    , LambdaTower.Graphics
+    , LambdaTower.Loop
+  other-modules:
+      Paths_lambda_tower
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+    , linear >= 1.20.8
+    , mtl >= 2.2.2
+    , sdl2 >= 2.4.1.0
+    , sdl2-ttf >= 2.1.0
+    , text >= 1.2.3.1
+  default-language: Haskell2010
+
+executable lambda-tower-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_lambda_tower
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , lambda-tower
+  default-language: Haskell2010
+
+test-suite lambda-tower-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_lambda_tower
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , lambda-tower
+  default-language: Haskell2010
