@@ -1,12 +1,15 @@
 module LambdaTower.Ingame.Update (
+  replay,
   updater
 ) where
 
+import Control.Monad.STM
+import Control.Concurrent.STM.TChan
+
 import Data.List
+import Data.Maybe
 
 import LambdaTower.Loop
-
-import qualified Linear.V2 as V
 
 import qualified LambdaTower.Ingame.Events as E
 import qualified LambdaTower.Ingame.Layer as L
@@ -16,26 +19,37 @@ import qualified LambdaTower.Ingame.State as S
 deltaTime :: Float
 deltaTime = 1 / 128
 
-updater :: Updater IO S.State P.Score [E.PlayerEvent]
-updater _ state events = do
-  let view = updateView (S.player state) $ S.view state
-  let motion = updateMotion (S.motion state) events
-  let layers = updateLayers view $ S.layers state
-  let player = updatePlayer view motion layers $ S.player state
-  return $
-    if playerDead view player
-    then Right (P.score player)
-    else Left state {
-      S.view = view,
-      S.motion = motion {
-        S.jump = False,
-        S.air = playerInAir player layers },
-      S.player = player,
-      S.layers = layers }
+replay :: Updater IO (S.State, [S.State]) P.Score ()
+replay (state, []) _ = return $ Right $ P.score . S.player . S.gameState $ state
+replay (_, state:states) _ = return $ Left (state, states)
+
+updater :: TChan (Maybe S.State) -> Updater IO S.State P.Score [E.PlayerEvent]
+updater channel state events = do
+  atomically $ writeTChan channel $ Just state
+  let gameState = S.gameState state
+  let view = updateView (S.player gameState) $ S.view gameState
+  let motion = updateMotion (S.motion gameState) events
+  let layers = updateLayers view $ S.layers gameState
+  let player = updatePlayer view motion layers $ S.player gameState
+  if playerDead view player
+  then do
+    atomically $ writeTChan channel Nothing
+    return $ Right (P.score player)
+  else return $ Left
+    state {
+      S.gameState = gameState {
+        S.view = view,
+        S.motion = motion {
+          S.jump = False,
+          S.air = playerInAir player layers },
+        S.player = player,
+        S.layers = layers
+      }
+    }
 
 
 playerDead :: S.View -> P.Player -> Bool
-playerDead view player = let V.V2 _ y = P.position player in y < S.bottom view
+playerDead view player = let (_, y) = P.position player in y < S.bottom view
 
 
 -- Updating the view involves two steps:
@@ -56,7 +70,7 @@ scrollViewOverTime view = if S.bottom view == 0 then view else scrollView (delta
 
 scrollViewToPlayer :: P.Player -> S.View -> S.View
 scrollViewToPlayer player view = if distance < 250 then scrollView (250-distance) view else view
-  where (V.V2 _ y) = P.position player
+  where (_, y) = P.position player
         distance = S.top view - y
 
 
@@ -89,9 +103,9 @@ generateLayer view layer = if S.top view < L.posY layer then Nothing else Just (
 nextLayer :: L.Layer -> L.Layer
 nextLayer layer =
   case (L.id layer, L.size layer, L.position layer) of
-    (id, V.V2 1000 h, V.V2 x y) -> L.Layer (id+1) (V.V2 500 h) (V.V2 100 (y+200))
-    (id, V.V2 500 h, V.V2 100 y) -> L.Layer (id+1) (V.V2 500 h) (V.V2 400 (y+200))
-    (id, V.V2 500 h, V.V2 400 y) -> L.Layer (id+1) (V.V2 500 h) (V.V2 100 (y+200))
+    (id, (1000, h), (x, y)) -> L.Layer (id+1) (500, h) (100, y+200)
+    (id, (500, h), (100, y)) -> L.Layer (id+1) (500, h) (400, y+200)
+    (id, (500, h), (400, y)) -> L.Layer (id+1) (500, h) (100, y+200)
 
 dropPassedLayers :: S.View -> [L.Layer] -> [L.Layer]
 dropPassedLayers view = filter $ not . layerPassed view
@@ -123,23 +137,23 @@ updateAcceleration acc vel motion =
   else updateGroundAcceleration acc vel motion
 
 updateGroundAcceleration :: P.Acceleration -> P.Velocity -> S.Motion -> P.Acceleration
-updateGroundAcceleration (V.V2 accX _) (V.V2 velX velY) motion
-  | jump && (abs velX > 750 || abs velY > 750) = V.V2 accX 250000
-  | jump = V.V2 accX 125000
-  | left && right = V.V2 0 (-2000)
-  | left = V.V2 (-7500) (-2000)
-  | right = V.V2 7500 (-2000)
-  | otherwise = V.V2 0 (-2000)
+updateGroundAcceleration (accX, _) (velX, velY) motion
+  | jump && (abs velX > 750 || abs velY > 750) = (accX, 250000)
+  | jump = (accX, 125000)
+  | left && right = (0, -2000)
+  | left = (-7500, -2000)
+  | right = (7500, -2000)
+  | otherwise = (0, -2000)
   where left = S.moveLeft motion
         right = S.moveRight motion
         jump = S.jump motion
 
 updateAirAcceleration :: S.Motion -> P.Acceleration
 updateAirAcceleration motion
-  | left && right = V.V2 0 (-2000)
-  | left = V.V2 (-1500) (-2000)
-  | right = V.V2 1500 (-2000)
-  | otherwise = V.V2 0 (-2000)
+  | left && right = (0, -2000)
+  | left = (-1500, -2000)
+  | right = (1500, -2000)
+  | otherwise = (0, -2000)
   where left = S.moveLeft motion
         right = S.moveRight motion
 
@@ -147,10 +161,10 @@ updateVelocity :: P.Velocity -> S.Motion -> P.Acceleration -> P.Velocity
 updateVelocity vel motion = applyAcceleration (decelerate motion vel)
 
 applyAcceleration :: P.Velocity -> P.Acceleration -> P.Velocity
-applyAcceleration (V.V2 x y) (V.V2 x' y') = V.V2 (x+x'*deltaTime) (y+y'*deltaTime)
+applyAcceleration (x, y) (x', y') = (x+x'*deltaTime, y+y'*deltaTime)
 
 decelerate :: S.Motion -> P.Velocity -> P.Velocity
-decelerate motion (V.V2 x y) = if S.air motion then V.V2 x y else V.V2 (x*0.925) y
+decelerate motion (x, y) = if S.air motion then (x, y) else (x*0.925, y)
 
 updatePosition :: P.Position -> P.Velocity -> P.Position
 updatePosition = applyAcceleration
@@ -164,11 +178,11 @@ correctPlayerPosition view layers = correctPlayerPositionY layers . correctPlaye
 
 correctPlayerPositionX :: S.View -> P.Player -> P.Player
 correctPlayerPositionX view player
-  | outLeft = player { P.position = V.V2 minX posY, P.velocity = V.V2 ((-velX) * 0.75) velY }
-  | outRight = player { P.position = V.V2 maxX posY, P.velocity = V.V2 ((-velX) * 0.75) velY }
+  | outLeft = player { P.position = (minX, posY), P.velocity = ((-velX) * 0.75, velY) }
+  | outRight = player { P.position = (maxX, posY), P.velocity = ((-velX) * 0.75, velY) }
   | otherwise = player
-  where V.V2 posX posY = P.position player
-        V.V2 velX velY = P.velocity player
+  where (posX, posY) = P.position player
+        (velX, velY) = P.velocity player
         minX = S.left view
         maxX = S.right view
         outLeft = posX < minX && velX < 0
@@ -182,26 +196,26 @@ correctPlayerPositionY layers player
   | otherwise = player
 
 playerFalling :: P.Player -> Bool
-playerFalling player = let V.V2 _ y = P.velocity player in y < 0
+playerFalling player = let (_, y) = P.velocity player in y < 0
 
 playerCollidedLayers :: P.Player -> [L.Layer] -> [L.Layer]
 playerCollidedLayers player = filter (positionInLayer $ P.position player)
 
 positionInLayer :: P.Position -> L.Layer -> Bool
-positionInLayer (V.V2 x y) layer = x >= lx && x <= lx + lw && y <= ly && y >= ly - lh
-  where V.V2 lw lh = L.size layer
-        V.V2 lx ly = L.position layer
+positionInLayer (x, y) layer = x >= lx && x <= lx + lw && y <= ly && y >= ly - lh
+  where (lw, lh) = L.size layer
+        (lx, ly) = L.position layer
 
 liftPlayerOnLayer :: L.Layer -> P.Player -> P.Player
-liftPlayerOnLayer layer player = player { P.position = V.V2 posX (L.posY layer) }
-  where V.V2 posX _ = P.position player
+liftPlayerOnLayer layer player = player { P.position = (posX, L.posY layer) }
+  where (posX, _) = P.position player
 
 updateScore :: L.Layer -> P.Player -> P.Player
 updateScore layer player = player { P.score = max (L.id layer) (P.score player) }
 
 resetVelocityY :: P.Player -> P.Player
-resetVelocityY player = player { P.velocity = V.V2 velX 0 }
-  where V.V2 velX _ = P.velocity player
+resetVelocityY player = player { P.velocity = (velX, 0) }
+  where (velX, _) = P.velocity player
 
 playerInAir :: P.Player -> [L.Layer] -> Bool
 playerInAir player = null . playerCollidedLayers player

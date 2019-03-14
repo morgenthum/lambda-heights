@@ -1,4 +1,5 @@
 module LambdaTower.Ingame.Input (
+  dummyInputHandler,
   keyInputHandler
 ) where
 
@@ -8,6 +9,9 @@ import qualified SDL
 
 import LambdaTower.Ingame.Events
 import LambdaTower.Loop
+
+dummyInputHandler :: InputHandler IO ()
+dummyInputHandler = return ()
 
 keyInputHandler :: InputHandler IO [PlayerEvent]
 keyInputHandler = mapMaybe eventToPlayerEvent <$> SDL.pollEvents

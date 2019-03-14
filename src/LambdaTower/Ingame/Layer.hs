@@ -1,18 +1,24 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module LambdaTower.Ingame.Layer where
 
-import Linear.V2
+import Codec.Serialise
 
-type Size = V2 Float
-type Position = V2 Float
+import GHC.Generics
+
+type Size = (Float, Float)
+type Position = (Float, Float)
 
 data Layer = Layer {
   id :: Int,
   size :: Size,
   position :: Position
-} deriving Show
+} deriving (Show, Generic)
+
+instance Serialise Layer
 
 ground :: Layer
-ground = Layer 0 (V2 1000 80) (V2 0 80)
+ground = Layer 0 (1000, 80) (0, 80)
 
 posY :: Layer -> Float
-posY layer = let (V2 _ y) = position layer in y
+posY layer = let (_, y) = position layer in y

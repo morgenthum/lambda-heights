@@ -17,10 +17,10 @@ data LoopTimer = LoopTimer {
 }
 
 type TimedState s r = (LoopTimer, Either s r)
-type Loop m s r = StateT (TimedState s r) m ()
+type LoopState m s r = StateT (TimedState s r) m ()
 
 type InputHandler m e = m e
-type Updater m s r e = LoopTimer -> s -> e -> m (Either s r)
+type Updater m s r e = s -> e -> m (Either s r)
 type Renderer m s =  s -> m ()
 
 newTimer :: Word32 -> IO LoopTimer
@@ -33,12 +33,12 @@ newTimer rate = do
     lag = 0
   }
 
-startLoop :: (MonadFail m, MonadIO m) => LoopTimer -> s -> Loop m s r -> m r
+startLoop :: (MonadFail m, MonadIO m) => LoopTimer -> s -> LoopState m s r -> m r
 startLoop timer state loop = do
   (_, Right r) <- execStateT loop (timer, Left state)
   return r
 
-timedLoop :: (MonadIO m) => InputHandler m e -> Updater m s r e -> Renderer m s -> Loop m s r
+timedLoop :: (MonadIO m) => InputHandler m e -> Updater m s r e -> Renderer m s -> LoopState m s r
 timedLoop inputHandler updater renderer = do
   updateTimer
   update inputHandler updater
@@ -49,21 +49,21 @@ timedLoop inputHandler updater renderer = do
       timedLoop inputHandler updater renderer
     Right result -> return ()
 
-updateTimer :: (MonadIO m) => Loop m s r
+updateTimer :: (MonadIO m) => LoopState m s r
 updateTimer = do
   (timer, state) <- get
   newCurrent <- fromIntegral <$> SDL.ticks
   let elapsed = newCurrent - current timer
   put (timer { current = newCurrent, elapsed = elapsed, lag = lag timer + elapsed }, state)
 
-update :: (MonadIO m) => InputHandler m e -> Updater m s r e -> Loop m s r
+update :: (MonadIO m) => InputHandler m e -> Updater m s r e -> LoopState m s r
 update inputHandler updater = do
   timedState <- get
   case timedState of
     (timer, Left state) ->
       when (lag timer > rate timer) $ do
         events <- lift inputHandler
-        newState <- lift $ updater timer state events
+        newState <- lift $ updater state events
         put (timer { lag = lag timer - rate timer}, newState)
         update inputHandler updater
     (_, Right _) -> return ()

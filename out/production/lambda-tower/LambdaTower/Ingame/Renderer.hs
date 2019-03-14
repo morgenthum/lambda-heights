@@ -1,5 +1,6 @@
 module LambdaTower.Ingame.Renderer (
-  renderer
+  renderer,
+  replayRenderer
 ) where
 
 import Data.Text
@@ -27,24 +28,24 @@ playerColor = SDL.V4 135 31 120 255
 layerColor  = SDL.V4 31 135 120 255
 textColor   = SDL.V4 0 191 255 255
 
+replayRenderer :: Graphics -> Renderer IO (State, [State])
+replayRenderer graphics (state, _) = renderer graphics state
+
 renderer :: Graphics -> Renderer IO State
 renderer (window, renderer, font) state = do
-
   SDL.rendererDrawColor renderer SDL.$= bgColor
   SDL.clear renderer
 
   windowSize <- SDL.get $ SDL.windowSize window
-  mapM_ (renderLayer renderer windowSize $ view state) $ layers state
-  renderPlayer renderer windowSize (view state) (player state)
+  mapM_ (renderLayer renderer windowSize $ view . gameState $ state) $ layers . gameState $ state
+  renderPlayer renderer windowSize (view . gameState $ state) (player . gameState $ state)
   renderHUD renderer font state
 
   SDL.present renderer
 
-
 renderHUD :: SDL.Renderer -> SDLF.Font -> State -> IO ()
 renderHUD renderer font state = do
-
-  let (SDL.V2 velX velY) = P.velocity . player $ state
+  let (velX, velY) = P.velocity . player . gameState $ state
 
   renderText renderer font (SDL.V2 20 20) whiteColor "velocity"
   renderText renderer font (SDL.V2 100 20) textColor (show . round $ velX)
@@ -60,28 +61,24 @@ renderHUD renderer font state = do
   renderText renderer font (SDL.V2 150 40) textColor (show millis)
 
   renderText renderer font (SDL.V2 20 60) whiteColor "score"
-  renderText renderer font (SDL.V2 100 60) textColor (show $ P.score . player $ state)
-
+  renderText renderer font (SDL.V2 100 60) textColor (show $ P.score . player . gameState $ state)
 
 renderText :: SDL.Renderer -> SDLF.Font -> SDL.V2 CInt -> SDLF.Color -> String -> IO ()
 renderText renderer font position color text = do
+  surface <- SDLF.blended font color (pack text)
+  texture <- SDL.createTextureFromSurface renderer surface
+  SDL.freeSurface surface
 
-    surface <- SDLF.blended font color (pack text)
-    texture <- SDL.createTextureFromSurface renderer surface
-    SDL.freeSurface surface
+  textureInfo <- SDL.queryTexture texture
+  let w = SDL.textureWidth textureInfo
+  let h = SDL.textureHeight textureInfo
 
-    textureInfo <- SDL.queryTexture texture
-    let w = SDL.textureWidth textureInfo
-    let h = SDL.textureHeight textureInfo
+  SDL.copy renderer texture Nothing (Just $ SDL.Rectangle (SDL.P position) (SDL.V2 w h))
 
-    SDL.copy renderer texture Nothing (Just $ SDL.Rectangle (SDL.P position) (SDL.V2 w h))
-
-    SDL.destroyTexture texture
-
+  SDL.destroyTexture texture
 
 renderPlayer :: SDL.Renderer -> SDL.V2 CInt -> View -> P.Player -> IO ()
 renderPlayer renderer windowSize view player = do
-
   let (SDL.V2 w h) = translateSize view windowSize (P.size player)
   let (SDL.V2 x y) = translatePosition view windowSize (P.position player)
 
@@ -90,24 +87,21 @@ renderPlayer renderer windowSize view player = do
   SDL.rendererDrawColor renderer SDL.$= playerColor
   SDL.fillRect renderer (Just $ SDL.Rectangle position (SDL.V2 w h))
 
-
 renderLayer :: SDL.Renderer -> SDL.V2 CInt -> View -> L.Layer -> IO ()
 renderLayer renderer windowSize view layer = do
-
   let size = translateSize view windowSize (L.size layer)
   let position = translatePosition view windowSize (L.position layer)
 
   SDL.rendererDrawColor renderer SDL.$= layerColor
   SDL.fillRect renderer (Just $ SDL.Rectangle (SDL.P position) size)
 
-
-translateSize :: View -> SDL.V2 CInt -> SDL.V2 Float -> SDL.V2 CInt
-translateSize view (SDL.V2 w h) (SDL.V2 x y) = SDL.V2 (round x') (round y')
+translateSize :: View -> SDL.V2 CInt -> (Float, Float) -> SDL.V2 CInt
+translateSize view (SDL.V2 w h) (x, y) = SDL.V2 (round x') (round y')
   where x' = x * fromIntegral w / (right view - left view)
         y' = y * fromIntegral h / (top view - bottom view)
 
-translatePosition :: View -> SDL.V2 CInt -> SDL.V2 Float -> SDL.V2 CInt
-translatePosition view (SDL.V2 w h) (SDL.V2 x y) = SDL.V2 (round x') (round y')
+translatePosition :: View -> SDL.V2 CInt -> (Float, Float) -> SDL.V2 CInt
+translatePosition view (SDL.V2 w h) (x, y) = SDL.V2 (round x') (round y')
   where x' = (* fromIntegral w) . normalize (left view, right view) $ x
         y' = (* fromIntegral h) . flipRange . normalize (bottom view, top view) $ y
 

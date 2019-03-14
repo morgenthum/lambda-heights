@@ -1,12 +1,16 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module LambdaTower.Ingame.Player where
 
-import Linear.V2
+import Codec.Serialise
+
+import GHC.Generics
 
 type Score = Int
-type Size = V2 Float
-type Position = V2 Float
-type Velocity = V2 Float
-type Acceleration = V2 Float
+type Size = (Float, Float)
+type Position = (Float, Float)
+type Velocity = (Float, Float)
+type Acceleration = (Float, Float)
 
 data Player = Player {
   score :: Score,
@@ -14,13 +18,15 @@ data Player = Player {
   position :: Position,
   velocity :: Velocity,
   acceleration :: Acceleration
-} deriving Show
+} deriving (Show, Generic)
+
+instance Serialise Player
 
 newPlayer :: Player
 newPlayer = Player {
   score = 0,
-  size = V2 40 80,
-  position = V2 500 80,
-  velocity = V2 0 0,
-  acceleration = V2 0 0
+  size = (40, 80),
+  position = (500, 80),
+  velocity = (0, 0),
+  acceleration = (0, 0)
 }
