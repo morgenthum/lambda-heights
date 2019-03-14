@@ -1,4 +1,6 @@
-module LambdaTower.Ingame.Update where
+module LambdaTower.Ingame.Update (
+  updater
+) where
 
 import Data.List
 
@@ -14,8 +16,8 @@ import qualified LambdaTower.Ingame.State as S
 deltaTime :: Float
 deltaTime = 1 / 128
 
-gameUpdater :: Updater S.State P.Score [E.PlayerEvent]
-gameUpdater _ state events = do
+updater :: Updater IO S.State P.Score [E.PlayerEvent]
+updater _ state events = do
 
   let view = updateView (S.player state) $ S.view state
   let motion = updateMotion (S.motion state) events
@@ -124,7 +126,7 @@ updateAcceleration acc vel motion =
 
 updateGroundAcceleration :: P.Acceleration -> P.Velocity -> S.Motion -> P.Acceleration
 updateGroundAcceleration (V.V2 accX _) (V.V2 velX velY) motion
-  | jump && (velX > 750 || velX < -750 || velY > 750) = V.V2 accX 250000
+  | jump && (abs velX > 750 || abs velY > 750) = V.V2 accX 250000
   | jump = V.V2 accX 125000
   | left && right = V.V2 0 (-2000)
   | left = V.V2 (-7500) (-2000)
@@ -144,7 +146,7 @@ updateAirAcceleration motion
         right = S.moveRight motion
 
 updateVelocity :: P.Velocity -> S.Motion -> P.Acceleration -> P.Velocity
-updateVelocity velocity motion = applyAcceleration (decelerate motion velocity)
+updateVelocity vel motion = applyAcceleration (decelerate motion vel)
 
 applyAcceleration :: P.Velocity -> P.Acceleration -> P.Velocity
 applyAcceleration (V.V2 x y) (V.V2 x' y') = V.V2 (x+x'*deltaTime) (y+y'*deltaTime)

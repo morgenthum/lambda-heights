@@ -9,7 +9,7 @@ import qualified SDL
 import LambdaTower.Ingame.Events
 import LambdaTower.Loop
 
-keyInputHandler :: InputHandler [PlayerEvent]
+keyInputHandler :: InputHandler IO [PlayerEvent]
 keyInputHandler = mapMaybe eventToPlayerEvent <$> SDL.pollEvents
 
 eventToPlayerEvent :: SDL.Event -> Maybe PlayerEvent

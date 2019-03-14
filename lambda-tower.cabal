@@ -43,6 +43,7 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , io-streams >= 1.5.1.0
     , linear >= 1.20.8
     , mtl >= 2.2.2
     , sdl2 >= 2.4.1.0

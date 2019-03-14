@@ -27,7 +27,7 @@ playerColor = SDL.V4 135 31 120 255
 layerColor  = SDL.V4 31 135 120 255
 textColor   = SDL.V4 0 191 255 255
 
-renderer :: Graphics -> Renderer State
+renderer :: Graphics -> Renderer IO State
 renderer (window, renderer, font) state = do
 
   SDL.rendererDrawColor renderer SDL.$= bgColor

@@ -18,7 +18,7 @@ startGame = do
   timer <- newTimer 7
 
   let begin = current timer
-  let loop = timedLoop keyInputHandler gameUpdater (renderer graphics)
+  let loop = timedLoop keyInputHandler updater (renderer graphics)
   score <- startLoop timer (newState begin) loop
 
   deleteGraphics graphics

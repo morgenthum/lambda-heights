@@ -18,7 +18,6 @@ windowSettings = SDL.defaultWindow {
 
 newGraphics :: String -> String -> Int -> IO Graphics
 newGraphics windowTitle fontName fontSize = do
-
   SDL.initializeAll
   SDLF.initialize
 
@@ -31,7 +30,6 @@ newGraphics windowTitle fontName fontSize = do
 
 deleteGraphics :: Graphics -> IO ()
 deleteGraphics (window, renderer, font) = do
-
   SDLF.free font
 
   SDL.destroyRenderer renderer

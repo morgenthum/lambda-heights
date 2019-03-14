@@ -13,14 +13,11 @@ import qualified SDL
 
 startGame :: IO ()
 startGame = do
-
   graphics <- newGraphics "LambdaTower" "HighSchoolUSASans.ttf" 14
   timer <- newTimer 7
 
   let begin = current timer
-  let loop = timedLoop keyInputHandler gameUpdater (renderer graphics)
-  score <- startLoop timer (newState begin) loop
+  let loop = timedLoop keyInputHandler updater (renderer graphics)
+  print <$> startLoop timer (newState begin) loop
 
   deleteGraphics graphics
-
-  print score
