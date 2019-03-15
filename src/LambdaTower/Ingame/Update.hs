@@ -3,6 +3,7 @@ module LambdaTower.Ingame.Update (
   updater
 ) where
 
+import Control.Monad.State
 import Control.Monad.STM
 import Control.Concurrent.STM.TChan
 
@@ -16,51 +17,78 @@ import qualified LambdaTower.Ingame.Layer as L
 import qualified LambdaTower.Ingame.Player as P
 import qualified LambdaTower.Ingame.State as S
 
+type GameStateUpdate a = StateT S.GameState IO a
+
 deltaTime :: Float
 deltaTime = 1 / 128
+
+-- Updating the replays need no calculations because we already have all states.
+-- We need two steps:
+-- a) Return the front state of the list and remove it for the next cycle.
+-- b) Return the score if the replay is done.
 
 replayUpdater :: Updater IO (S.GameState, [S.GameState]) P.Score ()
 replayUpdater (state, []) _ = return $ Right $ P.score . S.player $ state
 replayUpdater (_, state:states) _ = return $ Left (state, states)
 
+
+-- Control flow over one update cycle.
+
 updater :: TChan (Maybe S.GameState) -> Updater IO S.GameState P.Score [E.PlayerEvent]
-updater channel state events = do
-  atomically $ writeTChan channel $ Just state
-  let view = updateView (S.player state) $ S.view state
-  let motion = updateMotion (S.motion state) events
-  let layers = updateLayers view $ S.layers state
-  let player = updatePlayer view motion layers $ S.player state
-  if playerDead view player
-  then do
-    atomically $ writeTChan channel Nothing
-    return $ Right (P.score player)
-  else return $ Left
-    state {
-      S.view = view,
-      S.motion = motion {
-        S.jump = False,
-        S.air = playerInAir player layers },
-      S.player = player,
-      S.layers = layers
+updater channel state events = evalStateT go state
+  where go = do updateViewM
+                updateMotionM events
+                updateLayersM
+                updatePlayerM
+                resetMotionM
+                writeGameStateM channel
+                returnStateM
+
+updateViewM :: GameStateUpdate ()
+updateViewM = modify f
+  where f s = s { S.view = updateView (S.player s) $ S.view s }
+
+updateMotionM :: [E.PlayerEvent] -> GameStateUpdate ()
+updateMotionM events = modify f
+  where f s = s { S.motion = updateMotion (S.motion s) events }
+
+updateLayersM :: GameStateUpdate ()
+updateLayersM = modify f
+  where f s = s { S.layers = updateLayers (S.view s) $ S.layers s }
+
+updatePlayerM :: GameStateUpdate ()
+updatePlayerM = modify f
+  where f s = s { S.player = updatePlayer (S.view s) (S.motion s) (S.layers s) $ S.player s }
+
+writeGameStateM :: TChan (Maybe S.GameState) -> GameStateUpdate ()
+writeGameStateM channel = do
+  s <- get
+  liftIO . atomically . writeTChan channel $
+    if playerDead (S.view s) (S.player s) then Nothing else Just s
+
+resetMotionM :: GameStateUpdate ()
+resetMotionM = modify f
+  where f s = s {
+    S.motion = (S.motion s) {
+      S.jump = False,
+      S.air = playerInAir (S.player s) (S.layers s)
     }
+  }
 
-
-playerDead :: S.View -> P.Player -> Bool
-playerDead view player = let (_, y) = P.position player in y < S.bottom view
+returnStateM :: GameStateUpdate (Either S.GameState P.Score)
+returnStateM = do
+  s <- get
+  return $ if playerDead (S.view s) (S.player s)
+    then Right $ P.score $ S.player s
+    else  Left s
 
 
 -- Updating the view involves two steps:
--- a) Ensure that the player is always visible within the view
--- b) Move the view upwards over time
+-- a) Move the view upwards over time.
+-- b) Ensure that the player is always visible within the view.
 
 updateView :: P.Player -> S.View -> S.View
 updateView player = scrollViewToPlayer player . scrollViewOverTime
-
-scrollView :: Float -> S.View -> S.View
-scrollView delta view = view {
-    S.top = S.top view + delta,
-    S.bottom = S.bottom view + delta
-  }
 
 scrollViewOverTime :: S.View -> S.View
 scrollViewOverTime view = if S.bottom view == 0 then view else scrollView (deltaTime*150) view
@@ -70,8 +98,14 @@ scrollViewToPlayer player view = if distance < 250 then scrollView (250-distance
   where (_, y) = P.position player
         distance = S.top view - y
 
+scrollView :: Float -> S.View -> S.View
+scrollView delta view = view {
+  S.top = S.top view + delta,
+  S.bottom = S.bottom view + delta
+}
 
--- Apply the player events to the motion
+
+-- Apply the player events to the motion.
 
 updateMotion :: S.Motion -> [E.PlayerEvent] -> S.Motion
 updateMotion = foldl applyPlayerEvents
@@ -112,8 +146,8 @@ layerPassed view layer = S.bottom view > L.posY layer
 
 
 -- Updating the player involves two steps:
--- a) Update the motion of the player
--- b) Apply collision detection and corrections
+-- a) Update the motion of the player.
+-- b) Apply collision detection and corrections.
 
 updatePlayer :: S.View -> S.Motion -> [L.Layer] -> P.Player -> P.Player
 updatePlayer view motion layers = correctPlayerPosition view layers . updatePlayerMotion motion
@@ -191,6 +225,9 @@ correctPlayerPositionY layers player
       [] -> player
       layer:_ -> resetVelocityY . updateScore layer . liftPlayerOnLayer layer $ player
   | otherwise = player
+
+playerDead :: S.View -> P.Player -> Bool
+playerDead view player = let (_, y) = P.position player in y < S.bottom view
 
 playerFalling :: P.Player -> Bool
 playerFalling player = let (_, y) = P.velocity player in y < 0

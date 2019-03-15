@@ -42,10 +42,10 @@ timedLoop :: (MonadIO m) => InputHandler m e -> Updater m s r e -> Renderer m s 
 timedLoop inputHandler updater renderer = do
   updateTimer
   update inputHandler updater
-  state <- gets snd
-  case state of
-    Left state' -> do
-      lift $ renderer state'
+  eitherState <- gets snd
+  case eitherState of
+    Left state -> do
+      lift $ renderer state
       timedLoop inputHandler updater renderer
     Right result -> return ()
 

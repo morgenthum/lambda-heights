@@ -19,7 +19,7 @@ import LambdaTower.Recorder
 
 import qualified SDL
 
-data State = Menu | Ingame | Replay | Exit
+data State = Exit | Menu | Ingame | Replay
 
 defaultReplayFilePath = "replay.dat"
 
@@ -35,12 +35,12 @@ startState graphics Ingame = startGame defaultReplayFilePath graphics >>= startS
 startState graphics Replay = startReplay defaultReplayFilePath graphics >>= startState graphics
 
 startGame :: FilePath -> Graphics -> IO State
-startGame demoFilePath graphics = do
+startGame replayFilePath graphics = do
   timer <- newTimer 7
   channel <- newTChanIO
 
-  safeDeleteFile demoFilePath
-  handle <- async $ serializeGameStates demoFilePath channel
+  safeDeleteFile replayFilePath
+  handle <- async $ serializeGameStates replayFilePath channel
 
   let begin = current timer
   let loop = timedLoop keyInputHandler (updater channel) (renderer graphics)
@@ -50,9 +50,9 @@ startGame demoFilePath graphics = do
   return Replay
 
 startReplay :: FilePath -> Graphics -> IO State
-startReplay demoFilePath graphics = do
+startReplay replayFilePath graphics = do
   timer <- newTimer 7
-  state:states <- deserializeGameStates demoFilePath
+  state:states <- deserializeGameStates replayFilePath
 
   let loop = timedLoop dummyInputHandler replayUpdater (replayRenderer graphics)
   startLoop timer (state, states) loop >>= print

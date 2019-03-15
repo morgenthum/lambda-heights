@@ -15,18 +15,18 @@ import LambdaTower.Ingame.State
 import qualified Data.ByteString.Lazy as BS
 import qualified Data.ByteString.Lazy.Char8 as BS8
 
-recordGameState :: FilePath -> TChan (Maybe GameState) -> IO ()
-recordGameState filePath channel = do
+serializeGameStates :: FilePath -> TChan (Maybe GameState) -> IO ()
+serializeGameStates filePath channel = do
   maybeGameState <- atomically $ readTChan channel
   case maybeGameState of
     Just gameState -> do
       BS.appendFile filePath (serialise gameState)
       BS.appendFile filePath $ BS8.pack "\n42"
-      recordGameState filePath channel
+      serializeGameStates filePath channel
     Nothing -> return ()
 
-readDemo :: FilePath -> IO [GameState]
-readDemo filePath= do
+deserializeGameStates :: FilePath -> IO [GameState]
+deserializeGameStates filePath= do
   bytes <- BS.readFile filePath
   let splitted = filter (not . null) . splitOn "\n42" $ BS8.unpack bytes
   return $ map (deserialise . BS8.pack) splitted
