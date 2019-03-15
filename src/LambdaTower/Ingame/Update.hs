@@ -1,5 +1,5 @@
 module LambdaTower.Ingame.Update (
-  replay,
+  replayUpdater,
   updater
 ) where
 
@@ -19,32 +19,29 @@ import qualified LambdaTower.Ingame.State as S
 deltaTime :: Float
 deltaTime = 1 / 128
 
-replay :: Updater IO (S.State, [S.State]) P.Score ()
-replay (state, []) _ = return $ Right $ P.score . S.player . S.gameState $ state
-replay (_, state:states) _ = return $ Left (state, states)
+replayUpdater :: Updater IO (S.GameState, [S.GameState]) P.Score ()
+replayUpdater (state, []) _ = return $ Right $ P.score . S.player $ state
+replayUpdater (_, state:states) _ = return $ Left (state, states)
 
-updater :: TChan (Maybe S.State) -> Updater IO S.State P.Score [E.PlayerEvent]
+updater :: TChan (Maybe S.GameState) -> Updater IO S.GameState P.Score [E.PlayerEvent]
 updater channel state events = do
   atomically $ writeTChan channel $ Just state
-  let gameState = S.gameState state
-  let view = updateView (S.player gameState) $ S.view gameState
-  let motion = updateMotion (S.motion gameState) events
-  let layers = updateLayers view $ S.layers gameState
-  let player = updatePlayer view motion layers $ S.player gameState
+  let view = updateView (S.player state) $ S.view state
+  let motion = updateMotion (S.motion state) events
+  let layers = updateLayers view $ S.layers state
+  let player = updatePlayer view motion layers $ S.player state
   if playerDead view player
   then do
     atomically $ writeTChan channel Nothing
     return $ Right (P.score player)
   else return $ Left
     state {
-      S.gameState = gameState {
-        S.view = view,
-        S.motion = motion {
-          S.jump = False,
-          S.air = playerInAir player layers },
-        S.player = player,
-        S.layers = layers
-      }
+      S.view = view,
+      S.motion = motion {
+        S.jump = False,
+        S.air = playerInAir player layers },
+      S.player = player,
+      S.layers = layers
     }
 
 

@@ -4,14 +4,22 @@ module LambdaTower.Ingame.State where
 
 import Codec.Serialise
 
-import Control.Concurrent.STM.TChan
-
 import Data.Word
 
 import GHC.Generics
 
 import LambdaTower.Ingame.Layer
 import LambdaTower.Ingame.Player
+
+data GameState = GameState {
+  begin :: Word32,
+  view :: View,
+  motion :: Motion,
+  player :: Player,
+  layers :: [Layer]
+} deriving (Show, Generic)
+
+instance Serialise GameState
 
 data View = View {
   top :: Float,
@@ -31,21 +39,14 @@ data Motion = Motion {
 
 instance Serialise Motion
 
-data State = State {
-  begin :: Word32,
-  gameState :: GameState
-} deriving (Show, Generic)
-
-instance Serialise State
-
-data GameState = GameState {
-  view :: View,
-  motion :: Motion,
-  player :: Player,
-  layers :: [Layer]
-} deriving (Show, Generic)
-
-instance Serialise GameState
+newGameState :: Word32 -> GameState
+newGameState begin = GameState {
+  begin = begin,
+  view = newView,
+  motion = newMotion,
+  player = newPlayer,
+  layers = []
+}
 
 newView :: View
 newView = View {
@@ -61,18 +62,4 @@ newMotion = Motion {
   moveRight = False,
   jump = False,
   air = False
-}
-
-newState :: Word32 -> State
-newState begin = State {
-  begin = begin,
-  gameState = newGameState
-}
-
-newGameState :: GameState
-newGameState = GameState {
-  view = newView,
-  motion = newMotion,
-  player = newPlayer,
-  layers = []
 }

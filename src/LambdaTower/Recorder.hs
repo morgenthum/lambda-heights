@@ -8,23 +8,30 @@ import Control.Concurrent.STM.TChan
 
 import Data.List.Split
 
+import System.Directory
+
 import LambdaTower.Ingame.State
 
 import qualified Data.ByteString.Lazy as BS
 import qualified Data.ByteString.Lazy.Char8 as BS8
 
-recordGameState :: TChan (Maybe State) -> IO ()
-recordGameState channel = do
+serializeGameStates :: FilePath -> TChan (Maybe GameState) -> IO ()
+serializeGameStates filePath channel = do
   maybeGameState <- atomically $ readTChan channel
   case maybeGameState of
     Just gameState -> do
-      BS.appendFile "serialized.demo" (serialise gameState)
-      BS.appendFile "serialized.demo" $ BS8.pack "\n42"
-      recordGameState channel
+      BS.appendFile filePath (serialise gameState)
+      BS.appendFile filePath $ BS8.pack "\n42"
+      serializeGameStates filePath channel
     Nothing -> return ()
 
-readDemo :: IO [State]
-readDemo = do
-  bytes <- BS.readFile "serialized.demo"
+deserializeGameStates :: FilePath -> IO [GameState]
+deserializeGameStates filePath= do
+  bytes <- BS.readFile filePath
   let splitted = filter (not . null) . splitOn "\n42" $ BS8.unpack bytes
   return $ map (deserialise . BS8.pack) splitted
+
+safeDeleteFile :: FilePath -> IO ()
+safeDeleteFile filePath = do
+  exist <- doesFileExist filePath
+  when exist $ removeFile filePath

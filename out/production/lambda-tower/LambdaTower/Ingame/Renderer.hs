@@ -6,10 +6,7 @@ module LambdaTower.Ingame.Renderer (
 import Data.Text
 import Foreign.C.Types
 
-import LambdaTower.Ingame.Events
-import LambdaTower.Ingame.Input
 import LambdaTower.Ingame.State
-import LambdaTower.Ingame.Update
 import LambdaTower.Graphics
 import LambdaTower.Loop
 
@@ -28,24 +25,24 @@ playerColor = SDL.V4 135 31 120 255
 layerColor  = SDL.V4 31 135 120 255
 textColor   = SDL.V4 0 191 255 255
 
-replayRenderer :: Graphics -> Renderer IO (State, [State])
+replayRenderer :: Graphics -> Renderer IO (GameState, [GameState])
 replayRenderer graphics (state, _) = renderer graphics state
 
-renderer :: Graphics -> Renderer IO State
+renderer :: Graphics -> Renderer IO GameState
 renderer (window, renderer, font) state = do
   SDL.rendererDrawColor renderer SDL.$= bgColor
   SDL.clear renderer
 
   windowSize <- SDL.get $ SDL.windowSize window
-  mapM_ (renderLayer renderer windowSize $ view . gameState $ state) $ layers . gameState $ state
-  renderPlayer renderer windowSize (view . gameState $ state) (player . gameState $ state)
+  mapM_ (renderLayer renderer windowSize $ view state) $ layers state
+  renderPlayer renderer windowSize (view state) (player state)
   renderHUD renderer font state
 
   SDL.present renderer
 
-renderHUD :: SDL.Renderer -> SDLF.Font -> State -> IO ()
+renderHUD :: SDL.Renderer -> SDLF.Font -> GameState -> IO ()
 renderHUD renderer font state = do
-  let (velX, velY) = P.velocity . player . gameState $ state
+  let (velX, velY) = P.velocity . player $ state
 
   renderText renderer font (SDL.V2 20 20) whiteColor "velocity"
   renderText renderer font (SDL.V2 100 20) textColor (show . round $ velX)
@@ -61,7 +58,7 @@ renderHUD renderer font state = do
   renderText renderer font (SDL.V2 150 40) textColor (show millis)
 
   renderText renderer font (SDL.V2 20 60) whiteColor "score"
-  renderText renderer font (SDL.V2 100 60) textColor (show $ P.score . player . gameState $ state)
+  renderText renderer font (SDL.V2 100 60) textColor (show $ P.score . player $ state)
 
 renderText :: SDL.Renderer -> SDLF.Font -> SDL.V2 CInt -> SDLF.Color -> String -> IO ()
 renderText renderer font position color text = do
@@ -81,7 +78,7 @@ renderPlayer :: SDL.Renderer -> SDL.V2 CInt -> View -> P.Player -> IO ()
 renderPlayer renderer windowSize view player = do
   let (SDL.V2 w h) = translateSize view windowSize (P.size player)
   let (SDL.V2 x y) = translatePosition view windowSize (P.position player)
-
+  
   let position = SDL.P $ SDL.V2 (fromIntegral $ x - round (realToFrac w / 2)) (fromIntegral $ y - h)
 
   SDL.rendererDrawColor renderer SDL.$= playerColor
