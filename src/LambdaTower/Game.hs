@@ -47,7 +47,7 @@ startGame replayFilePath graphics = do
   startLoop timer (newGameState begin) loop >>= print
   wait handle
 
-  return Replay
+  return Exit
 
 startReplay :: FilePath -> Graphics -> IO State
 startReplay replayFilePath graphics = do

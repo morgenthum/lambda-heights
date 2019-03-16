@@ -22,7 +22,7 @@ type GameStateUpdate a = StateT S.GameState IO a
 deltaTime :: Float
 deltaTime = 1 / 128
 
--- Updating for replays needs no calculations because we already have all states.
+-- Updating the replays need no calculations because we already have all states.
 -- We need two steps:
 -- a) Return the front state of the list and remove it for the next cycle.
 -- b) Return the score if the replay is done.

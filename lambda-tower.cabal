@@ -51,10 +51,12 @@ library
     , mtl >= 2.2.2
     , serialise >= 0.2.1.0
     , sdl2 >= 2.4.1.0
+    , sdl2-gfx >= 0.2
     , sdl2-ttf >= 2.1.0
     , split >= 0.2.3.3
     , stm >= 2.5.0.0
     , text >= 1.2.3.1
+    , vector >= 0.12.0.2
   default-language: Haskell2010
 
 executable lambda-tower-exe

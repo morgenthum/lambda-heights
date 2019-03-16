@@ -3,18 +3,40 @@ module LambdaTower.Ingame.Renderer (
   replayRenderer
 ) where
 
-import Data.Text
+import Data.Int
+
 import Foreign.C.Types
 
 import LambdaTower.Ingame.State
 import LambdaTower.Graphics
 import LambdaTower.Loop
 
+import qualified Data.Vector.Storable as V
+
 import qualified SDL
+
+import qualified Data.Text as T
+
 import qualified SDL.Font as SDLF
+import qualified SDL.Primitive as SDLP
 
 import qualified LambdaTower.Ingame.Layer as L
 import qualified LambdaTower.Ingame.Player as P
+
+type Shape = ([Float], [Float])
+type Size = (Float, Float)
+
+shapeSize :: Shape -> Size
+shapeSize shape = (maximum . shapeXs $ shape, maximum . shapeYs $ shape)
+
+shapeXs :: Shape -> [Float]
+shapeXs = fst
+
+shapeYs :: Shape -> [Float]
+shapeYs = snd
+
+playerShape :: Shape
+playerShape = ([0, 10, 40, 30, 20, 10, 0, 15], [80, 80, 0, 0, 25, 0, 0, 40])
 
 fontName = "HighSchoolUSASans.ttf"
 fontSize = 14
@@ -62,7 +84,7 @@ renderHUD renderer font state = do
 
 renderText :: SDL.Renderer -> SDLF.Font -> SDL.V2 CInt -> SDLF.Color -> String -> IO ()
 renderText renderer font position color text = do
-  surface <- SDLF.blended font color (pack text)
+  surface <- SDLF.blended font color (T.pack text)
   texture <- SDL.createTextureFromSurface renderer surface
   SDL.freeSurface surface
 
@@ -76,13 +98,34 @@ renderText renderer font position color text = do
 
 renderPlayer :: SDL.Renderer -> SDL.V2 CInt -> View -> P.Player -> IO ()
 renderPlayer renderer windowSize view player = do
-  let (SDL.V2 w h) = translateSize view windowSize (P.size player)
-  let (SDL.V2 x y) = translatePosition view windowSize (P.position player)
-  
-  let position = SDL.P $ SDL.V2 (fromIntegral $ x - round (realToFrac w / 2)) (fromIntegral $ y - h)
+  let shape = shapeByVelocity (P.velocity player) playerShape
 
-  SDL.rendererDrawColor renderer SDL.$= playerColor
-  SDL.fillRect renderer (Just $ SDL.Rectangle position (SDL.V2 w h))
+  let (x, y) = P.position player
+  let (w, h) = shapeSize shape
+
+  let xs = map ((\x -> x - (w/2)) . (+x)) $ shapeXs shape
+  let ys = map (+y) $ shapeYs shape
+
+  renderShape renderer windowSize view playerColor (xs, ys)
+
+shapeByVelocity :: P.Velocity -> Shape -> Shape
+shapeByVelocity (velX, _) shape = if velX >= 0 then shape else flipShape shape
+
+flipShape :: Shape -> Shape
+flipShape shape = (map (\x -> w - x) $ shapeXs shape, shapeYs shape)
+  where (w, _) = shapeSize shape
+
+renderShape :: SDL.Renderer -> SDL.V2 CInt -> View -> SDLP.Color -> Shape -> IO ()
+renderShape renderer (SDL.V2 winW winH) view color shape = do
+  let toVector = foldl V.snoc V.empty
+
+  let transformX = fromIntegral . translateX view winW
+  let transformY = fromIntegral . translateY view winH
+
+  let xs = toVector . map transformX $ shapeXs shape
+  let ys = toVector . map transformY $ shapeYs shape
+
+  SDLP.fillPolygon renderer xs ys color
 
 renderLayer :: SDL.Renderer -> SDL.V2 CInt -> View -> L.Layer -> IO ()
 renderLayer renderer windowSize view layer = do
@@ -98,9 +141,15 @@ translateSize view (SDL.V2 w h) (x, y) = SDL.V2 (round x') (round y')
         y' = y * fromIntegral h / (top view - bottom view)
 
 translatePosition :: View -> SDL.V2 CInt -> (Float, Float) -> SDL.V2 CInt
-translatePosition view (SDL.V2 w h) (x, y) = SDL.V2 (round x') (round y')
-  where x' = (* fromIntegral w) . normalize (left view, right view) $ x
-        y' = (* fromIntegral h) . flipRange . normalize (bottom view, top view) $ y
+translatePosition view (SDL.V2 w h) (x, y) = SDL.V2 x' y'
+  where x' = translateX view w x
+        y' = translateY view h y
+
+translateX :: (Integral a) => View -> a -> Float -> a
+translateX view w = round . (* fromIntegral w) . normalize (left view, right view)
+
+translateY :: (Integral a) => View -> a -> Float -> a
+translateY view h = round . (* fromIntegral h) . flipRange . normalize (bottom view, top view)
 
 normalize :: (Float, Float) -> Float -> Float
 normalize (min, max) x = (x - min) / (max - min)
