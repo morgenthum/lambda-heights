@@ -145,12 +145,23 @@ layerPassed :: S.View -> L.Layer -> Bool
 layerPassed view layer = S.bottom view > L.posY layer
 
 
--- Updating the player involves two steps:
+-- Updating the player involves the following steps:
 -- a) Update the motion of the player.
 -- b) Apply collision detection and corrections.
+-- c) Update the score (highest reached layer).
 
 updatePlayer :: S.View -> S.Motion -> [L.Layer] -> P.Player -> P.Player
-updatePlayer view motion layers = correctPlayerPosition view layers . updatePlayerMotion motion
+updatePlayer view motion layers =
+  updateScore layers
+  . collidePlayerWithLayers layers
+  . bouncePlayerFromBounds view
+  . updatePlayerMotion motion
+
+updateScore :: [L.Layer] -> P.Player -> P.Player
+updateScore layers player =
+  case layerCollidedWithPlayer player layers of
+    Nothing -> player
+    Just layer -> player { P.score = max (L.id layer) (P.score player) }
 
 
 -- Update the motion of the player (acceleration, velocity, position).
@@ -204,11 +215,8 @@ updatePosition = applyAcceleration
 -- Correct the position and velocity if it is colliding with a layer
 -- or the bounds of the level.
 
-correctPlayerPosition :: S.View -> [L.Layer] -> P.Player -> P.Player
-correctPlayerPosition view layers = correctPlayerPositionY layers . correctPlayerPositionX view
-
-correctPlayerPositionX :: S.View -> P.Player -> P.Player
-correctPlayerPositionX view player
+bouncePlayerFromBounds :: S.View -> P.Player -> P.Player
+bouncePlayerFromBounds view player
   | outLeft = player { P.position = (minX, posY), P.velocity = ((-velX) * 0.75, velY) }
   | outRight = player { P.position = (maxX, posY), P.velocity = ((-velX) * 0.75, velY) }
   | otherwise = player
@@ -219,12 +227,13 @@ correctPlayerPositionX view player
         outLeft = posX < minX && velX < 0
         outRight = posX > maxX && velX > 0
 
-correctPlayerPositionY :: [L.Layer] -> P.Player -> P.Player
-correctPlayerPositionY layers player
-  | playerFalling player = case playerCollidedLayers player layers of
-      [] -> player
-      layer:_ -> resetVelocityY . updateScore layer . liftPlayerOnLayer layer $ player
-  | otherwise = player
+collidePlayerWithLayers :: [L.Layer] -> P.Player -> P.Player
+collidePlayerWithLayers layers player =
+  if playerFalling player then
+    case layerCollidedWithPlayer player layers of
+      Nothing -> player
+      Just layer -> resetVelocityY . liftPlayerOnLayer layer $ player
+  else player
 
 playerDead :: S.View -> P.Player -> Bool
 playerDead view player = let (_, y) = P.position player in y < S.bottom view
@@ -232,8 +241,11 @@ playerDead view player = let (_, y) = P.position player in y < S.bottom view
 playerFalling :: P.Player -> Bool
 playerFalling player = let (_, y) = P.velocity player in y < 0
 
-playerCollidedLayers :: P.Player -> [L.Layer] -> [L.Layer]
-playerCollidedLayers player = filter (positionInLayer $ P.position player)
+layerCollidedWithPlayer :: P.Player -> [L.Layer] -> Maybe L.Layer
+layerCollidedWithPlayer player layers =
+  case filter (positionInLayer $ P.position player) layers of
+    [] -> Nothing
+    layer:_ -> Just layer
 
 positionInLayer :: P.Position -> L.Layer -> Bool
 positionInLayer (x, y) layer = x >= lx && x <= lx + lw && y <= ly && y >= ly - lh
@@ -244,12 +256,9 @@ liftPlayerOnLayer :: L.Layer -> P.Player -> P.Player
 liftPlayerOnLayer layer player = player { P.position = (posX, L.posY layer) }
   where (posX, _) = P.position player
 
-updateScore :: L.Layer -> P.Player -> P.Player
-updateScore layer player = player { P.score = max (L.id layer) (P.score player) }
-
 resetVelocityY :: P.Player -> P.Player
 resetVelocityY player = player { P.velocity = (velX, 0) }
   where (velX, _) = P.velocity player
 
 playerInAir :: P.Player -> [L.Layer] -> Bool
-playerInAir player = null . playerCollidedLayers player
+playerInAir player = null . layerCollidedWithPlayer player
