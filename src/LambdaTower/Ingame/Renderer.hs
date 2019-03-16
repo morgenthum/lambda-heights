@@ -133,7 +133,7 @@ renderLayer renderer windowSize view layer = do
   let position = translatePosition view windowSize (L.position layer)
 
   SDL.rendererDrawColor renderer SDL.$= layerColor
-  SDL.fillRect renderer (Just $ SDL.Rectangle (SDL.P position) size)
+  SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P position) size
 
 translateSize :: View -> SDL.V2 CInt -> (Float, Float) -> SDL.V2 CInt
 translateSize view (SDL.V2 w h) (x, y) = SDL.V2 (round x') (round y')
