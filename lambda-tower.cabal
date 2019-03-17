@@ -28,16 +28,23 @@ source-repository head
 library
   exposed-modules:
       LambdaTower.Ingame.Events
+    , LambdaTower.Ingame.GameState
     , LambdaTower.Ingame.Input
     , LambdaTower.Ingame.Layer
     , LambdaTower.Ingame.Player
-    , LambdaTower.Ingame.Renderer
-    , LambdaTower.Ingame.State
+    , LambdaTower.Ingame.Render
     , LambdaTower.Ingame.Update
+    , LambdaTower.Menu.Events
+    , LambdaTower.Menu.Input
+    , LambdaTower.Menu.MenuState
+    , LambdaTower.Menu.Render
+    , LambdaTower.Menu.Update
     , LambdaTower.Game
     , LambdaTower.Graphics
     , LambdaTower.Loop
     , LambdaTower.Recorder
+    , LambdaTower.Screen
+    , LambdaTower.State
   other-modules:
       Paths_lambda_tower
   hs-source-dirs:

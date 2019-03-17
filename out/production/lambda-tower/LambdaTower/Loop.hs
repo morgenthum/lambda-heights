@@ -20,15 +20,18 @@ type TimedState s r = (LoopTimer, Either s r)
 type LoopState m s r = StateT (TimedState s r) m ()
 
 type InputHandler m e = m e
-type Updater m s r e = s -> e -> m (Either s r)
+type Updater m s r e = e -> s -> m (Either s r)
 type Renderer m s =  s -> m ()
 
+defaultTimer :: IO LoopTimer
+defaultTimer = newTimer 7
+
 newTimer :: Word32 -> IO LoopTimer
-newTimer rate = do
-  current <- fromIntegral <$> SDL.ticks :: IO Word32
+newTimer timerRate = do
+  millis <- fromIntegral <$> SDL.ticks :: IO Word32
   return $ LoopTimer {
-    rate = rate,
-    current = current,
+    rate = timerRate,
+    current = millis,
     elapsed = 0,
     lag = 0
   }
@@ -39,31 +42,31 @@ startLoop timer state loop = do
   return r
 
 timedLoop :: (MonadIO m) => InputHandler m e -> Updater m s r e -> Renderer m s -> LoopState m s r
-timedLoop inputHandler updater renderer = do
+timedLoop handleInput update render = do
   updateTimer
-  update inputHandler updater
+  inputAndUpdate handleInput update
   eitherState <- gets snd
   case eitherState of
     Left state -> do
-      lift $ renderer state
-      timedLoop inputHandler updater renderer
-    Right result -> return ()
+      lift $ render state
+      timedLoop handleInput update render
+    Right _ -> return ()
 
 updateTimer :: (MonadIO m) => LoopState m s r
 updateTimer = do
   (timer, state) <- get
   newCurrent <- fromIntegral <$> SDL.ticks
-  let elapsed = newCurrent - current timer
-  put (timer { current = newCurrent, elapsed = elapsed, lag = lag timer + elapsed }, state)
+  let millis = newCurrent - current timer
+  put (timer { current = newCurrent, elapsed = millis, lag = lag timer + millis }, state)
 
-update :: (MonadIO m) => InputHandler m e -> Updater m s r e -> LoopState m s r
-update inputHandler updater = do
+inputAndUpdate :: (MonadIO m) => InputHandler m e -> Updater m s r e -> LoopState m s r
+inputAndUpdate handleInput update = do
   timedState <- get
   case timedState of
     (timer, Left state) ->
       when (lag timer > rate timer) $ do
-        events <- lift inputHandler
-        newState <- lift $ updater state events
+        events <- lift handleInput
+        newState <- lift $ update events state
         put (timer { lag = lag timer - rate timer}, newState)
-        update inputHandler updater
+        inputAndUpdate handleInput update
     (_, Right _) -> return ()

@@ -1,6 +1,6 @@
 module LambdaTower.Ingame.Input (
-  dummyInputHandler,
-  keyInputHandler
+  dummyHandleInput,
+  handleKeyInput
 ) where
 
 import Data.Maybe
@@ -10,11 +10,11 @@ import qualified SDL
 import LambdaTower.Ingame.Events
 import LambdaTower.Loop
 
-dummyInputHandler :: InputHandler IO ()
-dummyInputHandler = return ()
+dummyHandleInput :: a -> InputHandler IO a
+dummyHandleInput x = SDL.pollEvents >> return x
 
-keyInputHandler :: InputHandler IO [PlayerEvent]
-keyInputHandler = mapMaybe eventToPlayerEvent <$> SDL.pollEvents
+handleKeyInput :: InputHandler IO [PlayerEvent]
+handleKeyInput = mapMaybe eventToPlayerEvent <$> SDL.pollEvents
 
 eventToPlayerEvent :: SDL.Event -> Maybe PlayerEvent
 eventToPlayerEvent event =
@@ -27,7 +27,11 @@ eventToPlayerEvent event =
 keyToPlayerEvent :: SDL.Keycode -> SDL.InputMotion -> Maybe PlayerEvent
 keyToPlayerEvent SDL.KeycodeA     SDL.Pressed  = Just $ PlayerMoved MoveLeft True
 keyToPlayerEvent SDL.KeycodeA     SDL.Released = Just $ PlayerMoved MoveLeft False
+keyToPlayerEvent SDL.KeycodeLeft  SDL.Pressed  = Just $ PlayerMoved MoveLeft True
+keyToPlayerEvent SDL.KeycodeLeft  SDL.Released = Just $ PlayerMoved MoveLeft False
 keyToPlayerEvent SDL.KeycodeD     SDL.Pressed  = Just $ PlayerMoved MoveRight True
 keyToPlayerEvent SDL.KeycodeD     SDL.Released = Just $ PlayerMoved MoveRight False
+keyToPlayerEvent SDL.KeycodeRight SDL.Pressed  = Just $ PlayerMoved MoveRight True
+keyToPlayerEvent SDL.KeycodeRight SDL.Released = Just $ PlayerMoved MoveRight False
 keyToPlayerEvent SDL.KeycodeSpace SDL.Pressed  = Just PlayerJumped
 keyToPlayerEvent _                _            = Nothing

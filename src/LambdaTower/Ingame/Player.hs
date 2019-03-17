@@ -1,13 +1,21 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module LambdaTower.Ingame.Player where
+module LambdaTower.Ingame.Player (
+  LambdaTower.Screen.Position,
+  Score,
+  Velocity,
+  Acceleration,
+  Player(..),
+  newPlayer
+) where
 
 import Codec.Serialise
 
 import GHC.Generics
 
+import LambdaTower.Screen
+
 type Score = Int
-type Position = (Float, Float)
 type Velocity = (Float, Float)
 type Acceleration = (Float, Float)
 

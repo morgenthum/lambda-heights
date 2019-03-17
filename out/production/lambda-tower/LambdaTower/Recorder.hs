@@ -10,7 +10,7 @@ import Data.List.Split
 
 import System.Directory
 
-import LambdaTower.Ingame.State
+import LambdaTower.Ingame.GameState
 
 import qualified Data.ByteString.Lazy as BS
 import qualified Data.ByteString.Lazy.Char8 as BS8
