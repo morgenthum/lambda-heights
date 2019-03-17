@@ -5,10 +5,6 @@ module LambdaTower.Game (
 import Control.Concurrent.Async
 import Control.Concurrent.STM.TChan
 
-import Control.Monad
-
-import System.Directory
-
 import LambdaTower.Ingame.Input
 import LambdaTower.Ingame.Renderer
 import LambdaTower.Ingame.State
@@ -17,16 +13,15 @@ import LambdaTower.Graphics
 import LambdaTower.Loop
 import LambdaTower.Recorder
 
-import qualified SDL
+data State = Exit | Ingame | Replay
 
-data State = Exit | Menu | Ingame | Replay
-
+defaultReplayFilePath :: String
 defaultReplayFilePath = "replay.dat"
 
 start :: IO ()
 start = do
   graphics <- newGraphics "LambdaTower" "HighSchoolUSASans.ttf" 14
-  startState graphics Ingame
+  _ <- startState graphics Ingame
   deleteGraphics graphics
 
 startState :: Graphics -> State -> IO State
