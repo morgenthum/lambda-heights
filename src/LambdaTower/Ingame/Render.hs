@@ -63,6 +63,9 @@ shapeYs = snd
 playerShape :: Shape
 playerShape = ([0, 10, 40, 30, 20, 10, 0, 15], [80, 80, 0, 0, 25, 0, 0, 40])
 
+afterburnerShape :: Shape
+afterburnerShape = ([0, 10, 25, 10, 0, 15], [80, 80, 40, 0, 0, 40])
+
 renderReplay :: Graphics -> RenderConfig -> Renderer IO ([E.PlayerEvent], [[E.PlayerEvent]], G.GameState)
 renderReplay graphics config (_, _, state) = render graphics config state
 
@@ -75,6 +78,7 @@ render (window, renderer) config state = do
 
   mapM_ (renderLayer renderer config windowSize $ G.view state) $ G.layers state
   renderPlayer renderer config windowSize (G.view state) (G.player state)
+  renderPlayerAfterburner renderer config windowSize (G.view state) (G.player state)
   renderHUD renderer config state
 
   SDL.present renderer
@@ -102,7 +106,8 @@ renderHUD renderer config state = do
 
 renderPlayer :: SDL.Renderer -> RenderConfig -> SDL.V2 CInt -> S.Screen -> P.Player -> IO ()
 renderPlayer renderer config windowSize view player = do
-  let shape = shapeByVelocity (P.velocity player) playerShape
+  let (velX, velY) = P.velocity player
+  let shape = if velX >= 0 then playerShape else flipShape playerShape
 
   let (posX, posY) = P.position player
   let (w, _) = shapeSize shape
@@ -112,8 +117,22 @@ renderPlayer renderer config windowSize view player = do
 
   renderShape renderer windowSize view (playerColor config) (xs, ys)
 
-shapeByVelocity :: P.Velocity -> Shape -> Shape
-shapeByVelocity (velX, _) shape = if velX >= 0 then shape else flipShape shape
+renderPlayerAfterburner :: SDL.Renderer -> RenderConfig -> SDL.V2 CInt -> S.Screen -> P.Player -> IO ()
+renderPlayerAfterburner renderer config windowSize view player = do
+  let (velX, velY) = P.velocity player
+  let shape = if velX >= 0 then afterburnerShape else flipShape afterburnerShape
+  let offX = if velX >= 0 then -20 else 20
+
+  let (posX, posY) = P.position player
+  let (w, _) = shapeSize shape
+
+  let xs = map ((\x -> x - w / 2) . (+(posX+offX))) $ shapeXs shape
+  let ys = map (+posY) $ shapeYs shape
+
+  let SDL.V4 r g b _ = playerColor config
+
+  let alpha = round $ if abs velX > 1500 then 255 else abs velX / 1500 * 255
+  renderShape renderer windowSize view (SDL.V4 r g b alpha) (xs, ys)
 
 flipShape :: Shape -> Shape
 flipShape shape = (map (\x -> w - x) $ shapeXs shape, shapeYs shape)
