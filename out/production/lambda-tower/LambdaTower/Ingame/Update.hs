@@ -91,7 +91,9 @@ updateView :: P.Player -> G.View -> G.View
 updateView player = scrollViewToPlayer player . scrollViewOverTime
 
 scrollViewOverTime :: G.View -> G.View
-scrollViewOverTime view = if G.bottom view == 0 then view else scrollView (deltaTime*150) view
+scrollViewOverTime view = if height == 0 then view else scrollView (deltaTime*factor) view
+  where height = G.bottom view
+        factor = min 400 (100+height/100)
 
 scrollViewToPlayer :: P.Player -> G.View -> G.View
 scrollViewToPlayer player view = if distance < 250 then scrollView (250-distance) view else view

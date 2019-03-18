@@ -4,8 +4,6 @@ import Data.Word
 
 import qualified Data.Text as T
 
-import Foreign.C.Types
-
 import qualified SDL
 import qualified SDL.Font as SDLF
 
@@ -48,7 +46,7 @@ render (window, renderer) config state = do
 
   SDL.present renderer
 
-renderButton :: SDL.Renderer -> RenderConfig -> SDL.V2 CInt -> S.View -> Int -> M.Button -> IO ()
+renderButton :: SDL.Renderer -> RenderConfig -> S.WindowSize -> S.View -> Int -> M.Button -> IO ()
 renderButton renderer config windowSize view selectedId button = do
   let buttonFont = font config
 

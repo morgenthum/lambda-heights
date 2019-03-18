@@ -7,7 +7,6 @@ module LambdaTower.Ingame.Render (
 
 import Data.Word
 
-import qualified Data.Text as T
 import qualified Data.Vector.Storable as V
 
 import Foreign.C.Types
@@ -22,7 +21,7 @@ import LambdaTower.Loop
 import qualified LambdaTower.Ingame.Layer as L
 import qualified LambdaTower.Ingame.GameState as G
 import qualified LambdaTower.Ingame.Player as P
-import qualified LambdaTower.Screen as G
+import qualified LambdaTower.Screen as S
 
 data RenderConfig = RenderConfig {
   font :: SDLF.Font,
@@ -100,7 +99,7 @@ renderHUD renderer config state = do
   renderText renderer textFont (SDL.V2 20 60) (whiteColor config) "score"
   renderText renderer textFont (SDL.V2 100 60) (textColor config) (show $ P.score . G.player $ state)
 
-renderPlayer :: SDL.Renderer -> RenderConfig -> SDL.V2 CInt -> G.View -> P.Player -> IO ()
+renderPlayer :: SDL.Renderer -> RenderConfig -> SDL.V2 CInt -> S.View -> P.Player -> IO ()
 renderPlayer renderer config windowSize view player = do
   let shape = shapeByVelocity (P.velocity player) playerShape
 
@@ -119,22 +118,22 @@ flipShape :: Shape -> Shape
 flipShape shape = (map (\x -> w - x) $ shapeXs shape, shapeYs shape)
   where (w, _) = shapeSize shape
 
-renderShape :: SDL.Renderer -> SDL.V2 CInt -> G.View -> SDLP.Color -> Shape -> IO ()
-renderShape renderer (SDL.V2 winW winH) view color shape = do
+renderShape :: SDL.Renderer -> S.WindowSize -> S.View -> SDLP.Color -> Shape -> IO ()
+renderShape renderer (SDL.V2 w h) view color shape = do
   let toVector = foldl V.snoc V.empty
 
-  let transformX = fromIntegral . G.translateX view winW
-  let transformY = fromIntegral . G.translateY view winH
+  let transformX = fromIntegral . S.translateX view w
+  let transformY = fromIntegral . S.translateY view h
 
   let xs = toVector . map transformX $ shapeXs shape
   let ys = toVector . map transformY $ shapeYs shape
 
   SDLP.fillPolygon renderer xs ys color
 
-renderLayer :: SDL.Renderer -> RenderConfig -> SDL.V2 CInt -> G.View -> L.Layer -> IO ()
+renderLayer :: SDL.Renderer -> RenderConfig -> S.WindowSize -> S.View -> L.Layer -> IO ()
 renderLayer renderer config windowSize view layer = do
-  let size = G.translateSize view windowSize (L.size layer)
-  let position = G.translatePosition view windowSize (L.position layer)
+  let size = S.translateSize view windowSize (L.size layer)
+  let position = S.translatePosition view windowSize (L.position layer)
 
   SDL.rendererDrawColor renderer SDL.$= layerColor config
   SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P position) size

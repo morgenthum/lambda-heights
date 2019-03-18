@@ -10,26 +10,28 @@ import Data.List.Split
 
 import System.Directory
 
-import LambdaTower.Ingame.GameState
-
 import qualified Data.ByteString.Lazy as BS
 import qualified Data.ByteString.Lazy.Char8 as BS8
 
-serializeGameStates :: FilePath -> TChan (Maybe GameState) -> IO ()
-serializeGameStates filePath channel = do
+serializeFromTChanToFile :: (Serialise a) => FilePath -> TChan (Maybe a) -> IO ()
+serializeFromTChanToFile filePath channel = do
   maybeGameState <- atomically $ readTChan channel
   case maybeGameState of
     Just gameState -> do
       BS.appendFile filePath (serialise gameState)
       BS.appendFile filePath $ BS8.pack "\n42"
-      serializeGameStates filePath channel
+      serializeFromTChanToFile filePath channel
     Nothing -> return ()
 
-deserializeGameStates :: FilePath -> IO [GameState]
-deserializeGameStates filePath= do
-  bytes <- BS.readFile filePath
-  let splitted = filter (not . null) . splitOn "\n42" $ BS8.unpack bytes
-  return $ map (deserialise . BS8.pack) splitted
+deserializeFromFile :: (Serialise a) => FilePath -> IO (Maybe [a])
+deserializeFromFile filePath= do
+  exist <- doesFileExist filePath
+  if exist
+  then do
+    bytes <- BS.readFile filePath
+    let splitted = filter (not . null) . splitOn "\n42" $ BS8.unpack bytes
+    return . Just $ map (deserialise . BS8.pack) splitted
+  else return Nothing
 
 safeDeleteFile :: FilePath -> IO ()
 safeDeleteFile filePath = do
