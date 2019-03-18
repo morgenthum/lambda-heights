@@ -39,6 +39,7 @@ render (window, renderer) config state = do
   SDL.clear renderer
 
   windowSize <- SDL.get $ SDL.windowSize window
+
   let view = M.screen state
   let selectedId = M.selected state
 

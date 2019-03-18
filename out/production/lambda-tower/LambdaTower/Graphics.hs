@@ -5,9 +5,9 @@ module LambdaTower.Graphics (
   renderText
 ) where
 
-import Foreign.C.Types
-
 import qualified Data.Text as T
+
+import Foreign.C.Types
 
 import qualified SDL
 import qualified SDL.Font as SDLF

@@ -70,13 +70,13 @@ startReplay replayFilePath graphics = do
   case maybeStates of
     Nothing -> return Menu
     Just [] -> return Menu
-    Just (e:es) -> do
+    Just events -> do
       timer <- defaultTimer
       config <- I.defaultConfig
 
       let millis = current timer
       let loop = timedLoop (I.dummyHandleInput ()) I.replayUpdate (I.renderReplay graphics config)
-      _ <- startLoop timer (e, es, I.newGameState millis) loop
+      _ <- startLoop timer (events, I.newGameState millis) loop
 
       I.deleteConfig config
       return Menu

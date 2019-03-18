@@ -8,12 +8,12 @@ import GHC.Generics
 
 data Direction = MoveLeft
                | MoveRight
-               deriving (Show, Generic)
+               deriving (Generic)
 
 instance Serialise Direction
 
 data PlayerEvent = PlayerMoved Direction Bool
                  | PlayerJumped
-                 deriving (Show, Generic)
+                 deriving (Generic)
 
 instance Serialise PlayerEvent

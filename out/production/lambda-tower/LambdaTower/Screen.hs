@@ -1,10 +1,6 @@
-{-# LANGUAGE DeriveGeneric #-}
-
 module LambdaTower.Screen where
 
-import Codec.Serialise
 import Foreign.C.Types
-import GHC.Generics
 
 import qualified SDL
 
@@ -19,9 +15,7 @@ data Screen = Screen {
   left :: Float,
   bottom :: Float,
   right :: Float
-} deriving (Show, Generic)
-
-instance Serialise Screen
+}
 
 newScreen :: Screen
 newScreen = Screen {
@@ -32,20 +26,20 @@ newScreen = Screen {
 }
 
 toWindowSize :: Screen -> WindowSize -> Size -> WindowSize
-toWindowSize view (SDL.V2 w h) (x, y) = SDL.V2 (round x') (round y')
-  where x' = x * fromIntegral w / (right view - left view)
-        y' = y * fromIntegral h / (top view - bottom view)
+toWindowSize screen (SDL.V2 w h) (x, y) = SDL.V2 (round x') (round y')
+  where x' = x * fromIntegral w / (right screen - left screen)
+        y' = y * fromIntegral h / (top screen - bottom screen)
 
 toWindowPosition :: Screen -> WindowSize -> Position -> WindowPosition
-toWindowPosition view (SDL.V2 w h) (x, y) = SDL.V2 x' y'
-  where x' = translateX view w x
-        y' = translateY view h y
+toWindowPosition screen (SDL.V2 w h) (x, y) = SDL.V2 x' y'
+  where x' = translateX screen w x
+        y' = translateY screen h y
 
 translateX :: (Integral a) => Screen -> a -> Float -> a
-translateX view w = round . (* fromIntegral w) . normalize (left view, right view)
+translateX screen w = round . (* fromIntegral w) . normalize (left screen, right screen)
 
 translateY :: (Integral a) => Screen -> a -> Float -> a
-translateY view h = round . (* fromIntegral h) . flipRange . normalize (bottom view, top view)
+translateY screen h = round . (* fromIntegral h) . flipRange . normalize (bottom screen, top screen)
 
 normalize :: (Fractional a) => (a, a) -> a -> a
 normalize (minRange, maxRange) x = (x - minRange) / (maxRange - minRange)

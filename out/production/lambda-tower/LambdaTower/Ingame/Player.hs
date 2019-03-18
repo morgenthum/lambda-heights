@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-
 module LambdaTower.Ingame.Player (
   LambdaTower.Screen.Position,
   Score,
@@ -8,10 +6,6 @@ module LambdaTower.Ingame.Player (
   Player(..),
   newPlayer
 ) where
-
-import Codec.Serialise
-
-import GHC.Generics
 
 import LambdaTower.Screen
 
@@ -24,9 +18,7 @@ data Player = Player {
   position :: Position,
   velocity :: Velocity,
   acceleration :: Acceleration
-} deriving (Show, Generic)
-
-instance Serialise Player
+}
 
 newPlayer :: Player
 newPlayer = Player {

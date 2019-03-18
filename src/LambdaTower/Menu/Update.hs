@@ -1,4 +1,6 @@
-module LambdaTower.Menu.Update where
+module LambdaTower.Menu.Update (
+  update
+) where
 
 import LambdaTower.Loop
 
@@ -8,7 +10,7 @@ import qualified LambdaTower.State as S
 
 update :: Updater IO M.MenuState S.State [E.KeyEvent]
 update events state = do
-  let newState = applyEvents state events
+  let newState = ensureValidIndex . applyEvents state $ events
   return $
     if M.action newState
       then Right $ stateByButton . selectedButton $ newState
@@ -18,14 +20,17 @@ applyEvents :: M.MenuState -> [E.KeyEvent] -> M.MenuState
 applyEvents = foldl applyEvent
 
 applyEvent :: M.MenuState -> E.KeyEvent -> M.MenuState
-applyEvent state E.Up = state { M.selected = selectedId' }
-  where selectedId = M.selected state
-        selectedId' = if selectedId > 0 then selectedId - 1 else selectedId
-applyEvent state E.Down = state { M.selected = selectedId' }
-  where selectedId = M.selected state
-        buttonCount = length $ M.buttons state
-        selectedId' = if selectedId < buttonCount - 1 then selectedId + 1 else selectedId
+applyEvent state E.Up = state { M.selected = M.selected state - 1 }
+applyEvent state E.Down = state { M.selected = M.selected state + 1 }
 applyEvent state E.Enter = state { M.action = True}
+
+ensureValidIndex :: M.MenuState -> M.MenuState
+ensureValidIndex state
+  | selected < 0 = state { M.selected = 0 }
+  | selected > count - 1 = state { M.selected = count - 1 }
+  | otherwise = state
+  where selected = M.selected state
+        count = length $ M.buttons state
 
 selectedButton :: M.MenuState -> M.Button
 selectedButton state = M.buttons state !! M.selected state

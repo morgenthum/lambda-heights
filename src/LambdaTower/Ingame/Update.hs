@@ -16,7 +16,7 @@ import qualified LambdaTower.Ingame.Events as E
 import qualified LambdaTower.Ingame.GameState as G
 import qualified LambdaTower.Ingame.Layer as L
 import qualified LambdaTower.Ingame.Player as P
-import qualified LambdaTower.Screen as G
+import qualified LambdaTower.Screen as S
 
 type GameStateUpdate a = StateT G.GameState IO a
 
@@ -28,12 +28,12 @@ deltaTime = 1 / 128
 -- a) Return the front state of the list and remove it for the next cycle.
 -- b) Return the score if the replay is done.
 
-replayUpdate :: Updater IO ([E.PlayerEvent], [[E.PlayerEvent]], G.GameState) P.Score ()
-replayUpdate _ (_, [], s) = return $ Right $ P.score . G.player $ s
-replayUpdate _ (_, e:es, s) = do
-  eitherState <- update e s
+replayUpdate :: Updater IO ([[E.PlayerEvent]], G.GameState) P.Score ()
+replayUpdate _ ([], gameState) = return $ Right $ P.score . G.player $ gameState
+replayUpdate _ (events:eventsStore, gameState) = do
+  eitherState <- update events gameState
   case eitherState of
-    Left s' -> return . Left $ (e, es, s')
+    Left newState -> return . Left $ (eventsStore, newState)
     Right score -> return . Right $ score
 
 
@@ -52,16 +52,16 @@ updateAndWrite channel events gameState = do
 
 update :: Updater IO G.GameState P.Score [E.PlayerEvent]
 update events = evalStateT go
-  where go = do updateViewM
+  where go = do updateScreenM
                 updateMotionM events
                 updateLayersM
                 updatePlayerM
                 resetMotionM
                 returnStateM
 
-updateViewM :: GameStateUpdate ()
-updateViewM = modify f
-  where f s = s { G.view = updateView (G.player s) $ G.view s }
+updateScreenM :: GameStateUpdate ()
+updateScreenM = modify f
+  where f s = s { G.screen = updateScreen (G.player s) $ G.screen s }
 
 updateMotionM :: [E.PlayerEvent] -> GameStateUpdate ()
 updateMotionM events = modify f
@@ -69,11 +69,11 @@ updateMotionM events = modify f
 
 updateLayersM :: GameStateUpdate ()
 updateLayersM = modify f
-  where f s = s { G.layers = updateLayers (G.view s) $ G.layers s }
+  where f s = s { G.layers = updateLayers (G.screen s) $ G.layers s }
 
 updatePlayerM :: GameStateUpdate ()
 updatePlayerM = modify f
-  where f s = s { G.player = updatePlayer (G.view s) (G.motion s) (G.layers s) $ G.player s }
+  where f s = s { G.player = updatePlayer (G.screen s) (G.motion s) (G.layers s) $ G.player s }
 
 resetMotionM :: GameStateUpdate ()
 resetMotionM = modify f
@@ -87,7 +87,7 @@ resetMotionM = modify f
 returnStateM :: GameStateUpdate (Either G.GameState P.Score)
 returnStateM = do
   s <- get
-  return $ if playerDead (G.view s) (G.player s)
+  return $ if playerDead (G.screen s) (G.player s)
     then Right $ P.score $ G.player s
     else Left s
 
@@ -96,23 +96,23 @@ returnStateM = do
 -- a) Move the view upwards over time.
 -- b) Ensure that the player is always visible within the view.
 
-updateView :: P.Player -> G.Screen -> G.Screen
-updateView player = scrollViewToPlayer player . scrollViewOverTime
+updateScreen :: P.Player -> S.Screen -> S.Screen
+updateScreen player = scrollScreenToPlayer player . scrollScreenOverTime
 
-scrollViewOverTime :: G.Screen -> G.Screen
-scrollViewOverTime view = if height == 0 then view else scrollView (deltaTime*factor) view
-  where height = G.bottom view
+scrollScreenOverTime :: S.Screen -> S.Screen
+scrollScreenOverTime screen = if height == 0 then screen else scrollScreen (deltaTime*factor) screen
+  where height = S.bottom screen
         factor = min 400 (100+height/100)
 
-scrollViewToPlayer :: P.Player -> G.Screen -> G.Screen
-scrollViewToPlayer player view = if distance < 250 then scrollView (250-distance) view else view
+scrollScreenToPlayer :: P.Player -> S.Screen -> S.Screen
+scrollScreenToPlayer player screen = if distance < 250 then scrollScreen (250-distance) screen else screen
   where (_, y) = P.position player
-        distance = G.top view - y
+        distance = S.top screen - y
 
-scrollView :: Float -> G.Screen -> G.Screen
-scrollView delta view = view {
-  G.top = G.top view + delta,
-  G.bottom = G.bottom view + delta
+scrollScreen :: Float -> S.Screen -> S.Screen
+scrollScreen delta screen = screen {
+  S.top = S.top screen + delta,
+  S.bottom = S.bottom screen + delta
 }
 
 
@@ -129,31 +129,53 @@ applyPlayerEvents moveState E.PlayerJumped = moveState { G.jump = True }
 
 -- Drop passed and generate new layers.
 
-updateLayers :: G.Screen -> [L.Layer] -> [L.Layer]
-updateLayers view = fillLayers view . dropPassedLayers view
+updateLayers :: S.Screen -> [L.Layer] -> [L.Layer]
+updateLayers screen = fillLayers screen . dropPassedLayers screen
 
-fillLayers :: G.Screen -> [L.Layer] -> [L.Layer]
-fillLayers view [] = unfoldLayers view L.ground
-fillLayers view (layer:layers) = unfoldLayers view layer ++ layers
+fillLayers :: S.Screen -> [L.Layer] -> [L.Layer]
+fillLayers screen [] = unfoldLayers screen L.ground
+fillLayers screen (layer:layers) = unfoldLayers screen layer ++ layers
 
-unfoldLayers :: G.Screen -> L.Layer -> [L.Layer]
-unfoldLayers view = reverse . unfoldr (generateLayer view)
+unfoldLayers :: S.Screen -> L.Layer -> [L.Layer]
+unfoldLayers screen = reverse . unfoldr (generateLayer generator screen)
+  where generator = patternLayerGenerator simplePattern (S.bottom screen)
 
-generateLayer :: G.Screen -> L.Layer -> Maybe (L.Layer, L.Layer)
-generateLayer view layer = if G.top view < L.posY layer then Nothing else Just (layer, nextLayer layer)
+simplePattern :: Float -> Float
+simplePattern 200 = 400 -- right
+simplePattern 400 = 600
+simplePattern 600 = 150
+simplePattern 150 = 800
+simplePattern 800 = 550 -- left
+simplePattern 550 = 300
+simplePattern 300 = 100
+simplePattern 100 = 200
+simplePattern _   = 200 -- entry
 
-nextLayer :: L.Layer -> L.Layer
-nextLayer layer =
-  case (L.id layer, L.size layer, L.position layer) of
-    (layerId, (1000, h), (_, y)) -> L.Layer (layerId+1) (500, h) (100, y+200)
-    (layerId, (500, h), (100, y)) -> L.Layer (layerId+1) (500, h) (400, y+200)
-    (layerId, (500, h), (400, y)) -> L.Layer (layerId+1) (500, h) (100, y+200)
+generateLayer :: (L.Layer -> L.Layer) -> S.Screen -> L.Layer -> Maybe (L.Layer, L.Layer)
+generateLayer f screen layer =
+  if S.top screen < L.posY layer
+  then Nothing
+  else Just (layer, f layer)
 
-dropPassedLayers :: G.Screen -> [L.Layer] -> [L.Layer]
-dropPassedLayers view = filter $ not . layerPassed view
+patternLayerGenerator :: (Float -> Float) -> Float -> L.Layer -> L.Layer
+patternLayerGenerator pattern height layer =
+  case (L.id layer, L.size layer, L.origin layer) of
+    (layerId, (_, h), (x, y)) -> L.Layer (layerId+1) (w, h) (translatedX, y+200) (originX, y+200)
+      where w = layerWidthByHeight height
+            originX = pattern x
+            translatedX = originX - w / 2
 
-layerPassed :: G.Screen -> L.Layer -> Bool
-layerPassed view layer = G.bottom view > L.posY layer
+layerWidthByHeight :: Float -> Float
+layerWidthByHeight height
+  | height < 1000 = 400
+  | height < 5000 = 300
+  | otherwise = 200
+
+dropPassedLayers :: S.Screen -> [L.Layer] -> [L.Layer]
+dropPassedLayers screen = filter $ not . layerPassed screen
+
+layerPassed :: S.Screen -> L.Layer -> Bool
+layerPassed screen layer = S.bottom screen > L.posY layer
 
 
 -- Updating the player involves the following steps:
@@ -161,11 +183,11 @@ layerPassed view layer = G.bottom view > L.posY layer
 -- b) Apply collision detection and corrections.
 -- c) Update the score (highest reached layer).
 
-updatePlayer :: G.Screen -> G.Motion -> [L.Layer] -> P.Player -> P.Player
-updatePlayer view motion layers =
+updatePlayer :: S.Screen -> G.Motion -> [L.Layer] -> P.Player -> P.Player
+updatePlayer screen motion layers =
   updateScore layers
   . collidePlayerWithLayers layers
-  . bouncePlayerFromBounds view
+  . bouncePlayerFromBounds screen
   . updatePlayerMotion motion
 
 updateScore :: [L.Layer] -> P.Player -> P.Player
@@ -226,15 +248,15 @@ updatePosition = applyAcceleration
 -- Correct the position and velocity if it is colliding with a layer
 -- or the bounds of the level.
 
-bouncePlayerFromBounds :: G.Screen -> P.Player -> P.Player
-bouncePlayerFromBounds view player
+bouncePlayerFromBounds :: S.Screen -> P.Player -> P.Player
+bouncePlayerFromBounds screen player
   | outLeft = player { P.position = (minX, posY), P.velocity = ((-velX) * 0.75, velY) }
   | outRight = player { P.position = (maxX, posY), P.velocity = ((-velX) * 0.75, velY) }
   | otherwise = player
   where (posX, posY) = P.position player
         (velX, velY) = P.velocity player
-        minX = G.left view
-        maxX = G.right view
+        minX = S.left screen
+        maxX = S.right screen
         outLeft = posX < minX && velX < 0
         outRight = posX > maxX && velX > 0
 
@@ -246,8 +268,8 @@ collidePlayerWithLayers layers player =
       Just layer -> resetVelocityY . liftPlayerOnLayer layer $ player
   else player
 
-playerDead :: G.Screen -> P.Player -> Bool
-playerDead view player = let (_, y) = P.position player in y < G.bottom view
+playerDead :: S.Screen -> P.Player -> Bool
+playerDead screen player = let (_, y) = P.position player in y < S.bottom screen
 
 playerFalling :: P.Player -> Bool
 playerFalling player = let (_, y) = P.velocity player in y < 0
