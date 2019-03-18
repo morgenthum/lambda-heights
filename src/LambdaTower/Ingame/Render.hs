@@ -18,6 +18,7 @@ import qualified SDL.Primitive as SDLP
 import LambdaTower.Graphics
 import LambdaTower.Loop
 
+import qualified LambdaTower.Ingame.Events as E
 import qualified LambdaTower.Ingame.Layer as L
 import qualified LambdaTower.Ingame.GameState as G
 import qualified LambdaTower.Ingame.Player as P
@@ -62,8 +63,8 @@ shapeYs = snd
 playerShape :: Shape
 playerShape = ([0, 10, 40, 30, 20, 10, 0, 15], [80, 80, 0, 0, 25, 0, 0, 40])
 
-renderReplay :: Graphics -> RenderConfig -> Renderer IO (G.GameState, [G.GameState])
-renderReplay graphics config (state, _) = render graphics config state
+renderReplay :: Graphics -> RenderConfig -> Renderer IO ([E.PlayerEvent], [[E.PlayerEvent]], G.GameState)
+renderReplay graphics config (_, _, state) = render graphics config state
 
 render :: Graphics -> RenderConfig -> Renderer IO G.GameState
 render (window, renderer) config state = do

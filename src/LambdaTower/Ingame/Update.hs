@@ -1,5 +1,6 @@
 module LambdaTower.Ingame.Update (
   replayUpdate,
+  updateAndWrite,
   update
 ) where
 
@@ -27,21 +28,35 @@ deltaTime = 1 / 128
 -- a) Return the front state of the list and remove it for the next cycle.
 -- b) Return the score if the replay is done.
 
-replayUpdate :: Updater IO (G.GameState, [G.GameState]) P.Score ()
-replayUpdate _ (s, []) = return $ Right $ P.score . G.player $ s
-replayUpdate _ (_, s:ss) = return $ Left (s, ss)
+replayUpdate :: Updater IO ([E.PlayerEvent], [[E.PlayerEvent]], G.GameState) P.Score ()
+replayUpdate _ (_, [], s) = return $ Right $ P.score . G.player $ s
+replayUpdate _ (_, e:es, s) = do
+  eitherState <- update e s
+  case eitherState of
+    Left s' -> return . Left $ (e, es, s')
+    Right score -> return . Right $ score
+
+
+-- Wrapper around one update to broadcast the occured events for serialization
+
+updateAndWrite :: TChan (Maybe [E.PlayerEvent]) -> Updater IO G.GameState P.Score [E.PlayerEvent]
+updateAndWrite channel events gameState = do
+  result <- update events gameState
+  case result of
+    Left _ -> liftIO . atomically . writeTChan channel $ Just events
+    Right _ -> liftIO . atomically . writeTChan channel $ Nothing
+  return result
 
 
 -- Control flow over one update cycle.
 
-update :: TChan (Maybe G.GameState) -> Updater IO G.GameState P.Score [E.PlayerEvent]
-update channel events = evalStateT go
+update :: Updater IO G.GameState P.Score [E.PlayerEvent]
+update events = evalStateT go
   where go = do updateViewM
                 updateMotionM events
                 updateLayersM
                 updatePlayerM
                 resetMotionM
-                writeGameStateM channel
                 returnStateM
 
 updateViewM :: GameStateUpdate ()
@@ -60,12 +75,6 @@ updatePlayerM :: GameStateUpdate ()
 updatePlayerM = modify f
   where f s = s { G.player = updatePlayer (G.view s) (G.motion s) (G.layers s) $ G.player s }
 
-writeGameStateM :: TChan (Maybe G.GameState) -> GameStateUpdate ()
-writeGameStateM channel = do
-  s <- get
-  liftIO . atomically . writeTChan channel $
-    if playerDead (G.view s) (G.player s) then Nothing else Just s
-
 resetMotionM :: GameStateUpdate ()
 resetMotionM = modify f
   where f s = s {
@@ -80,7 +89,7 @@ returnStateM = do
   s <- get
   return $ if playerDead (G.view s) (G.player s)
     then Right $ P.score $ G.player s
-    else  Left s
+    else Left s
 
 
 -- Updating the view involves two steps:

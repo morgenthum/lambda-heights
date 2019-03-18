@@ -56,7 +56,7 @@ startGame replayFilePath graphics = do
   handle <- async $ serializeFromTChanToFile replayFilePath channel
 
   let millis = current timer
-  let loop = timedLoop I.handleKeyInput (I.update channel) (I.render graphics config)
+  let loop = timedLoop I.handleKeyInput (I.updateAndWrite channel) (I.render graphics config)
   _ <- startLoop timer (I.newGameState millis) loop
 
   wait handle
@@ -70,11 +70,13 @@ startReplay replayFilePath graphics = do
   case maybeStates of
     Nothing -> return Menu
     Just [] -> return Menu
-    Just (state:states) -> do
+    Just (e:es) -> do
       timer <- defaultTimer
       config <- I.defaultConfig
+
+      let millis = current timer
       let loop = timedLoop (I.dummyHandleInput ()) I.replayUpdate (I.renderReplay graphics config)
-      startLoop timer (state, states) loop >>= print
+      _ <- startLoop timer (e, es, I.newGameState millis) loop
 
       I.deleteConfig config
       return Menu

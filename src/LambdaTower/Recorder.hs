@@ -19,7 +19,7 @@ serializeFromTChanToFile filePath channel = do
   case maybeGameState of
     Just gameState -> do
       BS.appendFile filePath (serialise gameState)
-      BS.appendFile filePath $ BS8.pack "\n42"
+      BS.appendFile filePath $ BS8.pack "/"
       serializeFromTChanToFile filePath channel
     Nothing -> return ()
 
@@ -29,7 +29,7 @@ deserializeFromFile filePath= do
   if exist
   then do
     bytes <- BS.readFile filePath
-    let splitted = filter (not . null) . splitOn "\n42" $ BS8.unpack bytes
+    let splitted = filter (not . null) . splitOn "/" $ BS8.unpack bytes
     return . Just $ map (deserialise . BS8.pack) splitted
   else return Nothing
 
