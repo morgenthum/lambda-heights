@@ -14,7 +14,7 @@ import LambdaTower.Screen
 
 data GameState = GameState {
   begin :: Word32,
-  view :: View,
+  view :: Screen,
   motion :: Motion,
   player :: Player,
   layers :: [Layer]
@@ -34,7 +34,7 @@ instance Serialise Motion
 newGameState :: Word32 -> GameState
 newGameState millis = GameState {
   begin = millis,
-  view = newView,
+  view = newScreen,
   motion = newMotion,
   player = newPlayer,
   layers = []

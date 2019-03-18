@@ -39,18 +39,18 @@ render (window, renderer) config state = do
   SDL.clear renderer
 
   windowSize <- SDL.get $ SDL.windowSize window
-  let view = M.view state
+  let view = M.screen state
   let selectedId = M.selected state
 
   mapM_ (renderButton renderer config windowSize view selectedId) $ M.buttons state
 
   SDL.present renderer
 
-renderButton :: SDL.Renderer -> RenderConfig -> S.WindowSize -> S.View -> Int -> M.Button -> IO ()
-renderButton renderer config windowSize view selectedId button = do
+renderButton :: SDL.Renderer -> RenderConfig -> S.WindowSize -> S.Screen -> Int -> M.Button -> IO ()
+renderButton renderer config windowSize screen selectedId button = do
   let buttonFont = font config
 
-  let SDL.V2 x y = S.translatePosition view windowSize (M.position button)
+  let SDL.V2 x y = S.toWindowPosition screen windowSize (M.position button)
   (w, h) <- SDLF.size buttonFont $ T.pack . M.text $ button
 
   let deltaX = round (realToFrac w / 2 :: Float)

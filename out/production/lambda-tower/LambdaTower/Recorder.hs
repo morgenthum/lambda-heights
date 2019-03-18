@@ -6,8 +6,6 @@ import Control.Monad
 import Control.Monad.STM
 import Control.Concurrent.STM.TChan
 
-import Data.List.Split
-
 import System.Directory
 
 import qualified Data.ByteString.Lazy as BS
@@ -15,10 +13,10 @@ import qualified Data.ByteString.Lazy.Char8 as BS8
 
 serializeFromTChanToFile :: (Serialise a) => FilePath -> TChan (Maybe a) -> IO ()
 serializeFromTChanToFile filePath channel = do
-  maybeGameState <- atomically $ readTChan channel
-  case maybeGameState of
-    Just gameState -> do
-      BS.appendFile filePath (serialise gameState)
+  maybeValue <- atomically $ readTChan channel
+  case maybeValue of
+    Just x -> do
+      BS.appendFile filePath (serialise x)
       BS.appendFile filePath $ BS8.pack "/"
       serializeFromTChanToFile filePath channel
     Nothing -> return ()
@@ -26,12 +24,12 @@ serializeFromTChanToFile filePath channel = do
 deserializeFromFile :: (Serialise a) => FilePath -> IO (Maybe [a])
 deserializeFromFile filePath= do
   exist <- doesFileExist filePath
-  if exist
-  then do
+  if exist then do
     bytes <- BS.readFile filePath
-    let splitted = filter (not . null) . splitOn "/" $ BS8.unpack bytes
-    return . Just $ map (deserialise . BS8.pack) splitted
-  else return Nothing
+    let splitted = filter (not . BS.null) . BS8.split '/' $ bytes
+    return . Just $ map deserialise splitted
+  else
+    return Nothing
 
 safeDeleteFile :: FilePath -> IO ()
 safeDeleteFile filePath = do

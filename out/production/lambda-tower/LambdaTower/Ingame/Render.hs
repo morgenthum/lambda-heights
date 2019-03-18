@@ -100,7 +100,7 @@ renderHUD renderer config state = do
   renderText renderer textFont (SDL.V2 20 60) (whiteColor config) "score"
   renderText renderer textFont (SDL.V2 100 60) (textColor config) (show $ P.score . G.player $ state)
 
-renderPlayer :: SDL.Renderer -> RenderConfig -> SDL.V2 CInt -> S.View -> P.Player -> IO ()
+renderPlayer :: SDL.Renderer -> RenderConfig -> SDL.V2 CInt -> S.Screen -> P.Player -> IO ()
 renderPlayer renderer config windowSize view player = do
   let shape = shapeByVelocity (P.velocity player) playerShape
 
@@ -119,7 +119,7 @@ flipShape :: Shape -> Shape
 flipShape shape = (map (\x -> w - x) $ shapeXs shape, shapeYs shape)
   where (w, _) = shapeSize shape
 
-renderShape :: SDL.Renderer -> S.WindowSize -> S.View -> SDLP.Color -> Shape -> IO ()
+renderShape :: SDL.Renderer -> S.WindowSize -> S.Screen -> SDLP.Color -> Shape -> IO ()
 renderShape renderer (SDL.V2 w h) view color shape = do
   let toVector = foldl V.snoc V.empty
 
@@ -131,10 +131,10 @@ renderShape renderer (SDL.V2 w h) view color shape = do
 
   SDLP.fillPolygon renderer xs ys color
 
-renderLayer :: SDL.Renderer -> RenderConfig -> S.WindowSize -> S.View -> L.Layer -> IO ()
+renderLayer :: SDL.Renderer -> RenderConfig -> S.WindowSize -> S.Screen -> L.Layer -> IO ()
 renderLayer renderer config windowSize view layer = do
-  let size = S.translateSize view windowSize (L.size layer)
-  let position = S.translatePosition view windowSize (L.position layer)
+  let size = S.toWindowSize view windowSize (L.size layer)
+  let position = S.toWindowPosition view windowSize (L.position layer)
 
   SDL.rendererDrawColor renderer SDL.$= layerColor config
   SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P position) size

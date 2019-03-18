@@ -9,7 +9,7 @@ data Button = Button {
 }
 
 data MenuState = MenuState {
-  view :: View,
+  screen :: Screen,
   buttons :: [Button],
   selected :: Int,
   action :: Bool
@@ -17,7 +17,7 @@ data MenuState = MenuState {
 
 newMenuState :: MenuState
 newMenuState = MenuState {
-  view = newView,
+  screen = newScreen,
   buttons = [
     Button 0 "play" (500, 600),
     Button 1 "replay" (500, 500),

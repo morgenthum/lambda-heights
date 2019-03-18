@@ -96,20 +96,20 @@ returnStateM = do
 -- a) Move the view upwards over time.
 -- b) Ensure that the player is always visible within the view.
 
-updateView :: P.Player -> G.View -> G.View
+updateView :: P.Player -> G.Screen -> G.Screen
 updateView player = scrollViewToPlayer player . scrollViewOverTime
 
-scrollViewOverTime :: G.View -> G.View
+scrollViewOverTime :: G.Screen -> G.Screen
 scrollViewOverTime view = if height == 0 then view else scrollView (deltaTime*factor) view
   where height = G.bottom view
         factor = min 400 (100+height/100)
 
-scrollViewToPlayer :: P.Player -> G.View -> G.View
+scrollViewToPlayer :: P.Player -> G.Screen -> G.Screen
 scrollViewToPlayer player view = if distance < 250 then scrollView (250-distance) view else view
   where (_, y) = P.position player
         distance = G.top view - y
 
-scrollView :: Float -> G.View -> G.View
+scrollView :: Float -> G.Screen -> G.Screen
 scrollView delta view = view {
   G.top = G.top view + delta,
   G.bottom = G.bottom view + delta
@@ -129,17 +129,17 @@ applyPlayerEvents moveState E.PlayerJumped = moveState { G.jump = True }
 
 -- Drop passed and generate new layers.
 
-updateLayers :: G.View -> [L.Layer] -> [L.Layer]
+updateLayers :: G.Screen -> [L.Layer] -> [L.Layer]
 updateLayers view = fillLayers view . dropPassedLayers view
 
-fillLayers :: G.View -> [L.Layer] -> [L.Layer]
+fillLayers :: G.Screen -> [L.Layer] -> [L.Layer]
 fillLayers view [] = unfoldLayers view L.ground
 fillLayers view (layer:layers) = unfoldLayers view layer ++ layers
 
-unfoldLayers :: G.View -> L.Layer -> [L.Layer]
+unfoldLayers :: G.Screen -> L.Layer -> [L.Layer]
 unfoldLayers view = reverse . unfoldr (generateLayer view)
 
-generateLayer :: G.View -> L.Layer -> Maybe (L.Layer, L.Layer)
+generateLayer :: G.Screen -> L.Layer -> Maybe (L.Layer, L.Layer)
 generateLayer view layer = if G.top view < L.posY layer then Nothing else Just (layer, nextLayer layer)
 
 nextLayer :: L.Layer -> L.Layer
@@ -149,10 +149,10 @@ nextLayer layer =
     (layerId, (500, h), (100, y)) -> L.Layer (layerId+1) (500, h) (400, y+200)
     (layerId, (500, h), (400, y)) -> L.Layer (layerId+1) (500, h) (100, y+200)
 
-dropPassedLayers :: G.View -> [L.Layer] -> [L.Layer]
+dropPassedLayers :: G.Screen -> [L.Layer] -> [L.Layer]
 dropPassedLayers view = filter $ not . layerPassed view
 
-layerPassed :: G.View -> L.Layer -> Bool
+layerPassed :: G.Screen -> L.Layer -> Bool
 layerPassed view layer = G.bottom view > L.posY layer
 
 
@@ -161,7 +161,7 @@ layerPassed view layer = G.bottom view > L.posY layer
 -- b) Apply collision detection and corrections.
 -- c) Update the score (highest reached layer).
 
-updatePlayer :: G.View -> G.Motion -> [L.Layer] -> P.Player -> P.Player
+updatePlayer :: G.Screen -> G.Motion -> [L.Layer] -> P.Player -> P.Player
 updatePlayer view motion layers =
   updateScore layers
   . collidePlayerWithLayers layers
@@ -226,7 +226,7 @@ updatePosition = applyAcceleration
 -- Correct the position and velocity if it is colliding with a layer
 -- or the bounds of the level.
 
-bouncePlayerFromBounds :: G.View -> P.Player -> P.Player
+bouncePlayerFromBounds :: G.Screen -> P.Player -> P.Player
 bouncePlayerFromBounds view player
   | outLeft = player { P.position = (minX, posY), P.velocity = ((-velX) * 0.75, velY) }
   | outRight = player { P.position = (maxX, posY), P.velocity = ((-velX) * 0.75, velY) }
@@ -246,7 +246,7 @@ collidePlayerWithLayers layers player =
       Just layer -> resetVelocityY . liftPlayerOnLayer layer $ player
   else player
 
-playerDead :: G.View -> P.Player -> Bool
+playerDead :: G.Screen -> P.Player -> Bool
 playerDead view player = let (_, y) = P.position player in y < G.bottom view
 
 playerFalling :: P.Player -> Bool
