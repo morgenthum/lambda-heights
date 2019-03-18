@@ -125,7 +125,7 @@ renderPlayerBurner renderer config windowSize screen player = do
             $ playerBurnerShape
 
   let SDL.V4 r g b _ = playerBurnerColor config
-  let a = round $ if abs velX > 2000 then 255 else abs velX / 2000 * 255
+  let a = round $ if abs velX > 10000 then 255 else abs velX / 10000 * 255
 
   renderShape renderer windowSize screen (SDL.V4 r g b a) shape
 

@@ -20,6 +20,11 @@ import qualified LambdaTower.Screen as S
 
 type GameStateUpdate a = StateT G.GameState IO a
 
+data PatternEntry = PatternEntry {
+  description :: (L.Size, Float),
+  distance :: Float
+} deriving (Eq)
+
 deltaTime :: Float
 deltaTime = 1 / 128
 
@@ -138,38 +143,39 @@ fillLayers screen (layer:layers) = unfoldLayers screen layer ++ layers
 
 unfoldLayers :: S.Screen -> L.Layer -> [L.Layer]
 unfoldLayers screen = reverse . unfoldr (generateLayer generator screen)
-  where generator = patternLayerGenerator simplePattern (S.bottom screen)
+  where generator = nextLayerByPattern (easyPattern ++ stairsPattern)
 
-simplePattern :: Float -> Float
-simplePattern 200 = 400 -- right
-simplePattern 400 = 600
-simplePattern 600 = 150
-simplePattern 150 = 800
-simplePattern 800 = 550 -- left
-simplePattern 550 = 300
-simplePattern 300 = 100
-simplePattern 100 = 200
-simplePattern _   = 200 -- entry
+easyPattern :: [PatternEntry]
+easyPattern = [
+    PatternEntry ((500, 40), 0) 200,
+    PatternEntry ((500, 40), 500) 200
+  ]
+
+stairsPattern :: [PatternEntry]
+stairsPattern = [
+    PatternEntry ((300, 40), 0) 200,
+    PatternEntry ((350, 40), 700) 0,
+    PatternEntry ((350, 40), 100) 200,
+    PatternEntry ((300, 40), 600) 0
+  ]
+
+nextLayerByPattern :: [PatternEntry] -> L.Layer -> L.Layer
+nextLayerByPattern [] layer = layer
+nextLayerByPattern (p:ps) layer =
+  case elemIndex (L.size layer, L.posX layer) descriptions of
+    Nothing -> let (PatternEntry ((w, h), x) d) = p in L.Layer layerId (w, h) (x, y+d)
+    Just i ->
+      case (p:ps ++ [p]) !! (i+1) of
+        PatternEntry ((w, h), x) d -> L.Layer layerId (w, h) (x, y+d)
+  where descriptions = map description (p:ps)
+        layerId = L.id layer + 1
+        (_, y) = L.position layer
 
 generateLayer :: (L.Layer -> L.Layer) -> S.Screen -> L.Layer -> Maybe (L.Layer, L.Layer)
-generateLayer f screen layer =
+generateLayer generator screen layer =
   if S.top screen < L.posY layer
   then Nothing
-  else Just (layer, f layer)
-
-patternLayerGenerator :: (Float -> Float) -> Float -> L.Layer -> L.Layer
-patternLayerGenerator pattern height layer =
-  case (L.id layer, L.size layer, L.origin layer) of
-    (layerId, (_, h), (x, y)) -> L.Layer (layerId+1) (w, h) (translatedX, y+200) (originX, y+200)
-      where w = layerWidthByHeight height
-            originX = pattern x
-            translatedX = originX - w / 2
-
-layerWidthByHeight :: Float -> Float
-layerWidthByHeight height
-  | height < 1000 = 400
-  | height < 5000 = 300
-  | otherwise = 200
+  else Just (layer, generator layer)
 
 dropPassedLayers :: S.Screen -> [L.Layer] -> [L.Layer]
 dropPassedLayers screen = filter $ not . layerPassed screen
@@ -213,22 +219,22 @@ updateAcceleration acc vel motion =
 
 updateGroundAcceleration :: P.Acceleration -> P.Velocity -> G.Motion -> P.Acceleration
 updateGroundAcceleration (accX, _) (velX, velY) motion
-  | jump && (abs velX > 750 || abs velY > 750) = (accX, 250000)
-  | jump = (accX, 125000)
-  | left && right = (0, -2000)
-  | left = (-7500, -2000)
-  | right = (7500, -2000)
-  | otherwise = (0, -2000)
+  | jump && (abs velX > 750 || abs velY > 750) = (accX, 275000)
+  | jump = (accX, 150000)
+  | left && right = (0, -3000)
+  | left = (-8000, -3000)
+  | right = (8000, -3000)
+  | otherwise = (0, -3000)
   where left = G.moveLeft motion
         right = G.moveRight motion
         jump = G.jump motion
 
 updateAirAcceleration :: G.Motion -> P.Acceleration
 updateAirAcceleration motion
-  | left && right = (0, -2000)
-  | left = (-1500, -2000)
-  | right = (1500, -2000)
-  | otherwise = (0, -2000)
+  | left && right = (0, -3000)
+  | left = (-4000, -3000)
+  | right = (4000, -3000)
+  | otherwise = (0, -3000)
   where left = G.moveLeft motion
         right = G.moveRight motion
 
@@ -239,7 +245,7 @@ applyAcceleration :: P.Velocity -> P.Acceleration -> P.Velocity
 applyAcceleration (x, y) (x', y') = (x+x'*deltaTime, y+y'*deltaTime)
 
 decelerate :: G.Motion -> P.Velocity -> P.Velocity
-decelerate motion (x, y) = if G.air motion then (x, y) else (x*0.925, y)
+decelerate motion (x, y) = if G.air motion then (x*0.99, y) else (x*0.925, y)
 
 updatePosition :: P.Position -> P.Velocity -> P.Position
 updatePosition = applyAcceleration
@@ -250,8 +256,8 @@ updatePosition = applyAcceleration
 
 bouncePlayerFromBounds :: S.Screen -> P.Player -> P.Player
 bouncePlayerFromBounds screen player
-  | outLeft = player { P.position = (minX, posY), P.velocity = ((-velX) * 0.75, velY) }
-  | outRight = player { P.position = (maxX, posY), P.velocity = ((-velX) * 0.75, velY) }
+  | outLeft = player { P.position = (minX, posY), P.velocity = ((-velX), velY) }
+  | outRight = player { P.position = (maxX, posY), P.velocity = ((-velX), velY) }
   | otherwise = player
   where (posX, posY) = P.position player
         (velX, velY) = P.velocity player

@@ -23,7 +23,7 @@ data Player = Player {
 newPlayer :: Player
 newPlayer = Player {
   score = 0,
-  position = (500, 80),
+  position = (500, 40),
   velocity = (0, 0),
   acceleration = (0, 0)
 }

@@ -3,6 +3,7 @@ module LambdaTower.Ingame.Layer (
   LambdaTower.Screen.Size,
   Layer(..),
   ground,
+  posX,
   posY
 ) where
 
@@ -11,12 +12,14 @@ import LambdaTower.Screen
 data Layer = Layer {
   id :: Int,
   size :: Size,
-  position :: Position,
-  origin :: Position
+  position :: Position
 }
 
 ground :: Layer
-ground = Layer 0 (1000, 80) (0, 80) (0, 80)
+ground = Layer 0 (1000, 40) (0, 40)
+
+posX :: Layer -> Float
+posX layer = let (x, _) = position layer in x
 
 posY :: Layer -> Float
 posY layer = let (_, y) = position layer in y
