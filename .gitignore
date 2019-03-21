@@ -1,4 +1,5 @@
 .idea/**
 .stack-work/**
+releases/**
 .DS_Store
 lambda-tower.iml
