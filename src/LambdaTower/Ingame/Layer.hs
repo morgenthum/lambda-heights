@@ -16,7 +16,7 @@ data Layer = Layer {
 }
 
 ground :: Layer
-ground = Layer 0 (1000, 40) (0, 40)
+ground = Layer 0 (1000, 50) (0, 50)
 
 posX :: Layer -> Float
 posX layer = let (x, _) = position layer in x

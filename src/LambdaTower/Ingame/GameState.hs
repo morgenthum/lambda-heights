@@ -1,13 +1,18 @@
 module LambdaTower.Ingame.GameState where
 
-import Data.Word
-
 import LambdaTower.Ingame.Layer
 import LambdaTower.Ingame.Player
 import LambdaTower.Screen
 
+data ExitReason = Exit | Pause
+
+data GameResult = GameResult {
+  state :: GameState,
+  reason :: ExitReason
+}
+
 data GameState = GameState {
-  begin :: Word32,
+  time :: Integer,
   screen :: Screen,
   motion :: Motion,
   player :: Player,
@@ -21,9 +26,9 @@ data Motion = Motion {
   air :: Bool
 }
 
-newGameState :: Word32 -> GameState
-newGameState millis = GameState {
-  begin = millis,
+newGameState :: GameState
+newGameState = GameState {
+  time = 0,
   screen = newScreen,
   motion = newMotion,
   player = newPlayer,

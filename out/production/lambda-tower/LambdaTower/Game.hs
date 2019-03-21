@@ -10,6 +10,7 @@ import LambdaTower.Loop
 import LambdaTower.Recorder
 import LambdaTower.State
 
+import qualified LambdaTower.Ingame.GameEvents as I
 import qualified LambdaTower.Ingame.Input as I
 import qualified LambdaTower.Ingame.Render as I
 import qualified LambdaTower.Ingame.GameState as I
@@ -55,13 +56,19 @@ startGame replayFilePath graphics = do
   safeDeleteFile replayFilePath
   handle <- async $ serializeFromTChanToFile replayFilePath channel
 
-  let millis = current timer
-  let loop = timedLoop I.handleKeyInput (I.updateAndWrite channel) (I.render graphics config)
-  _ <- startLoop timer (I.newGameState millis) loop
+  let loop = timedLoop I.ingameKeyInput (I.updateAndWrite channel) (I.render graphics config)
+  startGameLoop timer I.newGameState loop
 
   wait handle
   I.deleteConfig config
   return Menu
+
+startGameLoop :: LoopTimer -> I.GameState -> LoopState IO I.GameState I.GameResult -> IO ()
+startGameLoop timer gameState ingameLoop = do
+  result <- startLoop timer gameState ingameLoop
+  case I.reason result of
+    I.Pause -> return () -- startGameLoop timer (I.state result) ingameLoop
+    _ -> return ()
 
 startReplay :: FilePath -> Graphics -> IO State
 startReplay replayFilePath graphics = do
@@ -74,9 +81,8 @@ startReplay replayFilePath graphics = do
       timer <- defaultTimer
       config <- I.defaultConfig
 
-      let millis = current timer
-      let loop = timedLoop (I.dummyHandleInput ()) I.replayUpdate (I.renderReplay graphics config)
-      _ <- startLoop timer (events, I.newGameState millis) loop
+      let loop = timedLoop I.replayKeyInput I.replayUpdate (I.renderReplay graphics config)
+      _ <- startLoop timer (events, I.newGameState) loop
 
       I.deleteConfig config
       return Menu

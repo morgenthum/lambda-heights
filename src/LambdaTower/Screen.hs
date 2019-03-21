@@ -26,20 +26,20 @@ newScreen = Screen {
 }
 
 toWindowSize :: Screen -> WindowSize -> Size -> WindowSize
-toWindowSize screen (SDL.V2 w h) (x, y) = SDL.V2 (round x') (round y')
-  where x' = x * fromIntegral w / (right screen - left screen)
-        y' = y * fromIntegral h / (top screen - bottom screen)
+toWindowSize screen (SDL.V2 w h) (x, y) = SDL.V2 x' y'
+  where x' = translate screen w x
+        y' = translate screen h y
 
 toWindowPosition :: Screen -> WindowSize -> Position -> WindowPosition
 toWindowPosition screen (SDL.V2 w h) (x, y) = SDL.V2 x' y'
-  where x' = translateX screen w x
-        y' = translateY screen h y
+  where x' = translate screen w x
+        y' = translateFlipped screen h y
 
-translateX :: (Integral a) => Screen -> a -> Float -> a
-translateX screen w = round . (* fromIntegral w) . normalize (left screen, right screen)
+translate :: (Integral a) => Screen -> a -> Float -> a
+translate screen w = round . (* fromIntegral w) . normalize (left screen, right screen)
 
-translateY :: (Integral a) => Screen -> a -> Float -> a
-translateY screen h = round . (* fromIntegral h) . flipRange . normalize (bottom screen, top screen)
+translateFlipped :: (Integral a) => Screen -> a -> Float -> a
+translateFlipped screen h = round . (* fromIntegral h) . flipRange . normalize (bottom screen, top screen)
 
 normalize :: (Fractional a) => (a, a) -> a -> a
 normalize (minRange, maxRange) x = (x - minRange) / (maxRange - minRange)

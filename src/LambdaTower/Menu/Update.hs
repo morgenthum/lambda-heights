@@ -9,12 +9,12 @@ import qualified LambdaTower.Menu.MenuState as M
 import qualified LambdaTower.State as S
 
 update :: Updater IO M.MenuState S.State [E.KeyEvent]
-update events state = do
+update _ events state = do
   let newState = ensureValidIndex . applyEvents state $ events
   return $
     if M.action newState
-      then Right $ stateByButton . selectedButton $ newState
-      else Left newState
+      then Left $ stateByButton $ selectedButton newState
+      else Right newState
 
 applyEvents :: M.MenuState -> [E.KeyEvent] -> M.MenuState
 applyEvents = foldl applyEvent

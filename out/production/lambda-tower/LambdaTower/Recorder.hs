@@ -16,7 +16,7 @@ serializeFromTChanToFile filePath channel = do
   maybeValue <- atomically $ readTChan channel
   case maybeValue of
     Just x -> do
-      BS.appendFile filePath (serialise x)
+      BS.appendFile filePath $ serialise x
       BS.appendFile filePath $ BS8.pack "/"
       serializeFromTChanToFile filePath channel
     Nothing -> return ()
@@ -26,8 +26,8 @@ deserializeFromFile filePath= do
   exist <- doesFileExist filePath
   if exist then do
     bytes <- BS.readFile filePath
-    let splitted = filter (not . BS.null) . BS8.split '/' $ bytes
-    return . Just $ map deserialise splitted
+    let splitted = filter (not . BS.null) $ BS8.split '/' bytes
+    return $ Just $ map deserialise splitted
   else
     return Nothing
 

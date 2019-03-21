@@ -18,9 +18,9 @@ import qualified SDL.Primitive as SDLP
 import LambdaTower.Graphics
 import LambdaTower.Loop
 
-import qualified LambdaTower.Ingame.Events as E
-import qualified LambdaTower.Ingame.Layer as L
+import qualified LambdaTower.Ingame.GameEvents as G
 import qualified LambdaTower.Ingame.GameState as G
+import qualified LambdaTower.Ingame.Layer as L
 import qualified LambdaTower.Ingame.Player as P
 import qualified LambdaTower.Screen as S
 
@@ -68,7 +68,7 @@ playerShape = ([0, 10, 40, 30, 20, 10, 0, 15], [80, 80, 0, 0, 25, 0, 0, 40])
 playerBurnerShape :: Shape
 playerBurnerShape = ([0, 10, 25, 10, 0, 15], [80, 80, 40, 0, 0, 40])
 
-renderReplay :: Graphics -> RenderConfig -> Renderer IO ([[E.PlayerEvent]], G.GameState)
+renderReplay :: Graphics -> RenderConfig -> Renderer IO ([[G.PlayerEvent]], G.GameState)
 renderReplay graphics config (_, state) = render graphics config state
 
 render :: Graphics -> RenderConfig -> Renderer IO G.GameState
@@ -94,9 +94,8 @@ renderHUD renderer config state = do
   renderText renderer textFont (SDL.V2 100 20) (textColor config) $ show (round velX :: Int)
   renderText renderer textFont (SDL.V2 150 20) (textColor config) $ show (round velY :: Int)
 
-  end <- SDL.ticks
-  let duration = end - G.begin state
-  let seconds = round (realToFrac duration / 1000 :: Float) :: Int
+  let duration = G.time state
+  let seconds = round (realToFrac duration / 1000 :: Double)
   let millis = mod duration 1000
 
   renderText renderer textFont (SDL.V2 20 40) (whiteColor config) "time"
@@ -146,8 +145,8 @@ renderShape :: SDL.Renderer -> S.WindowSize -> S.Screen -> SDLP.Color -> Shape -
 renderShape renderer (SDL.V2 w h) screen color shape = do
   let toVector = foldl V.snoc V.empty
 
-  let transformX = fromIntegral . S.translateX screen w
-  let transformY = fromIntegral . S.translateY screen h
+  let transformX = fromIntegral . S.translate screen w
+  let transformY = fromIntegral . S.translateFlipped screen h
 
   let xs = toVector . map transformX $ shapeXs shape
   let ys = toVector . map transformY $ shapeYs shape

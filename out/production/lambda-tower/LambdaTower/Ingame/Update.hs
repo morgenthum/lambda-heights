@@ -9,66 +9,69 @@ import Control.Monad.STM
 import Control.Concurrent.STM.TChan
 
 import Data.List
+import Data.Word
 
 import LambdaTower.Loop
 
-import qualified LambdaTower.Ingame.Events as E
+import qualified LambdaTower.Ingame.GameEvents as G
 import qualified LambdaTower.Ingame.GameState as G
 import qualified LambdaTower.Ingame.Layer as L
 import qualified LambdaTower.Ingame.Player as P
 import qualified LambdaTower.Screen as S
 
-type GameStateUpdate a = StateT G.GameState IO a
-
-data PatternEntry = PatternEntry {
-  description :: (L.Size, Float),
-  distance :: Float
-} deriving (Eq)
-
-deltaTime :: Float
-deltaTime = 1 / 128
+updateFactor :: Float
+updateFactor = 1 / 128
 
 -- Updating the replays need no calculations because we already have all states.
 -- We need two steps:
 -- a) Return the front state of the list and remove it for the next cycle.
 -- b) Return the score if the replay is done.
 
-replayUpdate :: Updater IO ([[E.PlayerEvent]], G.GameState) P.Score ()
-replayUpdate _ ([], gameState) = return $ Right $ P.score . G.player $ gameState
-replayUpdate _ (events:eventsStore, gameState) = do
-  eitherState <- update events gameState
+type ReplayState = ([[G.PlayerEvent]], G.GameState)
+
+replayUpdate :: Updater IO ReplayState ReplayState [G.ControlEvent]
+replayUpdate _ _ ([], gameState) = return $ Left ([], gameState)
+replayUpdate timer controlEvents (events:eventStore, gameState) = do
+  eitherState <- update timer (G.GameEvents controlEvents events) gameState
   case eitherState of
-    Left newState -> return . Left $ (eventsStore, newState)
-    Right score -> return . Right $ score
+    Left gameState' -> return $ Left (eventStore, G.state gameState')
+    Right gameState' -> return $ Right (eventStore, gameState')
 
 
 -- Wrapper around one update to broadcast the occured events for serialization
 
-updateAndWrite :: TChan (Maybe [E.PlayerEvent]) -> Updater IO G.GameState P.Score [E.PlayerEvent]
-updateAndWrite channel events gameState = do
-  result <- update events gameState
+updateAndWrite :: TChan (Maybe [G.PlayerEvent]) -> Updater IO G.GameState G.GameResult G.GameEvents
+updateAndWrite channel timer events gameState = do
+  result <- update timer events gameState
   case result of
-    Left _ -> liftIO . atomically . writeTChan channel $ Just events
-    Right _ -> liftIO . atomically . writeTChan channel $ Nothing
+    Left _ -> liftIO $ atomically $ writeTChan channel Nothing
+    Right _ -> liftIO $ atomically $ writeTChan channel $ Just $ G.playerEvents events
   return result
 
 
 -- Control flow over one update cycle.
 
-update :: Updater IO G.GameState P.Score [E.PlayerEvent]
-update events = evalStateT go
-  where go = do updateScreenM
-                updateMotionM events
+type GameStateUpdate a = StateT G.GameState IO a
+
+update :: Updater IO G.GameState G.GameResult G.GameEvents
+update timer events = evalStateT go
+  where go = do updateTimeM timer
+                updateScreenM
+                updateMotionM (G.playerEvents events)
                 updateLayersM
                 updatePlayerM
                 resetMotionM
-                returnStateM
+                returnStateM (G.controlEvents events)
+
+updateTimeM :: LoopTimer -> GameStateUpdate ()
+updateTimeM timer = modify f
+  where f s = s { G.time = G.time s + fromIntegral (rate timer) }
 
 updateScreenM :: GameStateUpdate ()
 updateScreenM = modify f
   where f s = s { G.screen = updateScreen (G.player s) $ G.screen s }
 
-updateMotionM :: [E.PlayerEvent] -> GameStateUpdate ()
+updateMotionM :: [G.PlayerEvent] -> GameStateUpdate ()
 updateMotionM events = modify f
   where f s = s { G.motion = updateMotion (G.motion s) events }
 
@@ -89,12 +92,16 @@ resetMotionM = modify f
     }
   }
 
-returnStateM :: GameStateUpdate (Either G.GameState P.Score)
-returnStateM = do
+returnStateM :: [G.ControlEvent] -> GameStateUpdate (Either G.GameResult G.GameState)
+returnStateM events = do
   s <- get
-  return $ if playerDead (G.screen s) (G.player s)
-    then Right $ P.score $ G.player s
-    else Left s
+  return $
+    if playerDead (G.screen s) (G.player s) then Left $ G.GameResult s G.Exit
+    else if paused events then Left $ G.GameResult s G.Pause
+    else Right s
+
+paused :: [G.ControlEvent] -> Bool
+paused = elem G.Paused
 
 
 -- Updating the view involves two steps:
@@ -105,14 +112,14 @@ updateScreen :: P.Player -> S.Screen -> S.Screen
 updateScreen player = scrollScreenToPlayer player . scrollScreenOverTime
 
 scrollScreenOverTime :: S.Screen -> S.Screen
-scrollScreenOverTime screen = if height == 0 then screen else scrollScreen (deltaTime*factor) screen
+scrollScreenOverTime screen = if height == 0 then screen else scrollScreen (updateFactor * factor) screen
   where height = S.bottom screen
-        factor = min 400 (100+height/100)
+        factor = min 400 (100 + height / 100)
 
 scrollScreenToPlayer :: P.Player -> S.Screen -> S.Screen
-scrollScreenToPlayer player screen = if distance < 250 then scrollScreen (250-distance) screen else screen
+scrollScreenToPlayer player screen = if space < 250 then scrollScreen (250 - space) screen else screen
   where (_, y) = P.position player
-        distance = S.top screen - y
+        space = S.top screen - y
 
 scrollScreen :: Float -> S.Screen -> S.Screen
 scrollScreen delta screen = screen {
@@ -123,16 +130,22 @@ scrollScreen delta screen = screen {
 
 -- Apply the player events to the motion.
 
-updateMotion :: G.Motion -> [E.PlayerEvent] -> G.Motion
+updateMotion :: G.Motion -> [G.PlayerEvent] -> G.Motion
 updateMotion = foldl applyPlayerEvents
 
-applyPlayerEvents :: G.Motion -> E.PlayerEvent -> G.Motion
-applyPlayerEvents moveState (E.PlayerMoved E.MoveLeft b) = moveState { G.moveLeft = b }
-applyPlayerEvents moveState (E.PlayerMoved E.MoveRight b) = moveState { G.moveRight = b }
-applyPlayerEvents moveState E.PlayerJumped = moveState { G.jump = True }
+applyPlayerEvents :: G.Motion -> G.PlayerEvent -> G.Motion
+applyPlayerEvents moveState (G.PlayerMoved G.MoveLeft b) = moveState { G.moveLeft = b }
+applyPlayerEvents moveState (G.PlayerMoved G.MoveRight b) = moveState { G.moveRight = b }
+applyPlayerEvents moveState G.PlayerJumped = moveState { G.jump = True }
+applyPlayerEvents moveState _ = moveState
 
 
 -- Drop passed and generate new layers.
+
+data PatternEntry = PatternEntry {
+  description :: (L.Size, Float),
+  distance :: Float
+}
 
 updateLayers :: S.Screen -> [L.Layer] -> [L.Layer]
 updateLayers screen = fillLayers screen . dropPassedLayers screen
@@ -147,26 +160,26 @@ unfoldLayers screen = reverse . unfoldr (generateLayer generator screen)
 
 easyPattern :: [PatternEntry]
 easyPattern = [
-    PatternEntry ((500, 40), 0) 200,
-    PatternEntry ((500, 40), 500) 200
+    PatternEntry ((500, 50), 0) 150,
+    PatternEntry ((500, 50), 500) 150
   ]
 
 stairsPattern :: [PatternEntry]
 stairsPattern = [
-    PatternEntry ((300, 40), 0) 200,
-    PatternEntry ((350, 40), 700) 0,
-    PatternEntry ((350, 40), 100) 200,
-    PatternEntry ((300, 40), 600) 0
+    PatternEntry ((300, 50), 0) 150,
+    PatternEntry ((350, 50), 700) 0,
+    PatternEntry ((350, 50), 100) 150,
+    PatternEntry ((300, 50), 600) 0
   ]
 
 nextLayerByPattern :: [PatternEntry] -> L.Layer -> L.Layer
 nextLayerByPattern [] layer = layer
 nextLayerByPattern (p:ps) layer =
   case elemIndex (L.size layer, L.posX layer) descriptions of
-    Nothing -> let (PatternEntry ((w, h), x) d) = p in L.Layer layerId (w, h) (x, y+d)
+    Nothing -> let (PatternEntry ((w, h), x) d) = p in L.Layer layerId (w, h) (x, y + d)
     Just i ->
-      case (p:ps ++ [p]) !! (i+1) of
-        PatternEntry ((w, h), x) d -> L.Layer layerId (w, h) (x, y+d)
+      case (p:ps ++ [p]) !! (i + 1) of
+        PatternEntry ((w, h), x) d -> L.Layer layerId (w, h) (x, y + d)
   where descriptions = map description (p:ps)
         layerId = L.id layer + 1
         (_, y) = L.position layer
@@ -219,22 +232,23 @@ updateAcceleration acc vel motion =
 
 updateGroundAcceleration :: P.Acceleration -> P.Velocity -> G.Motion -> P.Acceleration
 updateGroundAcceleration (accX, _) (velX, velY) motion
-  | jump && (abs velX > 750 || abs velY > 750) = (accX, 275000)
-  | jump = (accX, 150000)
-  | left && right = (0, -3000)
-  | left = (-8000, -3000)
-  | right = (8000, -3000)
-  | otherwise = (0, -3000)
+  | jump && (vel >= 750) = (accX, 320000)
+  | jump = (accX, 160000)
+  | left && right = (0, -4000)
+  | left = (-8000, -4000)
+  | right = (8000, -4000)
+  | otherwise = (0, -4000)
   where left = G.moveLeft motion
         right = G.moveRight motion
         jump = G.jump motion
+        vel = sqrt $ (velX ** 2) + (velY ** 2)
 
 updateAirAcceleration :: G.Motion -> P.Acceleration
 updateAirAcceleration motion
-  | left && right = (0, -3000)
-  | left = (-4000, -3000)
-  | right = (4000, -3000)
-  | otherwise = (0, -3000)
+  | left && right = (0, -4000)
+  | left = (-4000, -4000)
+  | right = (4000, -4000)
+  | otherwise = (0, -4000)
   where left = G.moveLeft motion
         right = G.moveRight motion
 
@@ -242,10 +256,10 @@ updateVelocity :: P.Velocity -> G.Motion -> P.Acceleration -> P.Velocity
 updateVelocity vel motion = applyAcceleration (decelerate motion vel)
 
 applyAcceleration :: P.Velocity -> P.Acceleration -> P.Velocity
-applyAcceleration (x, y) (x', y') = (x+x'*deltaTime, y+y'*deltaTime)
+applyAcceleration (x, y) (x', y') = (x+x'*updateFactor, y+y'*updateFactor)
 
 decelerate :: G.Motion -> P.Velocity -> P.Velocity
-decelerate motion (x, y) = if G.air motion then (x*0.99, y) else (x*0.925, y)
+decelerate motion (x, y) = if G.air motion then (x * 0.99, y) else (x * 0.925, y)
 
 updatePosition :: P.Position -> P.Velocity -> P.Position
 updatePosition = applyAcceleration
@@ -256,8 +270,8 @@ updatePosition = applyAcceleration
 
 bouncePlayerFromBounds :: S.Screen -> P.Player -> P.Player
 bouncePlayerFromBounds screen player
-  | outLeft = player { P.position = (minX, posY), P.velocity = ((-velX), velY) }
-  | outRight = player { P.position = (maxX, posY), P.velocity = ((-velX), velY) }
+  | outLeft = player { P.position = (minX, posY), P.velocity = (-velX, velY) }
+  | outRight = player { P.position = (maxX, posY), P.velocity = (-velX, velY) }
   | otherwise = player
   where (posX, posY) = P.position player
         (velX, velY) = P.velocity player
@@ -271,7 +285,7 @@ collidePlayerWithLayers layers player =
   if playerFalling player then
     case layerCollidedWithPlayer player layers of
       Nothing -> player
-      Just layer -> resetVelocityY . liftPlayerOnLayer layer $ player
+      Just layer -> resetVelocityY $ liftPlayerOnLayer layer player
   else player
 
 playerDead :: S.Screen -> P.Player -> Bool

@@ -27,7 +27,7 @@ source-repository head
 
 library
   exposed-modules:
-      LambdaTower.Ingame.Events
+      LambdaTower.Ingame.GameEvents
     , LambdaTower.Ingame.GameState
     , LambdaTower.Ingame.Input
     , LambdaTower.Ingame.Layer
