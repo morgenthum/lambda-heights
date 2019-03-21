@@ -21,6 +21,13 @@ import qualified LambdaTower.Menu.MenuState as M
 import qualified LambdaTower.Menu.Render as M
 import qualified LambdaTower.Menu.Update as M
 
+import qualified LambdaTower.Pause.PauseState as P
+import qualified LambdaTower.Pause.Render as P
+import qualified LambdaTower.Pause.Update as P
+
+type IngameLoopState = LoopState IO I.GameState I.GameResult
+type PauseLoopState = LoopState IO P.PauseState P.ExitReason
+
 defaultReplayFilePath :: String
 defaultReplayFilePath = "replay.dat"
 
@@ -47,27 +54,36 @@ startMenu graphics = do
   M.deleteConfig config
   return state
 
+type Channel = TChan (Maybe [I.PlayerEvent])
+
 startGame :: FilePath -> Graphics -> IO State
 startGame replayFilePath graphics = do
-  timer <- defaultTimer
   channel <- newTChanIO
-  config <- I.defaultConfig
+  ingameConfig <- I.defaultConfig
+  pauseConfig <- P.defaultConfig
 
   safeDeleteFile replayFilePath
-  handle <- async $ serializeFromTChanToFile replayFilePath channel
 
-  let loop = timedLoop I.ingameKeyInput (I.updateAndWrite channel) (I.render graphics config)
-  startGameLoop timer I.newGameState loop
+  let pauseLoop = timedLoop M.handleKeyInput P.pauseUpdate (P.renderPause graphics pauseConfig ingameConfig)
+  let gameLoop = timedLoop I.ingameKeyInput (I.updateAndWrite channel) (I.defaultRender graphics ingameConfig)
+  startGameLoop replayFilePath channel I.newGameState gameLoop pauseLoop
 
-  wait handle
-  I.deleteConfig config
+  P.deleteConfig pauseConfig
+  I.deleteConfig ingameConfig
   return Menu
 
-startGameLoop :: LoopTimer -> I.GameState -> LoopState IO I.GameState I.GameResult -> IO ()
-startGameLoop timer gameState ingameLoop = do
+startGameLoop :: FilePath -> Channel -> I.GameState -> IngameLoopState -> PauseLoopState -> IO ()
+startGameLoop replayFilePath channel gameState ingameLoop pauseLoop = do
+  timer <- defaultTimer
+  handle <- async $ serializeFromTChanToFile replayFilePath channel
   result <- startLoop timer gameState ingameLoop
+  wait handle
   case I.reason result of
-    I.Pause -> return () -- startGameLoop timer (I.state result) ingameLoop
+    I.Pause -> do
+      reason <- startLoop timer (P.newPauseState $ I.state result) pauseLoop
+      case reason of
+        P.Resume -> startGameLoop replayFilePath channel (I.state result) ingameLoop pauseLoop
+        P.Exit -> return ()
     _ -> return ()
 
 startReplay :: FilePath -> Graphics -> IO State

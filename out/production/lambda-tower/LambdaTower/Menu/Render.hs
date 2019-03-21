@@ -2,14 +2,15 @@ module LambdaTower.Menu.Render where
 
 import Data.Word
 
-import qualified Data.Text as T
-
 import qualified SDL
 import qualified SDL.Font as SDLF
 
 import LambdaTower.Graphics
 import LambdaTower.Loop
 
+import qualified LambdaTower.Components.Button as B
+import qualified LambdaTower.Components.ButtonList as BL
+import qualified LambdaTower.Components.Render as R
 import qualified LambdaTower.Menu.MenuState as M
 import qualified LambdaTower.Screen as S
 
@@ -39,24 +40,16 @@ render (window, renderer) config state = do
   SDL.clear renderer
 
   windowSize <- SDL.get $ SDL.windowSize window
-
-  let view = M.screen state
-  let selectedId = M.selected state
-
-  mapM_ (renderButton renderer config windowSize view selectedId) $ M.buttons state
+  let buttonList = M.buttonList state
+  let view = BL.screen buttonList
+  let selectedId = BL.selected buttonList
+  mapM_ (renderButton renderer config windowSize view selectedId) $ BL.buttons buttonList
 
   SDL.present renderer
 
-renderButton :: SDL.Renderer -> RenderConfig -> S.WindowSize -> S.Screen -> Int -> M.Button -> IO ()
+renderButton :: SDL.Renderer -> RenderConfig -> S.WindowSize -> S.Screen -> Int -> B.Button -> IO ()
 renderButton renderer config windowSize screen selectedId button = do
-  let buttonFont = font config
-
-  let SDL.V2 x y = S.toWindowPosition screen windowSize (M.position button)
-  (w, h) <- SDLF.size buttonFont $ T.pack . M.text $ button
-
-  let deltaX = round (realToFrac w / 2 :: Float)
-  let deltaY = round (realToFrac h / 2 :: Float)
-
-  let color = if selectedId == M.id button then selectedTextColor config else textColor config
-
-  renderText renderer buttonFont (SDL.V2 (x - deltaX) (y - deltaY)) color $ M.text button
+  let color = if selectedId == B.id button
+              then selectedTextColor config
+              else textColor config
+  R.renderButton renderer windowSize screen (font config) color button

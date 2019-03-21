@@ -27,18 +27,24 @@ source-repository head
 
 library
   exposed-modules:
-      LambdaTower.Ingame.GameEvents
+      LambdaTower.Components.Button
+    , LambdaTower.Components.ButtonList
+    , LambdaTower.Components.Events
+    , LambdaTower.Components.Render
+    , LambdaTower.Ingame.GameEvents
     , LambdaTower.Ingame.GameState
     , LambdaTower.Ingame.Input
     , LambdaTower.Ingame.Layer
     , LambdaTower.Ingame.Player
     , LambdaTower.Ingame.Render
     , LambdaTower.Ingame.Update
-    , LambdaTower.Menu.Events
     , LambdaTower.Menu.Input
     , LambdaTower.Menu.MenuState
     , LambdaTower.Menu.Render
     , LambdaTower.Menu.Update
+    , LambdaTower.Pause.PauseState
+    , LambdaTower.Pause.Render
+    , LambdaTower.Pause.Update
     , LambdaTower.Game
     , LambdaTower.Graphics
     , LambdaTower.Loop

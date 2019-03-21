@@ -13,6 +13,9 @@ import Data.Word
 
 import LambdaTower.Loop
 
+import qualified LambdaTower.Components.Button as B
+import qualified LambdaTower.Components.ButtonList as BL
+import qualified LambdaTower.Components.Events as E
 import qualified LambdaTower.Ingame.GameEvents as G
 import qualified LambdaTower.Ingame.GameState as G
 import qualified LambdaTower.Ingame.Layer as L

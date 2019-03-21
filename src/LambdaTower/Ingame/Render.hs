@@ -1,8 +1,12 @@
 module LambdaTower.Ingame.Render (
+  RenderConfig(..),
   defaultConfig,
   deleteConfig,
+  defaultRender,
+  renderReplay,
   render,
-  renderReplay
+  clear,
+  present
 ) where
 
 import Data.Word
@@ -18,6 +22,7 @@ import qualified SDL.Primitive as SDLP
 import LambdaTower.Graphics
 import LambdaTower.Loop
 
+import qualified LambdaTower.Components.Render as R
 import qualified LambdaTower.Ingame.GameEvents as G
 import qualified LambdaTower.Ingame.GameState as G
 import qualified LambdaTower.Ingame.Layer as L
@@ -69,41 +74,50 @@ playerBurnerShape :: Shape
 playerBurnerShape = ([0, 10, 25, 10, 0, 15], [80, 80, 40, 0, 0, 40])
 
 renderReplay :: Graphics -> RenderConfig -> Renderer IO ([[G.PlayerEvent]], G.GameState)
-renderReplay graphics config (_, state) = render graphics config state
+renderReplay graphics config (_, state) = defaultRender graphics config state
 
-render :: Graphics -> RenderConfig -> Renderer IO G.GameState
-render (window, renderer) config state = do
-  SDL.rendererDrawColor renderer SDL.$= bgColor config
+clear :: SDL.Renderer -> SDLP.Color -> IO ()
+clear renderer color = do
+  SDL.rendererDrawColor renderer SDL.$= color
   SDL.clear renderer
 
+present :: SDL.Renderer -> IO ()
+present = SDL.present
+
+defaultRender :: Graphics -> RenderConfig -> Renderer IO G.GameState
+defaultRender (window, renderer) config =
+  render (clear renderer $ bgColor config) (present renderer) (window, renderer) config
+
+render :: IO () -> IO () -> Graphics -> RenderConfig -> Renderer IO G.GameState
+render pre post (window, renderer) config state = do
+  pre
   windowSize <- SDL.get $ SDL.windowSize window
 
   mapM_ (renderLayer renderer config windowSize $ G.screen state) $ G.layers state
   renderPlayer renderer config windowSize (G.screen state) (G.player state)
   renderPlayerBurner renderer config windowSize (G.screen state) (G.player state)
   renderHUD renderer config state
-
-  SDL.present renderer
+  post
 
 renderHUD :: SDL.Renderer -> RenderConfig -> G.GameState -> IO ()
 renderHUD renderer config state = do
   let textFont = font config
   let (velX, velY) = P.velocity . G.player $ state
 
-  renderText renderer textFont (SDL.V2 20 20) (whiteColor config) "velocity"
-  renderText renderer textFont (SDL.V2 100 20) (textColor config) $ show (round velX :: Int)
-  renderText renderer textFont (SDL.V2 150 20) (textColor config) $ show (round velY :: Int)
+  R.renderText renderer textFont (SDL.V2 20 20) (whiteColor config) "velocity"
+  R.renderText renderer textFont (SDL.V2 100 20) (textColor config) $ show (round velX :: Int)
+  R.renderText renderer textFont (SDL.V2 150 20) (textColor config) $ show (round velY :: Int)
 
   let duration = G.time state
-  let seconds = round (realToFrac duration / 1000 :: Double)
+  let seconds = round (realToFrac duration / 1000 :: Double) :: Integer
   let millis = mod duration 1000
 
-  renderText renderer textFont (SDL.V2 20 40) (whiteColor config) "time"
-  renderText renderer textFont (SDL.V2 100 40) (textColor config) (show seconds)
-  renderText renderer textFont (SDL.V2 150 40) (textColor config) (show millis)
+  R.renderText renderer textFont (SDL.V2 20 40) (whiteColor config) "time"
+  R.renderText renderer textFont (SDL.V2 100 40) (textColor config) (show seconds)
+  R.renderText renderer textFont (SDL.V2 150 40) (textColor config) (show millis)
 
-  renderText renderer textFont (SDL.V2 20 60) (whiteColor config) "score"
-  renderText renderer textFont (SDL.V2 100 60) (textColor config) (show $ P.score . G.player $ state)
+  R.renderText renderer textFont (SDL.V2 20 60) (whiteColor config) "score"
+  R.renderText renderer textFont (SDL.V2 100 60) (textColor config) (show $ P.score $ G.player state)
 
 renderPlayer :: SDL.Renderer -> RenderConfig -> SDL.V2 CInt -> S.Screen -> P.Player -> IO ()
 renderPlayer renderer config windowSize screen player = do

@@ -1,4 +1,4 @@
-module LambdaTower.Menu.Render where
+module LambdaTower.Pause.Render where
 
 import Data.Word
 
@@ -11,12 +11,13 @@ import LambdaTower.Loop
 import qualified LambdaTower.Components.Button as B
 import qualified LambdaTower.Components.ButtonList as BL
 import qualified LambdaTower.Components.Render as R
-import qualified LambdaTower.Menu.MenuState as M
+import qualified LambdaTower.Ingame.Render as IR
+import qualified LambdaTower.Pause.PauseState as PS
 import qualified LambdaTower.Screen as S
 
 data RenderConfig = RenderConfig {
   font :: SDLF.Font,
-  backgroundColor :: SDL.V4 Word8,
+  overlayColor :: SDL.V4 Word8,
   textColor :: SDL.V4 Word8,
   selectedTextColor :: SDL.V4 Word8
 }
@@ -26,7 +27,7 @@ defaultConfig = do
   loadedFont <- SDLF.load "HighSchoolUSASans.ttf" 28
   return $ RenderConfig {
     font = loadedFont,
-    backgroundColor = SDL.V4 30 30 30 255,
+    overlayColor = SDL.V4 0 0 0 128,
     textColor = SDL.V4 255 255 255 255,
     selectedTextColor = SDL.V4 0 191 255 255
   }
@@ -34,18 +35,24 @@ defaultConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-render :: Graphics -> RenderConfig -> Renderer IO M.MenuState
-render (window, renderer) config state = do
-  SDL.rendererDrawColor renderer SDL.$= backgroundColor config
-  SDL.clear renderer
+renderPause :: Graphics -> RenderConfig -> IR.RenderConfig -> Renderer IO PS.PauseState
+renderPause (window, renderer) pauseConfig ingameConfig state = do
+  let clear = IR.clear renderer $ IR.bgColor ingameConfig
+  IR.render clear void (window, renderer) ingameConfig (PS.state state)
 
   windowSize <- SDL.get $ SDL.windowSize window
-  let buttonList = M.buttonList state
+  SDL.rendererDrawColor renderer SDL.$= overlayColor pauseConfig
+  SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P $ SDL.V2 0 0) windowSize
+
+  let buttonList = PS.buttonList state
   let view = BL.screen buttonList
   let selectedId = BL.selected buttonList
-  mapM_ (renderButton renderer config windowSize view selectedId) $ BL.buttons buttonList
+  mapM_ (renderButton renderer pauseConfig windowSize view selectedId) $ BL.buttons buttonList
 
   SDL.present renderer
+
+void :: IO ()
+void = return ()
 
 renderButton :: SDL.Renderer -> RenderConfig -> S.WindowSize -> S.Screen -> Int -> B.Button -> IO ()
 renderButton renderer config windowSize screen selectedId button = do

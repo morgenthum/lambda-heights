@@ -1,22 +1,22 @@
 module LambdaTower.Ingame.GameState where
 
-import LambdaTower.Ingame.Layer
-import LambdaTower.Ingame.Player
-import LambdaTower.Screen
-
-data ExitReason = Exit | Pause
+import qualified LambdaTower.Ingame.Layer as L
+import qualified LambdaTower.Ingame.Player as P
+import qualified LambdaTower.Screen as S
 
 data GameResult = GameResult {
   state :: GameState,
   reason :: ExitReason
 }
 
+data ExitReason = Exit | Pause
+
 data GameState = GameState {
   time :: Integer,
-  screen :: Screen,
+  screen :: S.Screen,
   motion :: Motion,
-  player :: Player,
-  layers :: [Layer]
+  player :: P.Player,
+  layers :: [L.Layer]
 }
 
 data Motion = Motion {
@@ -29,9 +29,9 @@ data Motion = Motion {
 newGameState :: GameState
 newGameState = GameState {
   time = 0,
-  screen = newScreen,
+  screen = S.newScreen,
   motion = newMotion,
-  player = newPlayer,
+  player = P.newPlayer,
   layers = []
 }
 

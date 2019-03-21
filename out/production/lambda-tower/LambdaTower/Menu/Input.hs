@@ -4,7 +4,7 @@ import Data.Maybe
 
 import qualified SDL
 
-import LambdaTower.Menu.Events
+import LambdaTower.Components.Events
 import LambdaTower.Loop
 
 handleKeyInput :: InputHandler IO [KeyEvent]

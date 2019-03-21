@@ -1,7 +1,7 @@
 module LambdaTower.Loop where
 
-import Control.Monad.Fail
-import Control.Monad.State
+import qualified Control.Monad.Fail as CM
+import qualified Control.Monad.State as CM
 
 import Data.Word
 
@@ -15,7 +15,7 @@ data LoopTimer = LoopTimer {
 }
 
 type TimedState s r = (LoopTimer, Either r s)
-type LoopState m s r = StateT (TimedState s r) m ()
+type LoopState m s r = CM.StateT (TimedState s r) m ()
 
 type InputHandler m e = m e
 type Updater m s r e = LoopTimer -> e -> s -> m (Either r s)
@@ -34,38 +34,37 @@ newTimer timerRate = do
     lag = 0
   }
 
-startLoop :: (MonadFail m, MonadIO m) => LoopTimer -> s -> LoopState m s r -> m r
+startLoop :: (CM.MonadFail m, CM.MonadIO m) => LoopTimer -> s -> LoopState m s r -> m r
 startLoop timer state loop = do
-  (_, Left r) <- execStateT loop (timer, Right state)
+  (_, Left r) <- CM.execStateT loop (timer, Right state)
   return r
 
-timedLoop :: (MonadIO m) => InputHandler m e -> Updater m s r e -> Renderer m s -> LoopState m s r
+timedLoop :: (CM.MonadIO m) => InputHandler m e -> Updater m s r e -> Renderer m s -> LoopState m s r
 timedLoop handleInput update render = do
   updateTimer
   inputAndUpdate handleInput update
-  eitherState <- gets snd
+  eitherState <- CM.gets snd
   case eitherState of
     Left _ -> return ()
     Right state -> do
-      lift $ render state
+      CM.lift $ render state
       timedLoop handleInput update render
 
-updateTimer :: (MonadIO m) => LoopState m s r
+updateTimer :: (CM.MonadIO m) => LoopState m s r
 updateTimer = do
-  (timer, state) <- get
+  (timer, state) <- CM.get
   newCurrent <- fromIntegral <$> SDL.ticks
   let millis = newCurrent - current timer
-  liftIO $ print millis
-  put (timer { current = newCurrent, elapsed = millis, lag = lag timer + millis }, state)
+  CM.put (timer { current = newCurrent, elapsed = millis, lag = lag timer + millis }, state)
 
-inputAndUpdate :: (MonadIO m) => InputHandler m e -> Updater m s r e -> LoopState m s r
+inputAndUpdate :: (CM.MonadIO m) => InputHandler m e -> Updater m s r e -> LoopState m s r
 inputAndUpdate handleInput update = do
-  timedState <- get
+  timedState <- CM.get
   case timedState of
     (_, Left _) -> return ()
     (timer, Right state) ->
-      when (lag timer > rate timer) $ do
-        events <- lift handleInput
-        newState <- lift $ update timer events state
-        put (timer { lag = lag timer - rate timer}, newState)
+      CM.when (lag timer > rate timer) $ do
+        events <- CM.lift handleInput
+        newState <- CM.lift $ update timer events state
+        CM.put (timer { lag = lag timer - rate timer}, newState)
         inputAndUpdate handleInput update
