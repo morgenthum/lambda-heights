@@ -3,7 +3,6 @@ module LambdaTower.Ingame.Render (
   defaultConfig,
   deleteConfig,
   defaultRender,
-  renderReplay,
   render,
   clear,
   present
@@ -21,6 +20,7 @@ import qualified SDL.Primitive as SDLP
 
 import LambdaTower.Graphics
 import LambdaTower.Loop
+import LambdaTower.Types
 
 import qualified LambdaTower.Components.Render as R
 import qualified LambdaTower.Ingame.GameEvents as G
@@ -56,7 +56,6 @@ deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
 type Shape = ([Float], [Float])
-type Size = (Float, Float)
 
 shapeSize :: Shape -> Size
 shapeSize shape = (maximum . shapeXs $ shape, maximum . shapeYs $ shape)
@@ -72,9 +71,6 @@ playerShape = ([0, 10, 40, 30, 20, 10, 0, 15], [80, 80, 0, 0, 25, 0, 0, 40])
 
 playerBurnerShape :: Shape
 playerBurnerShape = ([0, 10, 25, 10, 0, 15], [80, 80, 40, 0, 0, 40])
-
-renderReplay :: Graphics -> RenderConfig -> Renderer IO ([[G.PlayerEvent]], G.GameState)
-renderReplay graphics config (_, state) = defaultRender graphics config state
 
 clear :: SDL.Renderer -> SDLP.Color -> IO ()
 clear renderer color = do
@@ -149,13 +145,13 @@ flipShape :: Shape -> Shape
 flipShape shape = (map (\x -> w - x) $ shapeXs shape, shapeYs shape)
   where (w, _) = shapeSize shape
 
-translateCenterBottom :: S.Position -> Shape -> Shape
+translateCenterBottom :: Position -> Shape -> Shape
 translateCenterBottom (posX, posY) (xs, ys) = (xs', ys')
   where (w, _) = shapeSize (xs, ys)
         xs' = map ((\x -> x - w / 2) . (+posX)) xs
         ys' = map (+posY) ys
 
-renderShape :: SDL.Renderer -> S.WindowSize -> S.Screen -> SDLP.Color -> Shape -> IO ()
+renderShape :: SDL.Renderer -> WindowSize -> S.Screen -> SDLP.Color -> Shape -> IO ()
 renderShape renderer (SDL.V2 w h) screen color shape = do
   let toVector = foldl V.snoc V.empty
 
@@ -167,7 +163,7 @@ renderShape renderer (SDL.V2 w h) screen color shape = do
 
   SDLP.fillPolygon renderer xs ys color
 
-renderLayer :: SDL.Renderer -> RenderConfig -> S.WindowSize -> S.Screen -> L.Layer -> IO ()
+renderLayer :: SDL.Renderer -> RenderConfig -> WindowSize -> S.Screen -> L.Layer -> IO ()
 renderLayer renderer config windowSize screen layer = do
   let size = S.toWindowSize screen windowSize (L.size layer)
   let position = S.toWindowPosition screen windowSize (L.position layer)

@@ -9,6 +9,7 @@ import LambdaTower.Graphics
 import LambdaTower.Loop
 import LambdaTower.Recorder
 import LambdaTower.State
+import LambdaTower.Types
 
 import qualified LambdaTower.Ingame.GameEvents as I
 import qualified LambdaTower.Ingame.Input as I
@@ -24,6 +25,11 @@ import qualified LambdaTower.Menu.Update as M
 import qualified LambdaTower.Pause.PauseState as P
 import qualified LambdaTower.Pause.Render as P
 import qualified LambdaTower.Pause.Update as P
+
+import qualified LambdaTower.Replay.Input as R
+import qualified LambdaTower.Replay.Render as R
+import qualified LambdaTower.Replay.ReplayState as R
+import qualified LambdaTower.Replay.Update as R
 
 type IngameLoopState = LoopState IO I.GameState I.GameResult
 type PauseLoopState = LoopState IO P.PauseState P.ExitReason
@@ -54,8 +60,6 @@ startMenu graphics = do
   M.deleteConfig config
   return state
 
-type Channel = TChan (Maybe [I.PlayerEvent])
-
 startGame :: FilePath -> Graphics -> IO State
 startGame replayFilePath graphics = do
   channel <- newTChanIO
@@ -72,7 +76,7 @@ startGame replayFilePath graphics = do
   I.deleteConfig ingameConfig
   return Menu
 
-startGameLoop :: FilePath -> Channel -> I.GameState -> IngameLoopState -> PauseLoopState -> IO ()
+startGameLoop :: FilePath -> Channel I.PlayerEvent -> I.GameState -> IngameLoopState -> PauseLoopState -> IO ()
 startGameLoop replayFilePath channel gameState ingameLoop pauseLoop = do
   timer <- defaultTimer
   handle <- async $ serializeFromTChanToFile replayFilePath channel
@@ -97,8 +101,8 @@ startReplay replayFilePath graphics = do
       timer <- defaultTimer
       config <- I.defaultConfig
 
-      let loop = timedLoop I.replayKeyInput I.replayUpdate (I.renderReplay graphics config)
-      _ <- startLoop timer (events, I.newGameState) loop
+      let loop = timedLoop R.replayKeyInput R.replayUpdate (R.renderReplay graphics config)
+      _ <- startLoop timer (R.ReplayState I.newGameState events) loop
 
       I.deleteConfig config
       return Menu

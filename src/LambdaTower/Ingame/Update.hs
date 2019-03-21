@@ -1,5 +1,4 @@
 module LambdaTower.Ingame.Update (
-  replayUpdate,
   updateAndWrite,
   update
 ) where
@@ -9,13 +8,10 @@ import Control.Monad.STM
 import Control.Concurrent.STM.TChan
 
 import Data.List
-import Data.Word
 
 import LambdaTower.Loop
+import LambdaTower.Types
 
-import qualified LambdaTower.Components.Button as B
-import qualified LambdaTower.Components.ButtonList as BL
-import qualified LambdaTower.Components.Events as E
 import qualified LambdaTower.Ingame.GameEvents as G
 import qualified LambdaTower.Ingame.GameState as G
 import qualified LambdaTower.Ingame.Layer as L
@@ -25,30 +21,16 @@ import qualified LambdaTower.Screen as S
 updateFactor :: Float
 updateFactor = 1 / 128
 
--- Updating the replays need no calculations because we already have all states.
--- We need two steps:
--- a) Return the front state of the list and remove it for the next cycle.
--- b) Return the score if the replay is done.
-
-type ReplayState = ([[G.PlayerEvent]], G.GameState)
-
-replayUpdate :: Updater IO ReplayState ReplayState [G.ControlEvent]
-replayUpdate _ _ ([], gameState) = return $ Left ([], gameState)
-replayUpdate timer controlEvents (events:eventStore, gameState) = do
-  eitherState <- update timer (G.GameEvents controlEvents events) gameState
-  case eitherState of
-    Left gameState' -> return $ Left (eventStore, G.state gameState')
-    Right gameState' -> return $ Right (eventStore, gameState')
-
 
 -- Wrapper around one update to broadcast the occured events for serialization
 
 updateAndWrite :: TChan (Maybe [G.PlayerEvent]) -> Updater IO G.GameState G.GameResult G.GameEvents
 updateAndWrite channel timer events gameState = do
   result <- update timer events gameState
+  liftIO $ atomically $ writeTChan channel $ Just $ G.playerEvents events
   case result of
     Left _ -> liftIO $ atomically $ writeTChan channel Nothing
-    Right _ -> liftIO $ atomically $ writeTChan channel $ Just $ G.playerEvents events
+    Right _ -> return ()
   return result
 
 
@@ -140,13 +122,12 @@ applyPlayerEvents :: G.Motion -> G.PlayerEvent -> G.Motion
 applyPlayerEvents moveState (G.PlayerMoved G.MoveLeft b) = moveState { G.moveLeft = b }
 applyPlayerEvents moveState (G.PlayerMoved G.MoveRight b) = moveState { G.moveRight = b }
 applyPlayerEvents moveState G.PlayerJumped = moveState { G.jump = True }
-applyPlayerEvents moveState _ = moveState
 
 
 -- Drop passed and generate new layers.
 
 data PatternEntry = PatternEntry {
-  description :: (L.Size, Float),
+  description :: (Size, Float),
   distance :: Float
 }
 
@@ -264,7 +245,7 @@ applyAcceleration (x, y) (x', y') = (x+x'*updateFactor, y+y'*updateFactor)
 decelerate :: G.Motion -> P.Velocity -> P.Velocity
 decelerate motion (x, y) = if G.air motion then (x * 0.99, y) else (x * 0.925, y)
 
-updatePosition :: P.Position -> P.Velocity -> P.Position
+updatePosition :: Position -> P.Velocity -> Position
 updatePosition = applyAcceleration
 
 
@@ -303,7 +284,7 @@ layerCollidedWithPlayer player layers =
     [] -> Nothing
     layer:_ -> Just layer
 
-positionInLayer :: P.Position -> L.Layer -> Bool
+positionInLayer :: Position -> L.Layer -> Bool
 positionInLayer (x, y) layer = x >= lx && x <= lx + lw && y <= ly && y >= ly - lh
   where (lw, lh) = L.size layer
         (lx, ly) = L.position layer

@@ -45,12 +45,17 @@ library
     , LambdaTower.Pause.PauseState
     , LambdaTower.Pause.Render
     , LambdaTower.Pause.Update
+    , LambdaTower.Replay.Input
+    , LambdaTower.Replay.Render
+    , LambdaTower.Replay.ReplayState
+    , LambdaTower.Replay.Update
     , LambdaTower.Game
     , LambdaTower.Graphics
     , LambdaTower.Loop
     , LambdaTower.Recorder
     , LambdaTower.Screen
     , LambdaTower.State
+    , LambdaTower.Types
   other-modules:
       Paths_lambda_tower
   hs-source-dirs:

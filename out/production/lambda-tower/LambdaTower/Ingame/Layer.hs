@@ -1,13 +1,6 @@
-module LambdaTower.Ingame.Layer (
-  LambdaTower.Screen.Position,
-  LambdaTower.Screen.Size,
-  Layer(..),
-  ground,
-  posX,
-  posY
-) where
+module LambdaTower.Ingame.Layer where
 
-import LambdaTower.Screen
+import LambdaTower.Types
 
 data Layer = Layer {
   id :: Int,

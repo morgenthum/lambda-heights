@@ -7,6 +7,7 @@ import qualified SDL.Font as SDLF
 
 import LambdaTower.Graphics
 import LambdaTower.Loop
+import LambdaTower.Types
 
 import qualified LambdaTower.Components.Button as B
 import qualified LambdaTower.Components.ButtonList as BL
@@ -54,7 +55,7 @@ renderPause (window, renderer) pauseConfig ingameConfig state = do
 void :: IO ()
 void = return ()
 
-renderButton :: SDL.Renderer -> RenderConfig -> S.WindowSize -> S.Screen -> Int -> B.Button -> IO ()
+renderButton :: SDL.Renderer -> RenderConfig -> WindowSize -> S.Screen -> Int -> B.Button -> IO ()
 renderButton renderer config windowSize screen selectedId button = do
   let color = if selectedId == B.id button
               then selectedTextColor config

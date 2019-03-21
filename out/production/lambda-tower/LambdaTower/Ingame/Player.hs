@@ -1,13 +1,6 @@
-module LambdaTower.Ingame.Player (
-  LambdaTower.Screen.Position,
-  Score,
-  Velocity,
-  Acceleration,
-  Player(..),
-  newPlayer
-) where
+module LambdaTower.Ingame.Player where
 
-import LambdaTower.Screen
+import LambdaTower.Types
 
 type Score = Int
 type Velocity = (Float, Float)

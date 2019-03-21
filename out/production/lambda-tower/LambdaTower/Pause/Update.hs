@@ -22,5 +22,5 @@ wrap state buttonList = state { PS.buttonList = buttonList }
 stateByButton :: B.Button -> PS.ExitReason
 stateByButton button =
   case B.id button of
-    0 -> PS.Resume
     1 -> PS.Exit
+    _ -> PS.Resume

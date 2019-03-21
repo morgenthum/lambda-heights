@@ -7,10 +7,12 @@ import Foreign.C.Types
 import qualified SDL
 import qualified SDL.Font as SDLF
 
+import LambdaTower.Types
+
 import qualified LambdaTower.Components.Button as B
 import qualified LambdaTower.Screen as S
 
-renderButton :: SDL.Renderer -> S.WindowSize -> S.Screen -> SDLF.Font -> SDLF.Color -> B.Button -> IO ()
+renderButton :: SDL.Renderer -> WindowSize -> S.Screen -> SDLF.Font -> SDLF.Color -> B.Button -> IO ()
 renderButton renderer windowSize screen font color button = do
   let SDL.V2 x y = S.toWindowPosition screen windowSize (B.position button)
   (w, h) <- SDLF.size font $ T.pack $ B.text button
