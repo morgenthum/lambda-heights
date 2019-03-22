@@ -1,7 +1,6 @@
 module LambdaTower.Replay.Update where
 
 import LambdaTower.Loop
-import LambdaTower.Types
 
 import qualified LambdaTower.Ingame.Update as Ingame
 import qualified LambdaTower.Types.GameEvents as Events

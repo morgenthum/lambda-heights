@@ -45,6 +45,7 @@ library
     , LambdaTower.Types.KeyEvents
     , LambdaTower.Types.Layer
     , LambdaTower.Types.MenuState
+    , LambdaTower.Types.Pattern
     , LambdaTower.Types.PauseState
     , LambdaTower.Types.Player
     , LambdaTower.Types.ReplayState

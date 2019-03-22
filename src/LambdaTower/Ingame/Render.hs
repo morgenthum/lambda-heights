@@ -35,7 +35,6 @@ data RenderConfig = RenderConfig {
   bgColor :: SDL.V4 Word8,
   playerColor :: SDL.V4 Word8,
   playerBurnerColor :: SDL.V4 Word8,
-  layerColor :: SDL.V4 Word8,
   textColor :: SDL.V4 Word8
 }
 
@@ -48,7 +47,6 @@ defaultConfig = do
     bgColor = SDL.V4 30 30 30 255,
     playerColor = SDL.V4 135 31 120 255,
     playerBurnerColor = SDL.V4 255 255 255 255,
-    layerColor = SDL.V4 31 135 120 255,
     textColor = SDL.V4 0 191 255 255
   }
 
@@ -79,7 +77,7 @@ render pre post (window, renderer) config state = do
   pre
   windowSize <- SDL.get $ SDL.windowSize window
 
-  mapM_ (renderLayer renderer config windowSize $ State.screen state) $ State.layers state
+  mapM_ (renderLayer renderer windowSize $ State.screen state) $ State.layers state
   renderPlayer renderer config windowSize (State.screen state) (State.player state)
   renderPlayerBurner renderer config windowSize (State.screen state) (State.player state)
   renderHUD renderer config state
@@ -155,10 +153,20 @@ renderShape renderer (SDL.V2 w h) screen color shape = do
 
   SDLP.fillPolygon renderer xs ys color
 
-renderLayer :: SDL.Renderer -> RenderConfig -> WindowSize -> Screen.Screen -> Layer.Layer -> IO ()
-renderLayer renderer config windowSize screen layer = do
+renderLayer :: SDL.Renderer -> WindowSize -> Screen.Screen -> Layer.Layer -> IO ()
+renderLayer renderer windowSize screen layer = do
   let size = Screen.toWindowSize screen windowSize (Layer.size layer)
   let position = Screen.toWindowPosition screen windowSize (Layer.position layer)
 
-  SDL.rendererDrawColor renderer SDL.$= layerColor config
+  SDL.rendererDrawColor renderer SDL.$= layerColor layer
   SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P position) size
+
+layerColor :: Layer.Layer -> SDL.V4 Word8
+layerColor layer
+  | h >= 300 = SDL.V4 0 255 127 255
+  | w >= 1000 = SDL.V4 255 255 255 255
+  | w >= 500 = SDL.V4 75 0 130 255
+  | w >= 400 = SDL.V4 31 135 120 255
+  | w >= 300 = SDL.V4 255 127 80 255
+  | otherwise = SDL.V4 255 215 0 255
+  where (w, h) = Layer.size layer

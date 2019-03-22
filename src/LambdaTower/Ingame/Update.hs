@@ -15,6 +15,7 @@ import LambdaTower.Types
 import qualified LambdaTower.Types.GameEvents as Events
 import qualified LambdaTower.Types.GameState as State
 import qualified LambdaTower.Types.Layer as Layer
+import qualified LambdaTower.Types.Pattern as Pattern
 import qualified LambdaTower.Types.Player as Player
 import qualified LambdaTower.Screen as Screen
 
@@ -128,10 +129,12 @@ applyPlayerEvents moveState Events.PlayerJumped = moveState { State.jump = True 
 
 -- Drop passed and generate new layers.
 
-data PatternEntry = PatternEntry {
-  description :: (Size, Float),
-  distance :: Float
-}
+newPattern :: [Pattern.PatternEntry]
+newPattern = Pattern.combine 1 [
+    Pattern.leftRightPattern,
+    Pattern.boostPattern,
+    Pattern.stairsPattern
+  ]
 
 updateLayers :: Screen.Screen -> [Layer.Layer] -> [Layer.Layer]
 updateLayers screen = fillLayers screen . dropPassedLayers screen
@@ -142,37 +145,25 @@ fillLayers screen (layer:layers) = unfoldLayers screen layer ++ layers
 
 unfoldLayers :: Screen.Screen -> Layer.Layer -> [Layer.Layer]
 unfoldLayers screen = reverse . unfoldr (generateLayer generator screen)
-  where generator = nextLayerByPattern (easyPattern ++ stairsPattern)
+  where generator = nextLayerByPattern newPattern
 
-easyPattern :: [PatternEntry]
-easyPattern = [
-    PatternEntry ((500, 50), 0) 150,
-    PatternEntry ((500, 50), 500) 150
-  ]
-
-stairsPattern :: [PatternEntry]
-stairsPattern = [
-    PatternEntry ((300, 50), 0) 150,
-    PatternEntry ((350, 50), 700) 0,
-    PatternEntry ((350, 50), 100) 150,
-    PatternEntry ((300, 50), 600) 0
-  ]
-
-nextLayerByPattern :: [PatternEntry] -> Layer.Layer -> Layer.Layer
+nextLayerByPattern :: [Pattern.PatternEntry] -> Layer.Layer -> Layer.Layer
 nextLayerByPattern [] layer = layer
 nextLayerByPattern (p:ps) layer =
-  case elemIndex (Layer.size layer, Layer.posX layer) descriptions of
-    Nothing -> let (PatternEntry ((w, h), x) d) = p in Layer.Layer layerId (w, h) (x, y + d)
-    Just i ->
-      case (p:ps ++ [p]) !! (i + 1) of
-        PatternEntry ((w, h), x) d -> Layer.Layer layerId (w, h) (x, y + d)
-  where descriptions = map description (p:ps)
+  case elemIndex (Layer.entryId layer) entryIds of
+    Nothing -> deriveLayer p layer
+    Just i -> case (p:ps ++ [p]) !! (i + 1) of p' -> deriveLayer p' layer
+  where entryIds = map Pattern.entryId (p:ps)
+
+deriveLayer :: Pattern.PatternEntry -> Layer.Layer -> Layer.Layer
+deriveLayer pattern layer = Layer.Layer layerId entryId (w, h) (x, y + d)
+  where Pattern.PatternEntry entryId ((w, h), x) d = pattern
         layerId = Layer.id layer + 1
         (_, y) = Layer.position layer
 
 generateLayer :: (Layer.Layer -> Layer.Layer) -> Screen.Screen -> Layer.Layer -> Maybe (Layer.Layer, Layer.Layer)
 generateLayer generator screen layer =
-  if Screen.top screen < Layer.posY layer - 250
+  if Screen.top screen < Layer.posY layer - 500
   then Nothing
   else Just (layer, generator layer)
 
@@ -271,8 +262,19 @@ collidePlayerWithLayers layers player =
   if playerFalling player then
     case layerCollidedWithPlayer player layers of
       Nothing -> player
-      Just layer -> resetVelocityY $ liftPlayerOnLayer layer player
+      Just layer ->
+        if shouldLift layer player
+        then resetVelocityY $ liftPlayerOnLayer layer player
+        else player
   else player
+
+shouldLift :: Layer.Layer -> Player.Player -> Bool
+shouldLift layer player = inWidth && inHeight
+  where (lw, _) = Layer.size layer
+        (lx, ly) = Layer.position layer
+        (x, y) = Player.position player
+        inWidth = x >= lx && x <= lx + lw
+        inHeight = y <= ly && y >= ly - 20
 
 playerDead :: Screen.Screen -> Player.Player -> Bool
 playerDead screen player = let (_, y) = Player.position player in y < Screen.bottom screen
@@ -287,9 +289,11 @@ layerCollidedWithPlayer player layers =
     layer:_ -> Just layer
 
 positionInLayer :: Position -> Layer.Layer -> Bool
-positionInLayer (x, y) layer = x >= lx && x <= lx + lw && y <= ly && y >= ly - lh
+positionInLayer(x, y) layer = inWidth && inHeight
   where (lw, lh) = Layer.size layer
         (lx, ly) = Layer.position layer
+        inWidth = x >= lx && x <= lx + lw
+        inHeight = y <= ly && y >= ly - lh
 
 liftPlayerOnLayer :: Layer.Layer -> Player.Player -> Player.Player
 liftPlayerOnLayer layer player = player { Player.position = (posX, Layer.posY layer) }
