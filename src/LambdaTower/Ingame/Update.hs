@@ -18,6 +18,8 @@ import qualified LambdaTower.Ingame.Layer as L
 import qualified LambdaTower.Ingame.Player as P
 import qualified LambdaTower.Screen as S
 
+-- Factor for scrolling the screen and update the acceleration.
+
 updateFactor :: Float
 updateFactor = 1 / 128
 
