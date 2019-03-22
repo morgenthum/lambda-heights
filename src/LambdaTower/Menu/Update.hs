@@ -3,28 +3,28 @@ module LambdaTower.Menu.Update (
 ) where
 
 import LambdaTower.Loop
+import LambdaTower.State
 
-import qualified LambdaTower.Components.Button as B
-import qualified LambdaTower.Components.ButtonList as BL
-import qualified LambdaTower.Components.Events as E
-import qualified LambdaTower.Menu.MenuState as M
-import qualified LambdaTower.State as S
+import qualified LambdaTower.Types.Button as Button
+import qualified LambdaTower.Types.ButtonList as ButtonList
+import qualified LambdaTower.Types.KeyEvents as Events
+import qualified LambdaTower.Types.MenuState as State
 
-update :: Updater IO M.MenuState S.State [E.KeyEvent]
+update :: Updater IO State.MenuState State [Events.KeyEvent]
 update _ events state = do
-  let buttonList = BL.ensureValidIndex $ E.applyEvents (M.buttonList state) events
+  let buttonList = ButtonList.ensureValidIndex $ Events.applyEvents (State.buttonList state) events
   return $
-    if BL.action buttonList
-      then Left $ stateByButton $ BL.selectedButton buttonList
+    if ButtonList.action buttonList
+      then Left $ stateByButton $ ButtonList.selectedButton buttonList
       else Right $ wrap state buttonList
 
-wrap :: M.MenuState -> BL.ButtonList -> M.MenuState
-wrap state buttonList = state { M.buttonList = buttonList }
+wrap :: State.MenuState -> ButtonList.ButtonList -> State.MenuState
+wrap state buttonList = state { State.buttonList = buttonList }
 
-stateByButton :: B.Button -> S.State
+stateByButton :: Button.Button -> State
 stateByButton button =
-  case B.id button of
-    0 -> S.Ingame
-    1 -> S.Replay
-    2 -> S.Exit
-    _ -> S.Menu
+  case Button.id button of
+    0 -> Ingame
+    1 -> Replay
+    2 -> Exit
+    _ -> Menu

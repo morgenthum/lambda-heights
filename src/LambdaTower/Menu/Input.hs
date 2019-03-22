@@ -1,14 +1,16 @@
-module LambdaTower.Menu.Input where
+module LambdaTower.Menu.Input (
+  keyInput
+) where
 
 import Data.Maybe
 
 import qualified SDL
 
-import LambdaTower.Components.Events
+import LambdaTower.Types.KeyEvents
 import LambdaTower.Loop
 
-handleKeyInput :: InputHandler IO [KeyEvent]
-handleKeyInput = mapMaybe eventToKeyEvent <$> SDL.pollEvents
+keyInput :: InputHandler IO [KeyEvent]
+keyInput = mapMaybe eventToKeyEvent <$> SDL.pollEvents
 
 eventToKeyEvent :: SDL.Event -> Maybe KeyEvent
 eventToKeyEvent event =

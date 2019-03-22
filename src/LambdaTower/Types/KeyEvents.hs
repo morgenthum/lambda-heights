@@ -1,11 +1,11 @@
-module LambdaTower.Components.Events where
+module LambdaTower.Types.KeyEvents where
 
-import LambdaTower.Components.ButtonList
+import LambdaTower.Types.ButtonList
 
 data KeyEvent = Enter | Up | Down
 
 applyEvents :: ButtonList -> [KeyEvent] -> ButtonList
-applyEvents state = foldl applyEvent state
+applyEvents = foldl applyEvent
 
 applyEvent :: ButtonList -> KeyEvent -> ButtonList
 applyEvent buttonList Up = up buttonList

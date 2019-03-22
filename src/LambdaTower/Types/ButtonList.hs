@@ -1,6 +1,6 @@
-module LambdaTower.Components.ButtonList where
+module LambdaTower.Types.ButtonList where
 
-import LambdaTower.Components.Button
+import LambdaTower.Types.Button
 import LambdaTower.Screen
 
 data ButtonList = ButtonList {

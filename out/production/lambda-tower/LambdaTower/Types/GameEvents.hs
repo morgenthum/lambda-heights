@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module LambdaTower.Ingame.GameEvents where
+module LambdaTower.Types.GameEvents where
 
 import Codec.Serialise
 
@@ -18,10 +18,9 @@ data PlayerEvent = PlayerMoved Direction Bool
                  | PlayerJumped
                  deriving (Eq, Generic)
 
-instance Serialise PlayerEvent
-
 data Direction = MoveLeft
                | MoveRight
                deriving (Eq, Generic)
 
+instance Serialise PlayerEvent
 instance Serialise Direction

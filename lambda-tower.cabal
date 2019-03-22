@@ -27,32 +27,33 @@ source-repository head
 
 library
   exposed-modules:
-      LambdaTower.Components.Button
-    , LambdaTower.Components.ButtonList
-    , LambdaTower.Components.Events
-    , LambdaTower.Components.Render
-    , LambdaTower.Ingame.GameEvents
-    , LambdaTower.Ingame.GameState
-    , LambdaTower.Ingame.Input
-    , LambdaTower.Ingame.Layer
-    , LambdaTower.Ingame.Player
+      LambdaTower.Ingame.Input
     , LambdaTower.Ingame.Render
     , LambdaTower.Ingame.Update
     , LambdaTower.Menu.Input
-    , LambdaTower.Menu.MenuState
     , LambdaTower.Menu.Render
     , LambdaTower.Menu.Update
-    , LambdaTower.Pause.PauseState
     , LambdaTower.Pause.Render
     , LambdaTower.Pause.Update
     , LambdaTower.Replay.Input
     , LambdaTower.Replay.Render
-    , LambdaTower.Replay.ReplayState
     , LambdaTower.Replay.Update
+    , LambdaTower.Types.Button
+    , LambdaTower.Types.ButtonList
+    , LambdaTower.Types.GameEvents
+    , LambdaTower.Types.GameState
+    , LambdaTower.Types.KeyEvents
+    , LambdaTower.Types.Layer
+    , LambdaTower.Types.MenuState
+    , LambdaTower.Types.PauseState
+    , LambdaTower.Types.Player
+    , LambdaTower.Types.ReplayState
+    , LambdaTower.Types.Shape
     , LambdaTower.Game
     , LambdaTower.Graphics
     , LambdaTower.Loop
     , LambdaTower.Recorder
+    , LambdaTower.Render
     , LambdaTower.Screen
     , LambdaTower.State
     , LambdaTower.Types

@@ -1,19 +1,18 @@
 module LambdaTower.Replay.Update where
 
 import LambdaTower.Loop
-import LambdaTower.Types
 
-import qualified LambdaTower.Ingame.GameEvents as IE
-import qualified LambdaTower.Ingame.GameState as G
-import qualified LambdaTower.Ingame.Update as IU
-import qualified LambdaTower.Replay.ReplayState as RS
+import qualified LambdaTower.Ingame.Update as Ingame
+import qualified LambdaTower.Types.GameEvents as Events
+import qualified LambdaTower.Types.GameState as Game
+import qualified LambdaTower.Types.ReplayState as Replay
 
-replayUpdate :: Updater IO RS.ReplayState RS.ReplayState [IE.ControlEvent]
-replayUpdate _ _ (RS.ReplayState gameState []) = return $ Left $ RS.ReplayState gameState []
+replayUpdate :: Updater IO Replay.ReplayState Replay.ReplayState [Events.ControlEvent]
+replayUpdate _ _ (Replay.ReplayState gameState []) = return $ Left $ Replay.ReplayState gameState []
 replayUpdate timer controlEvents state = do
-  let gameState = RS.state state
-  let events:eventStore = RS.events state
-  eitherState <- IU.update timer (IE.GameEvents controlEvents events) gameState
+  let gameState = Replay.state state
+  let events:eventStore = Replay.events state
+  eitherState <- Ingame.update timer (Events.GameEvents controlEvents events) gameState
   case eitherState of
-    Left gameState' -> return $ Left $ RS.ReplayState (G.state gameState') eventStore
-    Right gameState' -> return $ Right $ RS.ReplayState gameState' eventStore
+    Left gameState' -> return $ Left $ Replay.ReplayState (Game.state gameState') eventStore
+    Right gameState' -> return $ Right $ Replay.ReplayState gameState' eventStore

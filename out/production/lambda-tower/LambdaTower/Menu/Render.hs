@@ -9,11 +9,11 @@ import LambdaTower.Graphics
 import LambdaTower.Loop
 import LambdaTower.Types
 
-import qualified LambdaTower.Components.Button as B
-import qualified LambdaTower.Components.ButtonList as BL
-import qualified LambdaTower.Components.Render as R
-import qualified LambdaTower.Menu.MenuState as M
-import qualified LambdaTower.Screen as S
+import qualified LambdaTower.Types.Button as Button
+import qualified LambdaTower.Types.ButtonList as ButtonList
+import qualified LambdaTower.Types.MenuState as State
+import qualified LambdaTower.Render as Render
+import qualified LambdaTower.Screen as Screen
 
 data RenderConfig = RenderConfig {
   font :: SDLF.Font,
@@ -35,22 +35,22 @@ defaultConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-render :: Graphics -> RenderConfig -> Renderer IO M.MenuState
+render :: Graphics -> RenderConfig -> Renderer IO State.MenuState
 render (window, renderer) config state = do
   SDL.rendererDrawColor renderer SDL.$= backgroundColor config
   SDL.clear renderer
 
   windowSize <- SDL.get $ SDL.windowSize window
-  let buttonList = M.buttonList state
-  let view = BL.screen buttonList
-  let selectedId = BL.selected buttonList
-  mapM_ (renderButton renderer config windowSize view selectedId) $ BL.buttons buttonList
+  let buttonList = State.buttonList state
+  let view = ButtonList.screen buttonList
+  let selectedId = ButtonList.selected buttonList
+  mapM_ (renderButton renderer config windowSize view selectedId) $ ButtonList.buttons buttonList
 
   SDL.present renderer
 
-renderButton :: SDL.Renderer -> RenderConfig -> WindowSize -> S.Screen -> Int -> B.Button -> IO ()
+renderButton :: SDL.Renderer -> RenderConfig -> WindowSize -> Screen.Screen -> Int -> Button.Button -> IO ()
 renderButton renderer config windowSize screen selectedId button = do
-  let color = if selectedId == B.id button
+  let color = if selectedId == Button.id button
               then selectedTextColor config
               else textColor config
-  R.renderButton renderer windowSize screen (font config) color button
+  Render.renderButton renderer windowSize screen (font config) color button

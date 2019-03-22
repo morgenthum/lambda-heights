@@ -1,7 +1,7 @@
-module LambdaTower.Menu.MenuState where
+module LambdaTower.Types.MenuState where
 
-import LambdaTower.Components.Button
-import LambdaTower.Components.ButtonList
+import LambdaTower.Types.Button
+import LambdaTower.Types.ButtonList
 import LambdaTower.Screen
 
 newtype MenuState = MenuState {

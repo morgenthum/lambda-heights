@@ -11,28 +11,29 @@ import LambdaTower.Recorder
 import LambdaTower.State
 import LambdaTower.Types
 
-import qualified LambdaTower.Ingame.GameEvents as I
 import qualified LambdaTower.Ingame.Input as I
 import qualified LambdaTower.Ingame.Render as I
-import qualified LambdaTower.Ingame.GameState as I
 import qualified LambdaTower.Ingame.Update as I
 
 import qualified LambdaTower.Menu.Input as M
-import qualified LambdaTower.Menu.MenuState as M
 import qualified LambdaTower.Menu.Render as M
 import qualified LambdaTower.Menu.Update as M
 
-import qualified LambdaTower.Pause.PauseState as P
 import qualified LambdaTower.Pause.Render as P
 import qualified LambdaTower.Pause.Update as P
 
 import qualified LambdaTower.Replay.Input as R
 import qualified LambdaTower.Replay.Render as R
-import qualified LambdaTower.Replay.ReplayState as R
 import qualified LambdaTower.Replay.Update as R
 
-type IngameLoopState = LoopState IO I.GameState I.GameResult
-type PauseLoopState = LoopState IO P.PauseState P.ExitReason
+import qualified LambdaTower.Types.GameEvents as GE
+import qualified LambdaTower.Types.GameState as GS
+import qualified LambdaTower.Types.MenuState as MS
+import qualified LambdaTower.Types.PauseState as PS
+import qualified LambdaTower.Types.ReplayState as R
+
+type IngameLoopState = LoopState IO GS.GameState GS.GameResult
+type PauseLoopState = LoopState IO PS.PauseState PS.ExitReason
 
 defaultReplayFilePath :: String
 defaultReplayFilePath = "replay.dat"
@@ -54,8 +55,8 @@ startMenu graphics = do
   timer <- defaultTimer
   config <- M.defaultConfig
 
-  let loop = timedLoop M.handleKeyInput M.update (M.render graphics config)
-  state <- startLoop timer M.newMenuState loop
+  let loop = timedLoop M.keyInput M.update (M.render graphics config)
+  state <- startLoop timer MS.newMenuState loop
 
   M.deleteConfig config
   return state
@@ -68,26 +69,26 @@ startGame replayFilePath graphics = do
 
   safeDeleteFile replayFilePath
 
-  let pauseLoop = timedLoop M.handleKeyInput P.pauseUpdate (P.renderPause graphics pauseConfig ingameConfig)
-  let gameLoop = timedLoop I.ingameKeyInput (I.updateAndWrite channel) (I.defaultRender graphics ingameConfig)
-  startGameLoop replayFilePath channel I.newGameState gameLoop pauseLoop
+  let pauseLoop = timedLoop M.keyInput P.update (P.render graphics pauseConfig ingameConfig)
+  let gameLoop = timedLoop I.keyInput (I.updateAndWrite channel) (I.defaultRender graphics ingameConfig)
+  startGameLoop replayFilePath channel GS.newGameState gameLoop pauseLoop
 
   P.deleteConfig pauseConfig
   I.deleteConfig ingameConfig
   return Menu
 
-startGameLoop :: FilePath -> Channel I.PlayerEvent -> I.GameState -> IngameLoopState -> PauseLoopState -> IO ()
+startGameLoop :: FilePath -> Channel GE.PlayerEvent -> GS.GameState -> IngameLoopState -> PauseLoopState -> IO ()
 startGameLoop replayFilePath channel gameState ingameLoop pauseLoop = do
   timer <- defaultTimer
   handle <- async $ serializeFromTChanToFile replayFilePath channel
   result <- startLoop timer gameState ingameLoop
   wait handle
-  case I.reason result of
-    I.Pause -> do
-      reason <- startLoop timer (P.newPauseState $ I.state result) pauseLoop
+  case GS.reason result of
+    GS.Pause -> do
+      reason <- startLoop timer (PS.newPauseState $ GS.state result) pauseLoop
       case reason of
-        P.Resume -> startGameLoop replayFilePath channel (I.state result) ingameLoop pauseLoop
-        P.Exit -> return ()
+        PS.Resume -> startGameLoop replayFilePath channel (GS.state result) ingameLoop pauseLoop
+        PS.Exit -> return ()
     _ -> return ()
 
 startReplay :: FilePath -> Graphics -> IO State
@@ -101,8 +102,8 @@ startReplay replayFilePath graphics = do
       timer <- defaultTimer
       config <- I.defaultConfig
 
-      let loop = timedLoop R.replayKeyInput R.replayUpdate (R.renderReplay graphics config)
-      _ <- startLoop timer (R.ReplayState I.newGameState events) loop
+      let loop = timedLoop R.keyInput R.replayUpdate (R.renderReplay graphics config)
+      _ <- startLoop timer (R.ReplayState GS.newGameState events) loop
 
       I.deleteConfig config
       return Menu

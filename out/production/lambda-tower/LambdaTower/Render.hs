@@ -1,4 +1,4 @@
-module LambdaTower.Components.Render where
+module LambdaTower.Render where
 
 import qualified Data.Text as T
 
@@ -9,7 +9,7 @@ import qualified SDL.Font as SDLF
 
 import LambdaTower.Types
 
-import qualified LambdaTower.Components.Button as B
+import qualified LambdaTower.Types.Button as B
 import qualified LambdaTower.Screen as S
 
 renderButton :: SDL.Renderer -> WindowSize -> S.Screen -> SDLF.Font -> SDLF.Color -> B.Button -> IO ()

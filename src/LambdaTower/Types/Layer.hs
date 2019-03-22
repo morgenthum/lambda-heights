@@ -1,4 +1,4 @@
-module LambdaTower.Ingame.Layer where
+module LambdaTower.Types.Layer where
 
 import LambdaTower.Types
 

@@ -2,25 +2,25 @@ module LambdaTower.Pause.Update where
 
 import LambdaTower.Loop
 
-import qualified LambdaTower.Components.Button as B
-import qualified LambdaTower.Components.ButtonList as BL
-import qualified LambdaTower.Components.Events as E
-import qualified LambdaTower.Pause.PauseState as PS
+import qualified LambdaTower.Types.Button as Button
+import qualified LambdaTower.Types.ButtonList as ButtonList
+import qualified LambdaTower.Types.KeyEvents as Events
+import qualified LambdaTower.Types.PauseState as State
 
-pauseUpdate :: Updater IO PS.PauseState PS.ExitReason [E.KeyEvent]
-pauseUpdate _ events state = do
-  let buttonList = BL.ensureValidIndex $ E.applyEvents (PS.buttonList state) events
+update :: Updater IO State.PauseState State.ExitReason [Events.KeyEvent]
+update _ events state = do
+  let buttonList = ButtonList.ensureValidIndex $ Events.applyEvents (State.buttonList state) events
   let newState = wrap state buttonList
   return $
-    if BL.action buttonList
-      then Left $ stateByButton $ BL.selectedButton buttonList
+    if ButtonList.action buttonList
+      then Left $ stateByButton $ ButtonList.selectedButton buttonList
       else Right newState
 
-wrap :: PS.PauseState -> BL.ButtonList -> PS.PauseState
-wrap state buttonList = state { PS.buttonList = buttonList }
+wrap :: State.PauseState -> ButtonList.ButtonList -> State.PauseState
+wrap state buttonList = state { State.buttonList = buttonList }
 
-stateByButton :: B.Button -> PS.ExitReason
+stateByButton :: Button.Button -> State.ExitReason
 stateByButton button =
-  case B.id button of
-    1 -> PS.Exit
-    _ -> PS.Resume
+  case Button.id button of
+    1 -> State.Exit
+    _ -> State.Resume
