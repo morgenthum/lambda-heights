@@ -36,7 +36,7 @@ deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
 render :: Graphics -> RenderConfig -> Renderer IO State.MenuState
-render (window, renderer) config state = do
+render (window, renderer) config _ state = do
   SDL.rendererDrawColor renderer SDL.$= backgroundColor config
   SDL.clear renderer
 

@@ -3,9 +3,11 @@ module LambdaTower.Ingame.Update (
   updateAndWrite
 ) where
 
-import Control.Monad.State
 import Control.Monad.STM
 import Control.Concurrent.STM.TChan
+
+import qualified Control.Lens as L
+import qualified Control.Monad.State as M
 
 import Data.List
 
@@ -17,6 +19,7 @@ import qualified LambdaTower.Types.GameState as State
 import qualified LambdaTower.Types.Layer as Layer
 import qualified LambdaTower.Types.Pattern as Pattern
 import qualified LambdaTower.Types.Player as Player
+import qualified LambdaTower.Types.Timer as Timer
 import qualified LambdaTower.Screen as Screen
 
 -- Factor for scrolling the screen and update the acceleration.
@@ -30,19 +33,19 @@ updateFactor = 1 / 128
 updateAndWrite :: TChan (Maybe [Events.PlayerEvent]) -> Updater IO State.GameState State.GameResult Events.GameEvents
 updateAndWrite channel timer events gameState = do
   result <- update timer events gameState
-  liftIO $ atomically $ writeTChan channel $ Just $ Events.playerEvents events
+  M.liftIO $ atomically $ writeTChan channel $ Just $ Events.playerEvents events
   case result of
-    Left _ -> liftIO $ atomically $ writeTChan channel Nothing
+    Left _ -> M.liftIO $ atomically $ writeTChan channel Nothing
     Right _ -> return ()
   return result
 
 
 -- Control flow over one update cycle.
 
-type GameStateUpdate a = StateT State.GameState IO a
+type GameStateUpdate a = M.StateT State.GameState IO a
 
 update :: Updater IO State.GameState State.GameResult Events.GameEvents
-update timer events = evalStateT go
+update timer events = M.evalStateT go
   where go = do updateTimeM timer
                 updateScreenM
                 updateMotionM (Events.playerEvents events)
@@ -51,45 +54,44 @@ update timer events = evalStateT go
                 resetMotionM
                 returnStateM (Events.controlEvents events)
 
-updateTimeM :: LoopTimer -> GameStateUpdate ()
-updateTimeM timer = modify f
-  where f s = s { State.time = State.time s + fromIntegral (rate timer) }
+updateTimeM :: Timer.LoopTimer -> GameStateUpdate ()
+updateTimeM timer = M.modify f
+  where f s = s { State.time = State.time s + fromIntegral (L.view Timer.rate timer) }
 
 updateScreenM :: GameStateUpdate ()
-updateScreenM = modify f
+updateScreenM = M.modify f
   where f s = s { State.screen = updateScreen (State.player s) $ State.screen s }
 
 updateMotionM :: [Events.PlayerEvent] -> GameStateUpdate ()
-updateMotionM events = modify f
+updateMotionM events = M.modify f
   where f s = s { State.motion = updateMotion (State.motion s) events }
 
 updateLayersM :: GameStateUpdate ()
-updateLayersM = modify f
+updateLayersM = M.modify f
   where f s = s { State.layers = updateLayers (State.screen s) $ State.layers s }
 
 updatePlayerM :: GameStateUpdate ()
-updatePlayerM = modify f
+updatePlayerM = M.modify f
   where f s = s { State.player = updatePlayer (State.screen s) (State.motion s) (State.layers s) $ State.player s }
 
 resetMotionM :: GameStateUpdate ()
-resetMotionM = modify f
+resetMotionM = M.modify f
   where f s = s {
     State.motion = (State.motion s) {
       State.jump = False,
-      State.air = playerInAir (State.player s) (State.layers s)
+      State.air = playerInAir (State.layers s) $ State.player s
     }
   }
 
 returnStateM :: [Events.ControlEvent] -> GameStateUpdate (Either State.GameResult State.GameState)
 returnStateM events = do
-  s <- get
+  s <- M.get
+  let dead = playerDead (State.screen s) (State.player s)
+  let paused = elem Events.Paused events
   return $
-    if playerDead (State.screen s) (State.player s) then Left $ State.GameResult s State.Exit
-    else if paused events then Left $ State.GameResult s State.Pause
+    if dead then Left $ State.GameResult s State.Exit
+    else if paused then Left $ State.GameResult s State.Pause
     else Right s
-
-paused :: [Events.ControlEvent] -> Bool
-paused = elem Events.Paused
 
 
 -- Updating the view involves two steps:
@@ -188,7 +190,7 @@ updatePlayer screen motion layers =
 
 updateScore :: [Layer.Layer] -> Player.Player -> Player.Player
 updateScore layers player =
-  case layerCollidedWithPlayer player layers of
+  case collidedLayer layers player of
     Nothing -> player
     Just layer -> player { Player.score = max (Layer.id layer) (Player.score player) }
 
@@ -209,22 +211,21 @@ updateAcceleration acc vel motion =
 
 updateGroundAcceleration :: Player.Acceleration -> Player.Velocity -> State.Motion -> Player.Acceleration
 updateGroundAcceleration (accX, _) (velX, velY) motion
-  | jump && (vel >= 750) = (accX, 320000)
+  | jump && fast = (accX, 320000)
   | jump = (accX, 160000)
-  | left && right = (0, -4000)
-  | left = (-8000, -4000)
-  | right = (8000, -4000)
+  | left && not right = (-8000, -4000)
+  | right && not left = (8000, -4000)
   | otherwise = (0, -4000)
   where left = State.moveLeft motion
         right = State.moveRight motion
         jump = State.jump motion
         vel = sqrt $ (velX ** 2) + (velY ** 2)
+        fast = vel >= 750
 
 updateAirAcceleration :: State.Motion -> Player.Acceleration
 updateAirAcceleration motion
-  | left && right = (0, -4000)
-  | left = (-4000, -4000)
-  | right = (4000, -4000)
+  | left && not right = (-4000, -4000)
+  | right && not left = (4000, -4000)
   | otherwise = (0, -4000)
   where left = State.moveLeft motion
         right = State.moveRight motion
@@ -260,7 +261,7 @@ bouncePlayerFromBounds screen player
 collidePlayerWithLayers :: [Layer.Layer] -> Player.Player -> Player.Player
 collidePlayerWithLayers layers player =
   if playerFalling player then
-    case layerCollidedWithPlayer player layers of
+    case collidedLayer layers player of
       Nothing -> player
       Just layer ->
         if shouldLift layer player
@@ -269,12 +270,10 @@ collidePlayerWithLayers layers player =
   else player
 
 shouldLift :: Layer.Layer -> Player.Player -> Bool
-shouldLift layer player = inWidth && inHeight
-  where (lw, _) = Layer.size layer
-        (lx, ly) = Layer.position layer
+shouldLift layer player = xInRect p (w, h) x && yInRect p (w, 20) y
+  where p = Layer.position layer
+        (w, h) = Layer.size layer
         (x, y) = Player.position player
-        inWidth = x >= lx && x <= lx + lw
-        inHeight = y <= ly && y >= ly - 20
 
 playerDead :: Screen.Screen -> Player.Player -> Bool
 playerDead screen player = let (_, y) = Player.position player in y < Screen.bottom screen
@@ -282,18 +281,16 @@ playerDead screen player = let (_, y) = Player.position player in y < Screen.bot
 playerFalling :: Player.Player -> Bool
 playerFalling player = let (_, y) = Player.velocity player in y < 0
 
-layerCollidedWithPlayer :: Player.Player -> [Layer.Layer] -> Maybe Layer.Layer
-layerCollidedWithPlayer player layers =
+collidedLayer :: [Layer.Layer] -> Player.Player -> Maybe Layer.Layer
+collidedLayer layers player =
   case filter (positionInLayer $ Player.position player) layers of
     [] -> Nothing
     layer:_ -> Just layer
 
 positionInLayer :: Position -> Layer.Layer -> Bool
-positionInLayer(x, y) layer = inWidth && inHeight
-  where (lw, lh) = Layer.size layer
-        (lx, ly) = Layer.position layer
-        inWidth = x >= lx && x <= lx + lw
-        inHeight = y <= ly && y >= ly - lh
+positionInLayer (x, y) layer = xInRect p s x && yInRect p s y
+  where p = Layer.position layer
+        s = Layer.size layer
 
 liftPlayerOnLayer :: Layer.Layer -> Player.Player -> Player.Player
 liftPlayerOnLayer layer player = player { Player.position = (posX, Layer.posY layer) }
@@ -303,5 +300,11 @@ resetVelocityY :: Player.Player -> Player.Player
 resetVelocityY player = player { Player.velocity = (velX, 0) }
   where (velX, _) = Player.velocity player
 
-playerInAir :: Player.Player -> [Layer.Layer] -> Bool
-playerInAir player = null . layerCollidedWithPlayer player
+playerInAir :: [Layer.Layer] -> Player.Player -> Bool
+playerInAir layers = null . collidedLayer layers
+
+xInRect :: Position -> Size -> Float -> Bool
+xInRect (posX, _) (w, _) x = x >= posX && x <= posX + w
+
+yInRect :: Position -> Size -> Float -> Bool
+yInRect (_, posY) (_, h) y = y <= posY && y >= posY - h

@@ -9,9 +9,9 @@ import LambdaTower.Graphics
 import LambdaTower.Loop
 import LambdaTower.Types
 
+import qualified LambdaTower.Ingame.Render as Ingame
 import qualified LambdaTower.Types.Button as Button
 import qualified LambdaTower.Types.ButtonList as ButtonList
-import qualified LambdaTower.Ingame.Render as Render
 import qualified LambdaTower.Types.PauseState as State
 import qualified LambdaTower.Render as Render
 import qualified LambdaTower.Screen as Screen
@@ -36,12 +36,12 @@ defaultConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-render :: Graphics -> RenderConfig -> Render.RenderConfig -> Renderer IO State.PauseState
-render (window, renderer) pauseConfig ingameConfig state = do
-  let pre = Render.clear renderer $ Render.bgColor ingameConfig
+render :: Graphics -> RenderConfig -> Ingame.RenderConfig -> Renderer IO State.PauseState
+render (window, renderer) pauseConfig ingameConfig timer state = do
+  let pre = Ingame.clear renderer $ Ingame.bgColor ingameConfig
   let post = return ()
 
-  Render.render pre post (window, renderer) ingameConfig (State.state state)
+  Ingame.render pre post (window, renderer) ingameConfig timer (State.state state)
 
   windowSize <- SDL.get $ SDL.windowSize window
   SDL.rendererDrawColor renderer SDL.$= overlayColor pauseConfig

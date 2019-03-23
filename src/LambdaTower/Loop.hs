@@ -1,70 +1,85 @@
 module LambdaTower.Loop where
 
-import qualified Control.Monad.Fail as CM
-import qualified Control.Monad.State as CM
+import qualified Control.Lens as L
 
-import Data.Word
+import qualified Control.Monad.Fail as M
+import qualified Control.Monad.State as M
 
 import qualified SDL
 
-data LoopTimer = LoopTimer {
-  rate :: Word32,
-  current :: Word32,
-  elapsed :: Word32,
-  lag :: Word32
-}
+import qualified LambdaTower.Types.Timer as Timer
 
-type TimedState s r = (LoopTimer, Either r s)
-type LoopState m s r = CM.StateT (TimedState s r) m ()
+type LoopState m s r = M.StateT (Timer.TimedState s r) m ()
 
 type InputHandler m e = m e
-type Updater m s r e = LoopTimer -> e -> s -> m (Either r s)
-type Renderer m s = s -> m ()
+type Updater m s r e = Timer.LoopTimer -> e -> s -> m (Either r s)
+type Renderer m s = Timer.LoopTimer -> s -> m ()
 
-defaultTimer :: IO LoopTimer
-defaultTimer = newTimer 7
-
-newTimer :: Word32 -> IO LoopTimer
-newTimer timerRate = do
-  millis <- fromIntegral <$> SDL.ticks :: IO Word32
-  return $ LoopTimer {
-    rate = timerRate,
-    current = millis,
-    elapsed = 0,
-    lag = 0
-  }
-
-startLoop :: (CM.MonadFail m, CM.MonadIO m) => LoopTimer -> s -> LoopState m s r -> m r
+startLoop :: (M.MonadFail m, M.MonadIO m) => Timer.LoopTimer -> s -> LoopState m s r -> m r
 startLoop timer state loop = do
-  (_, Left r) <- CM.execStateT loop (timer, Right state)
-  return r
+  Left result <- Timer._state <$> M.execStateT loop (Timer.TimedState timer $ Right state)
+  return result
 
-timedLoop :: (CM.MonadIO m) => InputHandler m e -> Updater m s r e -> Renderer m s -> LoopState m s r
+timedLoop :: (M.MonadIO m) => InputHandler m e -> Updater m s r e -> Renderer m s -> LoopState m s r
 timedLoop handleInput update render = do
   updateTimer
+  updateFrameCounter
   inputAndUpdate handleInput update
-  eitherState <- CM.gets snd
-  case eitherState of
+  timedState <- M.get
+  let timer = L.view Timer.timer timedState
+  let state = L.view Timer.state timedState
+  case state of
     Left _ -> return ()
-    Right state -> do
-      CM.lift $ render state
+    Right gameState -> do
+      M.lift $ render timer gameState
+      incrementFrame
       timedLoop handleInput update render
 
-updateTimer :: (CM.MonadIO m) => LoopState m s r
-updateTimer = do
-  (timer, state) <- CM.get
-  newCurrent <- fromIntegral <$> SDL.ticks
-  let millis = newCurrent - current timer
-  CM.put (timer { current = newCurrent, elapsed = millis, lag = lag timer + millis }, state)
+incrementFrame :: (M.Monad m) => LoopState m s r
+incrementFrame = M.modify (L.over (Timer.timer . Timer.counter . Timer.frameCount) (+1))
 
-inputAndUpdate :: (CM.MonadIO m) => InputHandler m e -> Updater m s r e -> LoopState m s r
+updateTimer :: (M.MonadIO m) => LoopState m s r
+updateTimer = do
+  timedState <- M.get
+  current <- fromIntegral <$> SDL.ticks
+
+  let timer = L.view Timer.timer timedState
+  let elapsed = current - L.view Timer.current timer
+  let lag = L.view Timer.lag timer + elapsed
+
+  M.put $ L.set (Timer.timer . Timer.current) current
+        $ L.set (Timer.timer . Timer.elapsed) elapsed
+        $ L.set (Timer.timer . Timer.lag) lag timedState
+
+updateFrameCounter :: (M.MonadIO m) => LoopState m s r
+updateFrameCounter = do
+  timedState <- M.get
+  let timer = L.view Timer.timer timedState
+  let counter = L.view Timer.counter timer
+
+  let elapsedMillis = L.view Timer.current timer - L.view Timer.countStart counter
+  let elapsedSeconds = realToFrac elapsedMillis / 1000 :: Float
+  let frameCount = L.view Timer.frameCount counter
+  let fps = round (realToFrac frameCount / realToFrac elapsedSeconds :: Float)
+
+  M.when (elapsedSeconds >= 0.25 && frameCount > 10) $
+    M.put $ L.set (Timer.timer . Timer.counter . Timer.countStart) (L.view Timer.current timer)
+          $ L.set (Timer.timer . Timer.counter . Timer.frameCount) 0
+          $ L.set (Timer.timer . Timer.counter . Timer.fps) fps timedState
+
+inputAndUpdate :: (M.MonadIO m) => InputHandler m e -> Updater m s r e -> LoopState m s r
 inputAndUpdate handleInput update = do
-  timedState <- CM.get
-  case timedState of
-    (_, Left _) -> return ()
-    (timer, Right state) ->
-      CM.when (lag timer > rate timer) $ do
-        events <- CM.lift handleInput
-        newState <- CM.lift $ update timer events state
-        CM.put (timer { lag = lag timer - rate timer}, newState)
+  timedState <- M.get
+  state <- M.gets Timer._state
+  timer <- M.gets Timer._timer
+  case state of
+    Left _ -> return ()
+    Right gameState ->
+      M.when (L.view Timer.lag timer > L.view Timer.rate timer) $ do
+        events <- M.lift handleInput
+        newState <- M.lift $ update timer events gameState
+        let lag = L.view Timer.lag timer
+        let rate = L.view Timer.rate timer
+        M.put $ L.set (Timer.timer . Timer.lag) (lag - rate)
+              $ L.set Timer.state newState timedState
         inputAndUpdate handleInput update

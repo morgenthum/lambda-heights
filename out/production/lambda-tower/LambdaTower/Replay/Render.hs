@@ -7,4 +7,5 @@ import qualified LambdaTower.Ingame.Render as Ingame
 import qualified LambdaTower.Types.ReplayState as State
 
 renderReplay :: Graphics -> Ingame.RenderConfig -> Renderer IO State.ReplayState
-renderReplay graphics config state = Ingame.defaultRender graphics config $ State.state state
+renderReplay graphics config timer state =
+  Ingame.defaultRender graphics config timer $ State.state state

@@ -31,6 +31,7 @@ import qualified LambdaTower.Types.GameState as GS
 import qualified LambdaTower.Types.MenuState as MS
 import qualified LambdaTower.Types.PauseState as PS
 import qualified LambdaTower.Types.ReplayState as R
+import qualified LambdaTower.Types.Timer as T
 
 type IngameLoopState = LoopState IO GS.GameState GS.GameResult
 type PauseLoopState = LoopState IO PS.PauseState PS.ExitReason
@@ -52,7 +53,7 @@ startState graphics Replay = startReplay defaultReplayFilePath graphics >>= star
 
 startMenu :: Graphics -> IO State
 startMenu graphics = do
-  timer <- defaultTimer
+  timer <- T.defaultTimer
   config <- M.defaultConfig
 
   let loop = timedLoop M.keyInput M.update (M.render graphics config)
@@ -79,7 +80,7 @@ startGame replayFilePath graphics = do
 
 startGameLoop :: FilePath -> Channel GE.PlayerEvent -> GS.GameState -> IngameLoopState -> PauseLoopState -> IO ()
 startGameLoop replayFilePath channel gameState ingameLoop pauseLoop = do
-  timer <- defaultTimer
+  timer <- T.defaultTimer
   handle <- async $ serializeFromTChanToFile replayFilePath channel
   result <- startLoop timer gameState ingameLoop
   wait handle
@@ -99,7 +100,7 @@ startReplay replayFilePath graphics = do
     Nothing -> return Menu
     Just [] -> return Menu
     Just events -> do
-      timer <- defaultTimer
+      timer <- T.defaultTimer
       config <- I.defaultConfig
 
       let loop = timedLoop R.keyInput R.replayUpdate (R.renderReplay graphics config)

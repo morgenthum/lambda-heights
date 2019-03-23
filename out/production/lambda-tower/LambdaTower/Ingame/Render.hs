@@ -8,6 +8,8 @@ module LambdaTower.Ingame.Render (
   present
 ) where
 
+import qualified Control.Lens as L
+
 import Data.Word
 
 import qualified Data.Vector.Storable as V
@@ -26,6 +28,7 @@ import qualified LambdaTower.Types.GameState as State
 import qualified LambdaTower.Types.Layer as Layer
 import qualified LambdaTower.Types.Player as Player
 import qualified LambdaTower.Types.Shape as Shape
+import qualified LambdaTower.Types.Timer as Timer
 import qualified LambdaTower.Render as Render
 import qualified LambdaTower.Screen as Screen
 
@@ -73,18 +76,18 @@ defaultRender (window, renderer) config =
   render (clear renderer $ bgColor config) (present renderer) (window, renderer) config
 
 render :: IO () -> IO () -> Graphics -> RenderConfig -> Renderer IO State.GameState
-render pre post (window, renderer) config state = do
+render pre post (window, renderer) config timer state = do
   pre
   windowSize <- SDL.get $ SDL.windowSize window
 
   mapM_ (renderLayer renderer windowSize $ State.screen state) $ State.layers state
   renderPlayer renderer config windowSize (State.screen state) (State.player state)
   renderPlayerBurner renderer config windowSize (State.screen state) (State.player state)
-  renderHUD renderer config state
+  renderHUD renderer config timer state
   post
 
-renderHUD :: SDL.Renderer -> RenderConfig -> State.GameState -> IO ()
-renderHUD renderer config state = do
+renderHUD :: SDL.Renderer -> RenderConfig -> Timer.LoopTimer -> State.GameState -> IO ()
+renderHUD renderer config timer state = do
   let textFont = font config
   let (velX, velY) = Player.velocity . State.player $ state
 
@@ -102,6 +105,11 @@ renderHUD renderer config state = do
 
   Render.renderText renderer textFont (SDL.V2 20 60) (whiteColor config) "score"
   Render.renderText renderer textFont (SDL.V2 100 60) (textColor config) (show $ Player.score $ State.player state)
+
+  let fps = L.view (Timer.counter . Timer.fps) timer
+
+  Render.renderText renderer textFont (SDL.V2 250 20) (whiteColor config) "fps"
+  Render.renderText renderer textFont (SDL.V2 320 20) (textColor config) (show fps)
 
 renderPlayer :: SDL.Renderer -> RenderConfig -> SDL.V2 CInt -> Screen.Screen -> Player.Player -> IO ()
 renderPlayer renderer config windowSize screen player = do
