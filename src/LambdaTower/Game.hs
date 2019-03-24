@@ -5,11 +5,16 @@ module LambdaTower.Game (
 import Control.Concurrent.Async
 import Control.Concurrent.STM.TChan
 
+import Control.Monad
+
 import LambdaTower.Graphics
 import LambdaTower.Loop
 import LambdaTower.Recorder
 import LambdaTower.State
 import LambdaTower.Types
+
+import qualified LambdaTower.Highscore.Render as H
+import qualified LambdaTower.Highscore.Update as H
 
 import qualified LambdaTower.Ingame.Input as I
 import qualified LambdaTower.Ingame.Render as I
@@ -30,7 +35,9 @@ import qualified LambdaTower.Types.GameEvents as GE
 import qualified LambdaTower.Types.GameState as GS
 import qualified LambdaTower.Types.MenuState as MS
 import qualified LambdaTower.Types.PauseState as PS
+import qualified LambdaTower.Types.Player as P
 import qualified LambdaTower.Types.ReplayState as R
+import qualified LambdaTower.Types.ScoreState as SS
 import qualified LambdaTower.Types.Timer as T
 
 type IngameLoopState = LoopState IO GS.GameState GS.GameResult
@@ -72,25 +79,37 @@ startGame replayFilePath graphics = do
 
   let pauseLoop = timedLoop M.keyInput P.update (P.render graphics pauseConfig ingameConfig)
   let gameLoop = timedLoop I.keyInput (I.updateAndWrite channel) (I.defaultRender graphics ingameConfig)
-  startGameLoop replayFilePath channel GS.newGameState gameLoop pauseLoop
+  state <- join $ showScore graphics <$> startGameLoop replayFilePath channel GS.newGameState gameLoop pauseLoop
 
   P.deleteConfig pauseConfig
   I.deleteConfig ingameConfig
-  return Menu
+  return state
 
-startGameLoop :: FilePath -> Channel GE.PlayerEvent -> GS.GameState -> IngameLoopState -> PauseLoopState -> IO ()
+startGameLoop :: FilePath -> Channel GE.PlayerEvent -> GS.GameState -> IngameLoopState -> PauseLoopState -> IO Int
 startGameLoop replayFilePath channel gameState ingameLoop pauseLoop = do
   timer <- T.defaultTimer
   handle <- async $ serializeFromTChanToFile replayFilePath channel
   result <- startLoop timer gameState ingameLoop
   wait handle
+  let score = P.score . GS.player . GS.state $ result
   case GS.reason result of
     GS.Pause -> do
       reason <- startLoop timer (PS.newPauseState $ GS.state result) pauseLoop
       case reason of
         PS.Resume -> startGameLoop replayFilePath channel (GS.state result) ingameLoop pauseLoop
-        PS.Exit -> return ()
-    _ -> return ()
+        PS.Exit -> return score
+    _ -> return score
+
+showScore :: Graphics -> Int -> IO State
+showScore graphics score = do
+  timer <- T.defaultTimer
+  config <- H.defaultConfig
+
+  let loop = timedLoop M.keyInput H.update (H.render graphics config)
+  _ <- startLoop timer (SS.newScoreState score) loop
+
+  H.deleteConfig config
+  return Menu
 
 startReplay :: FilePath -> Graphics -> IO State
 startReplay replayFilePath graphics = do

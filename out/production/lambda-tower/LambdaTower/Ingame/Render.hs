@@ -37,7 +37,7 @@ data RenderConfig = RenderConfig {
   whiteColor :: SDL.V4 Word8,
   bgColor :: SDL.V4 Word8,
   playerColor :: SDL.V4 Word8,
-  playerBurnerColor :: SDL.V4 Word8,
+  playerShadowColor :: SDL.V4 Word8,
   textColor :: SDL.V4 Word8
 }
 
@@ -49,19 +49,18 @@ defaultConfig = do
     whiteColor = SDL.V4 255 255 255 255,
     bgColor = SDL.V4 30 30 30 255,
     playerColor = SDL.V4 135 31 120 255,
-    playerBurnerColor = SDL.V4 255 255 255 255,
+    playerShadowColor = SDL.V4 255 255 255 255,
     textColor = SDL.V4 0 191 255 255
   }
 
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-
 playerShape :: Shape.Shape
 playerShape = Shape.Shape [0, 10, 40, 30, 20, 10, 0, 15] [80, 80, 0, 0, 25, 0, 0, 40]
 
-playerBurnerShape :: Shape.Shape
-playerBurnerShape = Shape.Shape [0, 10, 25, 10, 0, 15] [80, 80, 40, 0, 0, 40]
+playerShadowShape :: Shape.Shape
+playerShadowShape = Shape.Shape [0, 10, 25, 10, 0, 15] [80, 80, 40, 0, 0, 40]
 
 clear :: SDL.Renderer -> SDLP.Color -> IO ()
 clear renderer color = do
@@ -79,60 +78,83 @@ render :: IO () -> IO () -> Graphics -> RenderConfig -> Renderer IO State.GameSt
 render pre post (window, renderer) config timer state = do
   pre
   windowSize <- SDL.get $ SDL.windowSize window
-
   mapM_ (renderLayer renderer windowSize $ State.screen state) $ State.layers state
   renderPlayer renderer config windowSize (State.screen state) (State.player state)
-  renderPlayerBurner renderer config windowSize (State.screen state) (State.player state)
-  renderHUD renderer config timer state
+  renderPlayerShadow renderer config windowSize (State.screen state) (State.player state)
+  renderHud renderer config timer state
   post
 
-renderHUD :: SDL.Renderer -> RenderConfig -> Timer.LoopTimer -> State.GameState -> IO ()
-renderHUD renderer config timer state = do
+renderHud :: SDL.Renderer -> RenderConfig -> Timer.LoopTimer -> State.GameState -> IO ()
+renderHud renderer config timer state = do
+  renderHudVelocity renderer config state
+  renderHudTime renderer config state
+  renderHudScore renderer config state
+  renderHudFPS renderer config timer
+
+renderHudVelocity :: SDL.Renderer -> RenderConfig -> State.GameState -> IO ()
+renderHudVelocity renderer config state = do
   let textFont = font config
   let (velX, velY) = Player.velocity . State.player $ state
-
   Render.renderText renderer textFont (SDL.V2 20 20) (whiteColor config) "velocity"
   Render.renderText renderer textFont (SDL.V2 100 20) (textColor config) $ show (round velX :: Int)
   Render.renderText renderer textFont (SDL.V2 150 20) (textColor config) $ show (round velY :: Int)
 
+renderHudTime :: SDL.Renderer -> RenderConfig -> State.GameState -> IO ()
+renderHudTime renderer config state = do
+  let textFont = font config
   let duration = State.time state
   let seconds = round (realToFrac duration / 1000 :: Double) :: Integer
   let millis = mod duration 1000
-
   Render.renderText renderer textFont (SDL.V2 20 40) (whiteColor config) "time"
   Render.renderText renderer textFont (SDL.V2 100 40) (textColor config) (show seconds)
   Render.renderText renderer textFont (SDL.V2 150 40) (textColor config) (show millis)
 
+renderHudScore :: SDL.Renderer -> RenderConfig -> State.GameState -> IO ()
+renderHudScore renderer config state = do
+  let textFont = font config
+  let score = Player.score . State.player $ state
   Render.renderText renderer textFont (SDL.V2 20 60) (whiteColor config) "score"
-  Render.renderText renderer textFont (SDL.V2 100 60) (textColor config) (show $ Player.score $ State.player state)
+  Render.renderText renderer textFont (SDL.V2 100 60) (textColor config) (show score)
 
+renderHudFPS :: SDL.Renderer -> RenderConfig -> Timer.LoopTimer -> IO ()
+renderHudFPS renderer config timer = do
+  let textFont = font config
   let fps = L.view (Timer.counter . Timer.fps) timer
-
   Render.renderText renderer textFont (SDL.V2 250 20) (whiteColor config) "fps"
   Render.renderText renderer textFont (SDL.V2 320 20) (textColor config) (show fps)
 
 renderPlayer :: SDL.Renderer -> RenderConfig -> SDL.V2 CInt -> Screen.Screen -> Player.Player -> IO ()
 renderPlayer renderer config windowSize screen player = do
   let shape = translateCenterBottom (Player.position player)
-            . flipShapeByVelocity (Player.velocity player)
-            $ playerShape
-
+            $ flipShapeByVelocity (Player.velocity player) playerShape
   renderShape renderer windowSize screen (playerColor config) shape
 
-renderPlayerBurner :: SDL.Renderer -> RenderConfig -> SDL.V2 CInt -> Screen.Screen -> Player.Player -> IO ()
-renderPlayerBurner renderer config windowSize screen player = do
+renderPlayerShadow :: SDL.Renderer -> RenderConfig -> SDL.V2 CInt -> Screen.Screen -> Player.Player -> IO ()
+renderPlayerShadow renderer config windowSize screen player = do
   let (posX, posY) = Player.position player
   let (velX, _) = Player.velocity player
   let offX = if velX >= 0 then -20 else 20
-
-  let shape = translateCenterBottom (posX+offX, posY)
-            . flipShapeByVelocity (Player.velocity player)
-            $ playerBurnerShape
-
-  let SDL.V4 r g b _ = playerBurnerColor config
+  let shape = translateCenterBottom (posX + offX, posY)
+            $ flipShapeByVelocity (Player.velocity player) playerShadowShape
+  let SDL.V4 r g b _ = playerShadowColor config
   let a = round $ if abs velX > 10000 then 255 else abs velX / 10000 * 255
-
   renderShape renderer windowSize screen (SDL.V4 r g b a) shape
+
+renderShape :: SDL.Renderer -> WindowSize -> Screen.Screen -> SDLP.Color -> Shape.Shape -> IO ()
+renderShape renderer (SDL.V2 w h) screen color shape = do
+  let toVector = foldl V.snoc V.empty
+  let transformX = fromIntegral . Screen.translate screen w
+  let transformY = fromIntegral . Screen.translateFlipped screen h
+  let xs = toVector . map transformX $ Shape.polygonXs shape
+  let ys = toVector . map transformY $ Shape.polygonYs shape
+  SDLP.fillPolygon renderer xs ys color
+
+renderLayer :: SDL.Renderer -> WindowSize -> Screen.Screen -> Layer.Layer -> IO ()
+renderLayer renderer windowSize screen layer = do
+  let size = Screen.toWindowSize screen windowSize (Layer.size layer)
+  let position = Screen.toWindowPosition screen windowSize (Layer.position layer)
+  SDL.rendererDrawColor renderer SDL.$= layerColor layer
+  SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P position) size
 
 flipShapeByVelocity :: Player.Velocity -> Shape.Shape -> Shape.Shape
 flipShapeByVelocity (velX, _) shape = if velX >= 0 then shape else flipShape shape
@@ -148,26 +170,6 @@ translateCenterBottom (posX, posY) (Shape.Shape xs ys) = Shape.Shape xs' ys'
   where (w, _) = Shape.size (Shape.Shape xs ys)
         xs' = map ((\x -> x - w / 2) . (+posX)) xs
         ys' = map (+posY) ys
-
-renderShape :: SDL.Renderer -> WindowSize -> Screen.Screen -> SDLP.Color -> Shape.Shape -> IO ()
-renderShape renderer (SDL.V2 w h) screen color shape = do
-  let toVector = foldl V.snoc V.empty
-
-  let transformX = fromIntegral . Screen.translate screen w
-  let transformY = fromIntegral . Screen.translateFlipped screen h
-
-  let xs = toVector . map transformX $ Shape.polygonXs shape
-  let ys = toVector . map transformY $ Shape.polygonYs shape
-
-  SDLP.fillPolygon renderer xs ys color
-
-renderLayer :: SDL.Renderer -> WindowSize -> Screen.Screen -> Layer.Layer -> IO ()
-renderLayer renderer windowSize screen layer = do
-  let size = Screen.toWindowSize screen windowSize (Layer.size layer)
-  let position = Screen.toWindowPosition screen windowSize (Layer.position layer)
-
-  SDL.rendererDrawColor renderer SDL.$= layerColor layer
-  SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P position) size
 
 layerColor :: Layer.Layer -> SDL.V4 Word8
 layerColor layer
