@@ -201,13 +201,13 @@ updatePlayerMotion :: State.Motion -> Player.Player -> Player.Player
 updatePlayerMotion motion player = player { Player.position = pos, Player.velocity = vel, Player.acceleration = acc }
   where acc = updateAcceleration (Player.acceleration player) (Player.velocity player) motion
         vel = updateVelocity (Player.velocity player) motion acc
-        pos = updatePosition (Player.position player) vel
+        pos = applyVelocity (Player.position player) vel
 
 updateAcceleration :: Player.Acceleration -> Player.Velocity -> State.Motion -> Player.Acceleration
-updateAcceleration acc vel motion =
+updateAcceleration acc (velX, velY) motion =
   if State.air motion
   then updateAirAcceleration motion
-  else updateGroundAcceleration acc vel motion
+  else updateGroundAcceleration acc (velX, velY) motion
 
 updateGroundAcceleration :: Player.Acceleration -> Player.Velocity -> State.Motion -> Player.Acceleration
 updateGroundAcceleration (accX, _) (velX, velY) motion
@@ -234,13 +234,13 @@ updateVelocity :: Player.Velocity -> State.Motion -> Player.Acceleration -> Play
 updateVelocity vel motion = applyAcceleration (decelerate motion vel)
 
 applyAcceleration :: Player.Velocity -> Player.Acceleration -> Player.Velocity
-applyAcceleration (x, y) (x', y') = (x+x'*updateFactor, y+y'*updateFactor)
+applyAcceleration (velX, velY) (accX, accY) = (velX + accX * updateFactor, velY + accY * updateFactor)
 
 decelerate :: State.Motion -> Player.Velocity -> Player.Velocity
 decelerate motion (x, y) = if State.air motion then (x * 0.99, y) else (x * 0.925, y)
 
-updatePosition :: Position -> Player.Velocity -> Position
-updatePosition = applyAcceleration
+applyVelocity :: Position -> Player.Velocity -> Position
+applyVelocity = applyAcceleration
 
 
 -- Correct the position and velocity if it is colliding with a layer
@@ -264,16 +264,16 @@ collidePlayerWithLayers layers player =
     case collidedLayer layers player of
       Nothing -> player
       Just layer ->
-        if shouldLift layer player
+        if shouldLift player layer
         then resetVelocityY $ liftPlayerOnLayer layer player
         else player
   else player
 
-shouldLift :: Layer.Layer -> Player.Player -> Bool
-shouldLift layer player = xInRect p (w, h) x && yInRect p (w, 20) y
-  where p = Layer.position layer
+shouldLift :: Player.Player -> Layer.Layer -> Bool
+shouldLift player layer = xInRect position (w, h) x && yInRect position (w, 20) y
+  where (x, y) = Player.position player
+        position = Layer.position layer
         (w, h) = Layer.size layer
-        (x, y) = Player.position player
 
 playerDead :: Screen.Screen -> Player.Player -> Bool
 playerDead screen player = let (_, y) = Player.position player in y < Screen.bottom screen
@@ -283,14 +283,15 @@ playerFalling player = let (_, y) = Player.velocity player in y < 0
 
 collidedLayer :: [Layer.Layer] -> Player.Player -> Maybe Layer.Layer
 collidedLayer layers player =
-  case filter (positionInLayer $ Player.position player) layers of
+  case filter (playerInLayer player) layers of
     [] -> Nothing
     layer:_ -> Just layer
 
-positionInLayer :: Position -> Layer.Layer -> Bool
-positionInLayer (x, y) layer = xInRect p s x && yInRect p s y
-  where p = Layer.position layer
-        s = Layer.size layer
+playerInLayer :: Player.Player -> Layer.Layer -> Bool
+playerInLayer player layer = xInRect position size x && yInRect position size y
+  where (x, y) = Player.position player
+        position = Layer.position layer
+        size = Layer.size layer
 
 liftPlayerOnLayer :: Layer.Layer -> Player.Player -> Player.Player
 liftPlayerOnLayer layer player = player { Player.position = (posX, Layer.posY layer) }
