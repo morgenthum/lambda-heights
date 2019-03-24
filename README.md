@@ -30,6 +30,7 @@ You need the following software installed on your machine to build lambda-tower 
 
 I recommend to use [Homebrew](https://brew.sh/) to install the SDL2 libraries:
 ```
+brew install pkg-config
 brew install sdl2
 brew install sdl2_ttf
 brew install sdl2_gfx
@@ -44,9 +45,10 @@ I think you will have no problems to find the SDL2 packages in the package manag
 The haskell stack comes with a msys2 environment. You can use the msys2 console to install the SDL2 libraries.
 
 ```
-pacman -Ss mingw-w64-SDL2
-pacman -Ss mingw-w64-SDL2_gfx
-pacman -Ss mingw-w64-SDL2_ttf
+pacman -S pkg-config
+pacman -S mingw-w64-x86_64-SDL2
+pacman -S mingw-w64-x86_64-SDL2_gfx
+pacman -S mingw-w64-x86_64-SDL2_ttf
 ```
 
 Pacman stores the pkg-config files of the libraries to `/mingw64/lib/pkgconfig` which wasn't in the lookup path on my machine by default. I had to copy the `sdl2*.pc` files to `/usr/lib/pkgconfig` by my own to enable the haskell stack to find the native libraries for the haskell binding libraries.
