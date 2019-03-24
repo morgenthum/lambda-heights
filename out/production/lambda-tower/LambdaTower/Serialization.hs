@@ -1,8 +1,7 @@
-module LambdaTower.Recorder where
+module LambdaTower.Serialization where
 
 import Codec.Serialise
 
-import Control.Monad
 import Control.Monad.STM
 import Control.Concurrent.STM.TChan
 
@@ -13,8 +12,8 @@ import qualified Data.ByteString.Lazy.Char8 as BS8
 
 serializeFromTChanToFile :: (Serialise a) => FilePath -> TChan (Maybe a) -> IO ()
 serializeFromTChanToFile filePath channel = do
-  maybeValue <- atomically $ readTChan channel
-  case maybeValue of
+  maybeX <- atomically $ readTChan channel
+  case maybeX of
     Just x -> do
       BS.appendFile filePath $ serialise x
       BS.appendFile filePath $ BS8.pack "/"
@@ -30,8 +29,3 @@ deserializeFromFile filePath= do
     return $ Just $ map deserialise splitted
   else
     return Nothing
-
-safeDeleteFile :: FilePath -> IO ()
-safeDeleteFile filePath = do
-  exist <- doesFileExist filePath
-  when exist $ removeFile filePath

@@ -16,10 +16,7 @@ update _ events state = do
   return $
     if ButtonList.action buttonList
       then Left $ stateByButton $ ButtonList.selectedButton buttonList
-      else Right $ wrap state buttonList
-
-wrap :: State.MenuState -> ButtonList.ButtonList -> State.MenuState
-wrap state buttonList = state { State.buttonList = buttonList }
+      else Right $ state { State.buttonList = buttonList }
 
 stateByButton :: Button.Button -> State
 stateByButton button =

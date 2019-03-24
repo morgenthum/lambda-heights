@@ -1,4 +1,4 @@
-module LambdaTower.Highscore.Render where
+module LambdaTower.Score.Render where
 
 import Data.Word
 
@@ -9,11 +9,11 @@ import LambdaTower.Graphics
 import LambdaTower.Loop
 import LambdaTower.Types
 
+import qualified LambdaTower.Render as Render
+import qualified LambdaTower.Screen as Screen
 import qualified LambdaTower.Types.Button as Button
 import qualified LambdaTower.Types.ButtonList as ButtonList
 import qualified LambdaTower.Types.ScoreState as State
-import qualified LambdaTower.Render as Render
-import qualified LambdaTower.Screen as Screen
 
 data RenderConfig = RenderConfig {
   font :: SDLF.Font,

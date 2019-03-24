@@ -9,39 +9,41 @@ import Control.Monad
 
 import LambdaTower.Graphics
 import LambdaTower.Loop
-import LambdaTower.Recorder
+import LambdaTower.Serialization
 import LambdaTower.State
 import LambdaTower.Types
 
-import qualified LambdaTower.Highscore.Render as H
-import qualified LambdaTower.Highscore.Update as H
+import System.Directory
 
-import qualified LambdaTower.Ingame.Input as I
-import qualified LambdaTower.Ingame.Render as I
-import qualified LambdaTower.Ingame.Update as I
+import qualified LambdaTower.Ingame.Input as Ingame
+import qualified LambdaTower.Ingame.Render as Ingame
+import qualified LambdaTower.Ingame.Update as Ingame
+import qualified LambdaTower.Types.GameEvents as Ingame
+import qualified LambdaTower.Types.GameState as Ingame
 
-import qualified LambdaTower.Menu.Input as M
-import qualified LambdaTower.Menu.Render as M
-import qualified LambdaTower.Menu.Update as M
+import qualified LambdaTower.Menu.Input as Menu
+import qualified LambdaTower.Menu.Render as Menu
+import qualified LambdaTower.Menu.Update as Menu
+import qualified LambdaTower.Types.MenuState as Menu
 
-import qualified LambdaTower.Pause.Render as P
-import qualified LambdaTower.Pause.Update as P
+import qualified LambdaTower.Pause.Render as Pause
+import qualified LambdaTower.Pause.Update as Pause
+import qualified LambdaTower.Types.PauseState as Pause
 
-import qualified LambdaTower.Replay.Input as R
-import qualified LambdaTower.Replay.Render as R
-import qualified LambdaTower.Replay.Update as R
+import qualified LambdaTower.Replay.Input as Replay
+import qualified LambdaTower.Replay.Render as Replay
+import qualified LambdaTower.Replay.Update as Replay
+import qualified LambdaTower.Types.ReplayState as Replay
 
-import qualified LambdaTower.Types.GameEvents as GE
-import qualified LambdaTower.Types.GameState as GS
-import qualified LambdaTower.Types.MenuState as MS
-import qualified LambdaTower.Types.PauseState as PS
-import qualified LambdaTower.Types.Player as P
-import qualified LambdaTower.Types.ReplayState as R
-import qualified LambdaTower.Types.ScoreState as SS
-import qualified LambdaTower.Types.Timer as T
+import qualified LambdaTower.Score.Render as Score
+import qualified LambdaTower.Score.Update as Score
+import qualified LambdaTower.Types.ScoreState as Score
 
-type IngameLoopState = LoopState IO GS.GameState GS.GameResult
-type PauseLoopState = LoopState IO PS.PauseState PS.ExitReason
+import qualified LambdaTower.Types.Player as Player
+import qualified LambdaTower.Types.Timer as Timer
+
+type IngameLoopState = LoopState IO Ingame.GameState Ingame.GameResult
+type PauseLoopState = LoopState IO Pause.PauseState Pause.ExitReason
 
 defaultReplayFilePath :: String
 defaultReplayFilePath = "replay.dat"
@@ -60,70 +62,72 @@ startState graphics Replay = startReplay defaultReplayFilePath graphics >>= star
 
 startMenu :: Graphics -> IO State
 startMenu graphics = do
-  timer <- T.defaultTimer
-  config <- M.defaultConfig
+  timer <- Timer.defaultTimer
+  config <- Menu.defaultConfig
 
-  let loop = timedLoop M.keyInput M.update (M.render graphics config)
-  state <- startLoop timer MS.newMenuState loop
+  let loop = timedLoop Menu.keyInput Menu.update (Menu.render graphics config)
+  state <- startLoop timer Menu.newMenuState loop
 
-  M.deleteConfig config
+  Menu.deleteConfig config
   return state
 
 startGame :: FilePath -> Graphics -> IO State
 startGame replayFilePath graphics = do
   channel <- newTChanIO
-  ingameConfig <- I.defaultConfig
-  pauseConfig <- P.defaultConfig
-
+  ingameConfig <- Ingame.defaultConfig
+  pauseConfig <- Pause.defaultConfig
   safeDeleteFile replayFilePath
 
-  let pauseLoop = timedLoop M.keyInput P.update (P.render graphics pauseConfig ingameConfig)
-  let gameLoop = timedLoop I.keyInput (I.updateAndWrite channel) (I.defaultRender graphics ingameConfig)
-  state <- join $ showScore graphics <$> startGameLoop replayFilePath channel GS.newGameState gameLoop pauseLoop
+  let gameLoop = timedLoop Ingame.keyInput (Ingame.updateAndWrite channel) (Ingame.renderDefault graphics ingameConfig)
+  let pauseLoop = timedLoop Menu.keyInput Pause.update (Pause.render graphics pauseConfig ingameConfig)
+  state <- startGameLoop replayFilePath channel Ingame.newGameState gameLoop pauseLoop >>= showScore graphics
 
-  P.deleteConfig pauseConfig
-  I.deleteConfig ingameConfig
+  Pause.deleteConfig pauseConfig
+  Ingame.deleteConfig ingameConfig
   return state
 
-startGameLoop :: FilePath -> Channel GE.PlayerEvent -> GS.GameState -> IngameLoopState -> PauseLoopState -> IO Int
+startGameLoop :: FilePath -> Channel Ingame.PlayerEvent -> Ingame.GameState -> IngameLoopState -> PauseLoopState -> IO Int
 startGameLoop replayFilePath channel gameState ingameLoop pauseLoop = do
-  timer <- T.defaultTimer
+  timer  <- Timer.defaultTimer
   handle <- async $ serializeFromTChanToFile replayFilePath channel
   result <- startLoop timer gameState ingameLoop
   wait handle
-  let score = P.score . GS.player . GS.state $ result
-  case GS.reason result of
-    GS.Pause -> do
-      reason <- startLoop timer (PS.newPauseState $ GS.state result) pauseLoop
+  let score = Player.score . Ingame.player . Ingame.state $ result
+  case Ingame.reason result of
+    Ingame.Finished -> return score
+    Ingame.Pause -> do
+      reason <- startLoop timer (Pause.newPauseState $ Ingame.state result) pauseLoop
       case reason of
-        PS.Resume -> startGameLoop replayFilePath channel (GS.state result) ingameLoop pauseLoop
-        PS.Exit -> return score
-    _ -> return score
+        Pause.Resume -> startGameLoop replayFilePath channel (Ingame.state result) ingameLoop pauseLoop
+        Pause.Exit -> return score
 
-showScore :: Graphics -> Int -> IO State
+showScore :: Graphics -> Score.Score -> IO State
 showScore graphics score = do
-  timer <- T.defaultTimer
-  config <- H.defaultConfig
+  timer <- Timer.defaultTimer
+  config <- Score.defaultConfig
 
-  let loop = timedLoop M.keyInput H.update (H.render graphics config)
-  _ <- startLoop timer (SS.newScoreState score) loop
+  let loop = timedLoop Menu.keyInput Score.update (Score.render graphics config)
+  _ <- startLoop timer (Score.newScoreState score) loop
 
-  H.deleteConfig config
+  Score.deleteConfig config
   return Menu
 
 startReplay :: FilePath -> Graphics -> IO State
 startReplay replayFilePath graphics = do
   maybeStates <- deserializeFromFile replayFilePath
-
   case maybeStates of
     Nothing -> return Menu
-    Just [] -> return Menu
     Just events -> do
-      timer <- T.defaultTimer
-      config <- I.defaultConfig
+      timer <- Timer.defaultTimer
+      config <- Ingame.defaultConfig
 
-      let loop = timedLoop R.keyInput R.replayUpdate (R.renderReplay graphics config)
-      _ <- startLoop timer (R.ReplayState GS.newGameState events) loop
+      let loop = timedLoop Replay.keyInput Replay.update (Replay.render graphics config)
+      _ <- startLoop timer (Replay.ReplayState Ingame.newGameState events) loop
 
-      I.deleteConfig config
+      Ingame.deleteConfig config
       return Menu
+
+safeDeleteFile :: FilePath -> IO ()
+safeDeleteFile filePath = do
+  exist <- doesFileExist filePath
+  when exist $ removeFile filePath

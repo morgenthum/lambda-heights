@@ -20,16 +20,13 @@ newGraphics :: String -> IO Graphics
 newGraphics windowTitle = do
   SDL.initializeAll
   SDLF.initialize
-
   window <- SDL.createWindow (T.pack windowTitle) windowSettings
   renderer <- SDL.createRenderer window (-1) SDL.defaultRenderer
-
   return (window, renderer)
 
 deleteGraphics :: Graphics -> IO ()
 deleteGraphics (window, renderer) = do
   SDL.destroyRenderer renderer
   SDL.destroyWindow window
-
   SDLF.quit
   SDL.quit

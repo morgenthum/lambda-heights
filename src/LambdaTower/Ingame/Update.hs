@@ -89,7 +89,7 @@ returnStateM events = do
   let dead = playerDead (State.screen s) (State.player s)
   let paused = elem Events.Paused events
   return $
-    if dead then Left $ State.GameResult s State.Exit
+    if dead then Left $ State.GameResult s State.Finished
     else if paused then Left $ State.GameResult s State.Pause
     else Right s
 

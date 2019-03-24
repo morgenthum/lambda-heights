@@ -2,35 +2,35 @@ module LambdaTower.Ingame.Render (
   RenderConfig(..),
   defaultConfig,
   deleteConfig,
-  defaultRender,
+  renderDefault,
   render,
   clear,
   present
 ) where
 
-import qualified Control.Lens as L
-
 import Data.Word
 
-import qualified Data.Vector.Storable as V
-
 import Foreign.C.Types
-
-import qualified SDL
-import qualified SDL.Font as SDLF
-import qualified SDL.Primitive as SDLP
 
 import LambdaTower.Graphics
 import LambdaTower.Loop
 import LambdaTower.Types
 
+import qualified Control.Lens as L
+
+import qualified Data.Vector.Storable as V
+
+import qualified SDL
+import qualified SDL.Font as SDLF
+import qualified SDL.Primitive as SDLP
+
+import qualified LambdaTower.Render as Render
+import qualified LambdaTower.Screen as Screen
 import qualified LambdaTower.Types.GameState as State
 import qualified LambdaTower.Types.Layer as Layer
 import qualified LambdaTower.Types.Player as Player
 import qualified LambdaTower.Types.Shape as Shape
 import qualified LambdaTower.Types.Timer as Timer
-import qualified LambdaTower.Render as Render
-import qualified LambdaTower.Screen as Screen
 
 data RenderConfig = RenderConfig {
   font :: SDLF.Font,
@@ -70,8 +70,8 @@ clear renderer color = do
 present :: SDL.Renderer -> IO ()
 present = SDL.present
 
-defaultRender :: Graphics -> RenderConfig -> Renderer IO State.GameState
-defaultRender (window, renderer) config =
+renderDefault :: Graphics -> RenderConfig -> Renderer IO State.GameState
+renderDefault (window, renderer) config =
   render (clear renderer $ bgColor config) (present renderer) (window, renderer) config
 
 render :: IO () -> IO () -> Graphics -> RenderConfig -> Renderer IO State.GameState

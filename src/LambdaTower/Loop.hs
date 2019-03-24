@@ -1,11 +1,11 @@
 module LambdaTower.Loop where
 
+import qualified SDL
+
 import qualified Control.Lens as L
 
 import qualified Control.Monad.Fail as M
 import qualified Control.Monad.State as M
-
-import qualified SDL
 
 import qualified LambdaTower.Types.Timer as Timer
 
@@ -17,7 +17,7 @@ type Renderer m s = Timer.LoopTimer -> s -> m ()
 
 startLoop :: (M.MonadFail m, M.MonadIO m) => Timer.LoopTimer -> s -> LoopState m s r -> m r
 startLoop timer state loop = do
-  Left result <- Timer._state <$> M.execStateT loop (Timer.TimedState timer $ Right state)
+  Left result <- L.view Timer.state <$> M.execStateT loop (Timer.TimedState timer $ Right state)
   return result
 
 timedLoop :: (M.MonadIO m) => InputHandler m e -> Updater m s r e -> Renderer m s -> LoopState m s r
@@ -70,16 +70,15 @@ updateFrameCounter = do
 inputAndUpdate :: (M.MonadIO m) => InputHandler m e -> Updater m s r e -> LoopState m s r
 inputAndUpdate handleInput update = do
   timedState <- M.get
-  state <- M.gets Timer._state
-  timer <- M.gets Timer._timer
-  case state of
+  case L.view Timer.state timedState of
     Left _ -> return ()
-    Right gameState ->
+    Right gameState -> do
+      let timer = L.view Timer.timer timedState
       M.when (L.view Timer.lag timer > L.view Timer.rate timer) $ do
         events <- M.lift handleInput
-        newState <- M.lift $ update timer events gameState
+        newGameState <- M.lift $ update timer events gameState
         let lag = L.view Timer.lag timer
         let rate = L.view Timer.rate timer
         M.put $ L.set (Timer.timer . Timer.lag) (lag - rate)
-              $ L.set Timer.state newState timedState
+              $ L.set Timer.state newGameState timedState
         inputAndUpdate handleInput update

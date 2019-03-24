@@ -1,15 +1,15 @@
 module LambdaTower.Types.GameState where
 
+import qualified LambdaTower.Screen as Screen
 import qualified LambdaTower.Types.Layer as Layer
 import qualified LambdaTower.Types.Player as Player
-import qualified LambdaTower.Screen as Screen
 
 data GameResult = GameResult {
   state :: GameState,
   reason :: ExitReason
 }
 
-data ExitReason = Exit | Pause
+data ExitReason = Finished | Pause
 
 data GameState = GameState {
   time :: Integer,

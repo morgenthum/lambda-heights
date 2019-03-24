@@ -1,7 +1,7 @@
 module LambdaTower.Types.ButtonList where
 
-import LambdaTower.Types.Button
 import LambdaTower.Screen
+import LambdaTower.Types.Button
 
 data ButtonList = ButtonList {
   screen :: Screen,

@@ -16,7 +16,7 @@ eventToKeyEvent :: SDL.Event -> Maybe KeyEvent
 eventToKeyEvent event =
   case SDL.eventPayload event of
     SDL.KeyboardEvent keyEvent -> keyToKeyEvent code motion
-      where code = SDL.keysymKeycode (SDL.keyboardEventKeysym keyEvent)
+      where code   = SDL.keysymKeycode (SDL.keyboardEventKeysym keyEvent)
             motion = SDL.keyboardEventKeyMotion keyEvent
     _ -> Nothing
 

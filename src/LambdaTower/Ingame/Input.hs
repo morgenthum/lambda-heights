@@ -4,9 +4,9 @@ module LambdaTower.Ingame.Input (
 
 import Data.Maybe
 
-import qualified SDL
-
 import LambdaTower.Loop
+
+import qualified SDL
 
 import qualified LambdaTower.Types.GameEvents as Events
 
@@ -35,7 +35,7 @@ eventToPlayerEvent :: SDL.Event -> Maybe Events.PlayerEvent
 eventToPlayerEvent event =
   case SDL.eventPayload event of
     SDL.KeyboardEvent keyEvent -> keyToPlayerEvent code motion
-      where code = SDL.keysymKeycode (SDL.keyboardEventKeysym keyEvent)
+      where code   = SDL.keysymKeycode (SDL.keyboardEventKeysym keyEvent)
             motion = SDL.keyboardEventKeyMotion keyEvent
     _ -> Nothing
 

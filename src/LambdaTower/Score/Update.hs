@@ -1,4 +1,4 @@
-module LambdaTower.Highscore.Update where
+module LambdaTower.Score.Update where
 
 import LambdaTower.Loop
 

@@ -27,9 +27,7 @@ source-repository head
 
 library
   exposed-modules:
-      LambdaTower.Highscore.Render
-    , LambdaTower.Highscore.Update
-    , LambdaTower.Ingame.Input
+      LambdaTower.Ingame.Input
     , LambdaTower.Ingame.Render
     , LambdaTower.Ingame.Update
     , LambdaTower.Menu.Input
@@ -40,6 +38,8 @@ library
     , LambdaTower.Replay.Input
     , LambdaTower.Replay.Render
     , LambdaTower.Replay.Update
+    , LambdaTower.Score.Render
+    , LambdaTower.Score.Update
     , LambdaTower.Types.Button
     , LambdaTower.Types.ButtonList
     , LambdaTower.Types.GameEvents
@@ -57,9 +57,9 @@ library
     , LambdaTower.Game
     , LambdaTower.Graphics
     , LambdaTower.Loop
-    , LambdaTower.Recorder
     , LambdaTower.Render
     , LambdaTower.Screen
+    , LambdaTower.Serialization
     , LambdaTower.State
     , LambdaTower.Types
   other-modules:

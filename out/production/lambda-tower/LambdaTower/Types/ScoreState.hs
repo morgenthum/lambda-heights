@@ -4,8 +4,10 @@ import LambdaTower.Types.Button
 import LambdaTower.Types.ButtonList
 import LambdaTower.Screen
 
+type Score = Int
+
 data ScoreState = ScoreState {
-  score :: Int,
+  score :: Score,
   buttonList :: ButtonList
 }
 

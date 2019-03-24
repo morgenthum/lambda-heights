@@ -2,18 +2,18 @@ module LambdaTower.Menu.Render where
 
 import Data.Word
 
-import qualified SDL
-import qualified SDL.Font as SDLF
-
 import LambdaTower.Graphics
 import LambdaTower.Loop
 import LambdaTower.Types
 
+import qualified SDL
+import qualified SDL.Font as SDLF
+
+import qualified LambdaTower.Render as Render
+import qualified LambdaTower.Screen as Screen
 import qualified LambdaTower.Types.Button as Button
 import qualified LambdaTower.Types.ButtonList as ButtonList
 import qualified LambdaTower.Types.MenuState as State
-import qualified LambdaTower.Render as Render
-import qualified LambdaTower.Screen as Screen
 
 data RenderConfig = RenderConfig {
   font :: SDLF.Font,
