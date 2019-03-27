@@ -51,7 +51,6 @@ update timer events = M.evalStateT go
                 updateMotionM (Events.playerEvents events)
                 updateLayersM
                 updatePlayerM
-                resetMotionM
                 returnStateM (Events.controlEvents events)
 
 updateTimeM :: Timer.LoopTimer -> GameStateUpdate ()
@@ -63,8 +62,13 @@ updateScreenM = M.modify f
   where f s = s { State.screen = updateScreen (State.player s) $ State.screen s }
 
 updateMotionM :: [Events.PlayerEvent] -> GameStateUpdate ()
-updateMotionM events = M.modify f
-  where f s = s { State.motion = updateMotion (State.motion s) events }
+updateMotionM events = M.modify $ updateAir . applyEvents
+  where applyEvents s = s { State.motion = applyPlayerEvents (resetMotion $ State.motion s) events }
+        updateAir s = s {
+          State.motion = (State.motion s) {
+            State.air = inAir (State.layers s) (State.player s)
+          }
+        }
 
 updateLayersM :: GameStateUpdate ()
 updateLayersM = M.modify f
@@ -74,19 +78,10 @@ updatePlayerM :: GameStateUpdate ()
 updatePlayerM = M.modify f
   where f s = s { State.player = updatePlayer (State.screen s) (State.motion s) (State.layers s) $ State.player s }
 
-resetMotionM :: GameStateUpdate ()
-resetMotionM = M.modify f
-  where f s = s {
-    State.motion = (State.motion s) {
-      State.jump = False,
-      State.air = playerInAir (State.layers s) $ State.player s
-    }
-  }
-
 returnStateM :: [Events.ControlEvent] -> GameStateUpdate (Either State.GameResult State.GameState)
 returnStateM events = do
   s <- M.get
-  let dead = playerDead (State.screen s) (State.player s)
+  let dead = isDead (State.screen s) (State.player s)
   let paused = elem Events.Paused events
   return $
     if dead then Left $ State.GameResult s State.Finished
@@ -107,9 +102,9 @@ scrollScreenOverTime screen = if height == 0 then screen else scrollScreen (upda
         factor = min 400 (100 + height / 100)
 
 scrollScreenToPlayer :: Player.Player -> Screen.Screen -> Screen.Screen
-scrollScreenToPlayer player screen = if space < 250 then scrollScreen (250 - space) screen else screen
+scrollScreenToPlayer player screen = if distance < 250 then scrollScreen (250 - distance) screen else screen
   where (_, y) = Player.position player
-        space = Screen.top screen - y
+        distance = Screen.top screen - y
 
 scrollScreen :: Float -> Screen.Screen -> Screen.Screen
 scrollScreen delta screen = screen {
@@ -120,13 +115,16 @@ scrollScreen delta screen = screen {
 
 -- Apply the player events to the motion.
 
-updateMotion :: State.Motion -> [Events.PlayerEvent] -> State.Motion
-updateMotion = foldl applyPlayerEvents
+resetMotion :: State.Motion -> State.Motion
+resetMotion motion = motion { State.jump = False, State.air = False }
 
-applyPlayerEvents :: State.Motion -> Events.PlayerEvent -> State.Motion
-applyPlayerEvents moveState (Events.PlayerMoved Events.MoveLeft b) = moveState { State.moveLeft = b }
-applyPlayerEvents moveState (Events.PlayerMoved Events.MoveRight b) = moveState { State.moveRight = b }
-applyPlayerEvents moveState Events.PlayerJumped = moveState { State.jump = True }
+applyPlayerEvents :: State.Motion -> [Events.PlayerEvent] -> State.Motion
+applyPlayerEvents = foldl applyPlayerEvent
+
+applyPlayerEvent :: State.Motion -> Events.PlayerEvent -> State.Motion
+applyPlayerEvent moveState (Events.PlayerMoved Events.MoveLeft b) = moveState { State.moveLeft = b }
+applyPlayerEvent moveState (Events.PlayerMoved Events.MoveRight b) = moveState { State.moveRight = b }
+applyPlayerEvent moveState Events.PlayerJumped = moveState { State.jump = True }
 
 
 -- Drop passed and generate new layers.
@@ -170,10 +168,10 @@ generateLayer generator screen layer =
   else Just (layer, generator layer)
 
 dropPassedLayers :: Screen.Screen -> [Layer.Layer] -> [Layer.Layer]
-dropPassedLayers screen = filter $ not . layerPassed screen
+dropPassedLayers screen = filter $ not . passed screen
 
-layerPassed :: Screen.Screen -> Layer.Layer -> Bool
-layerPassed screen layer = Screen.bottom screen > Layer.posY layer
+passed :: Screen.Screen -> Layer.Layer -> Bool
+passed screen layer = Screen.bottom screen > Layer.posY layer
 
 
 -- Updating the player involves the following steps:
@@ -190,10 +188,10 @@ updatePlayer screen motion layers =
 
 updateScore :: [Layer.Layer] -> Player.Player -> Player.Player
 updateScore layers player =
-  case collidedLayer layers player of
+  case foundLayer of
     Nothing -> player
     Just layer -> player { Player.score = max (Layer.id layer) (Player.score player) }
-
+  where foundLayer = find (above player) layers
 
 -- Update the motion of the player (acceleration, velocity, position).
 
@@ -260,38 +258,11 @@ bouncePlayerFromBounds screen player
 
 collidePlayerWithLayers :: [Layer.Layer] -> Player.Player -> Player.Player
 collidePlayerWithLayers layers player =
-  if playerFalling player then
-    case collidedLayer layers player of
+  if falling player then
+    case find (above player) layers of
       Nothing -> player
-      Just layer ->
-        if shouldLift player layer
-        then resetVelocityY $ liftPlayerOnLayer layer player
-        else player
+      Just layer -> resetVelocityY $ liftPlayerOnLayer layer player
   else player
-
-shouldLift :: Player.Player -> Layer.Layer -> Bool
-shouldLift player layer = xInRect position (w, h) x && yInRect position (w, 20) y
-  where (x, y) = Player.position player
-        position = Layer.position layer
-        (w, h) = Layer.size layer
-
-playerDead :: Screen.Screen -> Player.Player -> Bool
-playerDead screen player = let (_, y) = Player.position player in y < Screen.bottom screen
-
-playerFalling :: Player.Player -> Bool
-playerFalling player = let (_, y) = Player.velocity player in y < 0
-
-collidedLayer :: [Layer.Layer] -> Player.Player -> Maybe Layer.Layer
-collidedLayer layers player =
-  case filter (playerInLayer player) layers of
-    [] -> Nothing
-    layer:_ -> Just layer
-
-playerInLayer :: Player.Player -> Layer.Layer -> Bool
-playerInLayer player layer = xInRect position size x && yInRect position size y
-  where (x, y) = Player.position player
-        position = Layer.position layer
-        size = Layer.size layer
 
 liftPlayerOnLayer :: Layer.Layer -> Player.Player -> Player.Player
 liftPlayerOnLayer layer player = player { Player.position = (posX, Layer.posY layer) }
@@ -301,8 +272,26 @@ resetVelocityY :: Player.Player -> Player.Player
 resetVelocityY player = player { Player.velocity = (velX, 0) }
   where (velX, _) = Player.velocity player
 
-playerInAir :: [Layer.Layer] -> Player.Player -> Bool
-playerInAir layers = null . collidedLayer layers
+isDead :: Screen.Screen -> Player.Player -> Bool
+isDead screen player = let (_, y) = Player.position player in y < Screen.bottom screen
+
+falling :: Player.Player -> Bool
+falling player = let (_, y) = Player.velocity player in y < 0
+
+inAir :: [Layer.Layer] -> Player.Player -> Bool
+inAir layers player = null $ find (intersecting player) layers
+
+intersecting :: Player.Player -> Layer.Layer -> Bool
+intersecting player layer = xInRect position size x && yInRect position size y
+  where (x, y) = Player.position player
+        position = Layer.position layer
+        size = Layer.size layer
+
+above :: Player.Player -> Layer.Layer -> Bool
+above player layer = xInRect position (w, h) x && yInRect position (w, 20) y
+  where (x, y) = Player.position player
+        position = Layer.position layer
+        (w, h) = Layer.size layer
 
 xInRect :: Position -> Size -> Float -> Bool
 xInRect (posX, _) (w, _) x = x >= posX && x <= posX + w
