@@ -5,8 +5,8 @@ import qualified LambdaTower.Types.Layer as Layer
 import qualified LambdaTower.Types.Player as Player
 
 data GameResult = GameResult {
-  state :: GameState,
-  reason :: ExitReason
+  reason :: ExitReason,
+  state :: GameState
 }
 
 data ExitReason = Finished | Pause
