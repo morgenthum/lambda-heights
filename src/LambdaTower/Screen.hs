@@ -1,8 +1,8 @@
 module LambdaTower.Screen where
 
-import qualified SDL
+import           LambdaTower.Types
 
-import LambdaTower.Types
+import qualified SDL
 
 data Screen = Screen {
   top :: Float,
@@ -12,22 +12,19 @@ data Screen = Screen {
 }
 
 newScreen :: Screen
-newScreen = Screen {
-  top = 1000,
-  left = 0,
-  bottom = 0,
-  right = 1000
-}
+newScreen = Screen {top = 1000, left = 0, bottom = 0, right = 1000}
 
 toWindowSize :: Screen -> WindowSize -> Size -> WindowSize
 toWindowSize screen (SDL.V2 w h) (x, y) = SDL.V2 x' y'
-  where x' = translate screen w x
-        y' = translate screen h y
+ where
+  x' = translate screen w x
+  y' = translate screen h y
 
 toWindowPosition :: Screen -> WindowSize -> Position -> WindowPosition
 toWindowPosition screen (SDL.V2 w h) (x, y) = SDL.V2 x' y'
-  where x' = translate screen w x
-        y' = translateFlipped screen h y
+ where
+  x' = translate screen w x
+  y' = translateFlipped screen h y
 
 translate :: (Integral a) => Screen -> a -> Float -> a
 translate screen w = round . (* fromIntegral w) . normalize (left screen, right screen)

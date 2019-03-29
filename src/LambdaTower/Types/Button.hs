@@ -1,6 +1,6 @@
 module LambdaTower.Types.Button where
 
-import LambdaTower.Types
+import           LambdaTower.Types
 
 data Button = Button {
   id :: Int,

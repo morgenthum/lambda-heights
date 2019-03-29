@@ -1,7 +1,9 @@
 .idea/**
 .stack-work/**
+.vscode/**
 out/**
 releases/**
 .DS_Store
 lambda-tower.exe
 lambda-tower.iml
+replay.dat

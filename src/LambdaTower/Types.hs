@@ -1,8 +1,8 @@
 module LambdaTower.Types where
 
-import Control.Concurrent.STM.TChan
+import           Control.Concurrent.STM.TChan
 
-import Foreign.C.Types
+import           Foreign.C.Types
 
 import qualified SDL
 

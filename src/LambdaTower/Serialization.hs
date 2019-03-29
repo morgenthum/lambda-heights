@@ -1,14 +1,14 @@
 module LambdaTower.Serialization where
 
-import Codec.Serialise
+import           Codec.Serialise
 
-import Control.Monad.STM
-import Control.Concurrent.STM.TChan
+import           Control.Monad.STM
+import           Control.Concurrent.STM.TChan
 
-import System.Directory
+import           System.Directory
 
-import qualified Data.ByteString.Lazy as BS
-import qualified Data.ByteString.Lazy.Char8 as BS8
+import qualified Data.ByteString.Lazy          as BS
+import qualified Data.ByteString.Lazy.Char8    as BS8
 
 serializeFromTChanToFile :: (Serialise a) => FilePath -> TChan (Maybe a) -> IO ()
 serializeFromTChanToFile filePath channel = do
@@ -21,11 +21,11 @@ serializeFromTChanToFile filePath channel = do
     Nothing -> return ()
 
 deserializeFromFile :: (Serialise a) => FilePath -> IO (Maybe [a])
-deserializeFromFile filePath= do
+deserializeFromFile filePath = do
   exist <- doesFileExist filePath
-  if exist then do
-    bytes <- BS.readFile filePath
-    let splitted = filter (not . BS.null) $ BS8.split '/' bytes
-    return $ Just $ map deserialise splitted
-  else
-    return Nothing
+  if exist
+    then do
+      bytes <- BS.readFile filePath
+      let splitted = filter (not . BS.null) $ BS8.split '/' bytes
+      return $ Just $ map deserialise splitted
+    else return Nothing

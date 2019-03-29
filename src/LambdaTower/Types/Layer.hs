@@ -1,6 +1,6 @@
 module LambdaTower.Types.Layer where
 
-import LambdaTower.Types
+import           LambdaTower.Types
 
 data Layer = Layer {
   id :: Int,

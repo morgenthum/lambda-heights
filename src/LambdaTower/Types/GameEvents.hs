@@ -2,9 +2,9 @@
 
 module LambdaTower.Types.GameEvents where
 
-import Codec.Serialise
+import           Codec.Serialise
 
-import GHC.Generics
+import           GHC.Generics
 
 data GameEvents = GameEvents {
   controlEvents :: [ControlEvent],

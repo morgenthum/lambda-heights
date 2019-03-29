@@ -1,6 +1,6 @@
 module LambdaTower.Types.Shape where
 
-import LambdaTower.Types
+import           LambdaTower.Types
 
 data Shape = Shape {
   polygonXs :: [Float],

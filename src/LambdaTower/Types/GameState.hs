@@ -1,8 +1,8 @@
 module LambdaTower.Types.GameState where
 
-import qualified LambdaTower.Screen as Screen
-import qualified LambdaTower.Types.Layer as Layer
-import qualified LambdaTower.Types.Player as Player
+import qualified LambdaTower.Screen            as Screen
+import qualified LambdaTower.Types.Layer       as Layer
+import qualified LambdaTower.Types.Player      as Player
 
 data GameResult = GameResult {
   reason :: ExitReason,
@@ -27,18 +27,8 @@ data Motion = Motion {
 }
 
 newGameState :: GameState
-newGameState = GameState {
-  time = 0,
-  screen = Screen.newScreen,
-  motion = newMotion,
-  player = Player.newPlayer,
-  layers = []
-}
+newGameState =
+  GameState {time = 0, screen = Screen.newScreen, motion = newMotion, player = Player.newPlayer, layers = []}
 
 newMotion :: Motion
-newMotion = Motion {
-  moveLeft = False,
-  moveRight = False,
-  jump = False,
-  air = False
-}
+newMotion = Motion {moveLeft = False, moveRight = False, jump = False, air = False}

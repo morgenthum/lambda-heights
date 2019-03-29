@@ -1,16 +1,16 @@
 module LambdaTower.Render where
 
-import Foreign.C.Types
+import           Foreign.C.Types
 
-import LambdaTower.Types
+import           LambdaTower.Types
 
-import qualified Data.Text as T
+import qualified Data.Text                     as T
 
-import qualified LambdaTower.Screen as Screen
-import qualified LambdaTower.Types.Button as Button
+import qualified LambdaTower.Screen            as Screen
+import qualified LambdaTower.Types.Button      as Button
 
 import qualified SDL
-import qualified SDL.Font as SDLF
+import qualified SDL.Font                      as SDLF
 
 renderButton :: SDL.Renderer -> WindowSize -> Screen.Screen -> SDLF.Font -> SDLF.Color -> Button.Button -> IO ()
 renderButton renderer windowSize screen font color button = do

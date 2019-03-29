@@ -1,10 +1,10 @@
 module LambdaTower.Score.Update where
 
-import LambdaTower.Loop
+import           LambdaTower.Loop
 
-import qualified LambdaTower.Types.ButtonList as ButtonList
-import qualified LambdaTower.Types.KeyEvents as Events
-import qualified LambdaTower.Types.ScoreState as State
+import qualified LambdaTower.Types.ButtonList  as ButtonList
+import qualified LambdaTower.Types.KeyEvents   as Events
+import qualified LambdaTower.Types.ScoreState  as State
 
 update :: Updater IO State.ScoreState () [Events.KeyEvent]
 update _ events state = do

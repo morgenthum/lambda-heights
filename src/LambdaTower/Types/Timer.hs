@@ -2,9 +2,9 @@
 
 module LambdaTower.Types.Timer where
 
-import Control.Lens
+import           Control.Lens
 
-import Data.Word
+import           Data.Word
 
 import qualified SDL
 
@@ -39,10 +39,4 @@ defaultTimer = newTimer 7
 newTimer :: Word32 -> IO LoopTimer
 newTimer timerRate = do
   millis <- fromIntegral <$> SDL.ticks
-  return $ LoopTimer {
-    _counter = FrameCounter millis 0 0,
-    _rate = timerRate,
-    _current = millis,
-    _elapsed = 0,
-    _lag = 0
-  }
+  return $ LoopTimer {_counter = FrameCounter millis 0 0, _rate = timerRate, _current = millis, _elapsed = 0, _lag = 0}

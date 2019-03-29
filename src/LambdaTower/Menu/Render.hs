@@ -1,19 +1,19 @@
 module LambdaTower.Menu.Render where
 
-import Data.Word
+import           Data.Word
 
-import LambdaTower.Graphics
-import LambdaTower.Loop
-import LambdaTower.Types
+import           LambdaTower.Graphics
+import           LambdaTower.Loop
+import           LambdaTower.Types
 
 import qualified SDL
-import qualified SDL.Font as SDLF
+import qualified SDL.Font                      as SDLF
 
-import qualified LambdaTower.Render as Render
-import qualified LambdaTower.Screen as Screen
-import qualified LambdaTower.Types.Button as Button
-import qualified LambdaTower.Types.ButtonList as ButtonList
-import qualified LambdaTower.Types.MenuState as State
+import qualified LambdaTower.Render            as Render
+import qualified LambdaTower.Screen            as Screen
+import qualified LambdaTower.Types.Button      as Button
+import qualified LambdaTower.Types.ButtonList  as ButtonList
+import qualified LambdaTower.Types.MenuState   as State
 
 data RenderConfig = RenderConfig {
   font :: SDLF.Font,
@@ -25,12 +25,12 @@ data RenderConfig = RenderConfig {
 defaultConfig :: IO RenderConfig
 defaultConfig = do
   loadedFont <- SDLF.load "HighSchoolUSASans.ttf" 28
-  return $ RenderConfig {
-    font = loadedFont,
-    backgroundColor = SDL.V4 30 30 30 255,
-    textColor = SDL.V4 255 255 255 255,
-    selectedTextColor = SDL.V4 0 191 255 255
-  }
+  return $ RenderConfig
+    { font              = loadedFont
+    , backgroundColor   = SDL.V4 30 30 30 255
+    , textColor         = SDL.V4 255 255 255 255
+    , selectedTextColor = SDL.V4 0 191 255 255
+    }
 
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
@@ -42,7 +42,7 @@ render (window, renderer) config _ state = do
 
   windowSize <- SDL.get $ SDL.windowSize window
   let buttonList = State.buttonList state
-  let view = ButtonList.screen buttonList
+  let view       = ButtonList.screen buttonList
   let selectedId = ButtonList.selected buttonList
   mapM_ (renderButton renderer config windowSize view selectedId) $ ButtonList.buttons buttonList
 
@@ -50,7 +50,5 @@ render (window, renderer) config _ state = do
 
 renderButton :: SDL.Renderer -> RenderConfig -> WindowSize -> Screen.Screen -> Int -> Button.Button -> IO ()
 renderButton renderer config windowSize screen selectedId button = do
-  let color = if selectedId == Button.id button
-              then selectedTextColor config
-              else textColor config
+  let color = if selectedId == Button.id button then selectedTextColor config else textColor config
   Render.renderButton renderer windowSize screen (font config) color button
