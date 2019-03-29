@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 92f69c5fdf4690e4c8cc74e1f0069cb182038ff9145ee33889d2b15a894d4573
+-- hash: f6341759ba998814ab3af6973e752b84396a0e5f8c1634c8a038eaff317b3869
 
 name:           lambda-tower
 version:        0.1.0.0
@@ -27,65 +27,65 @@ source-repository head
 
 library
   exposed-modules:
+      LambdaTower.Game
+      LambdaTower.Graphics
       LambdaTower.Ingame.Input
-    , LambdaTower.Ingame.Render
-    , LambdaTower.Ingame.Update
-    , LambdaTower.Menu.Input
-    , LambdaTower.Menu.Render
-    , LambdaTower.Menu.Update
-    , LambdaTower.Pause.Render
-    , LambdaTower.Pause.Update
-    , LambdaTower.Replay.Input
-    , LambdaTower.Replay.Render
-    , LambdaTower.Replay.Update
-    , LambdaTower.Score.Render
-    , LambdaTower.Score.Update
-    , LambdaTower.Types.Button
-    , LambdaTower.Types.ButtonList
-    , LambdaTower.Types.GameEvents
-    , LambdaTower.Types.GameState
-    , LambdaTower.Types.KeyEvents
-    , LambdaTower.Types.Layer
-    , LambdaTower.Types.MenuState
-    , LambdaTower.Types.Pattern
-    , LambdaTower.Types.PauseState
-    , LambdaTower.Types.Player
-    , LambdaTower.Types.ReplayState
-    , LambdaTower.Types.ScoreState
-    , LambdaTower.Types.Shape
-    , LambdaTower.Types.Timer
-    , LambdaTower.Game
-    , LambdaTower.Graphics
-    , LambdaTower.Loop
-    , LambdaTower.Render
-    , LambdaTower.Screen
-    , LambdaTower.Serialization
-    , LambdaTower.State
-    , LambdaTower.Types
+      LambdaTower.Ingame.Render
+      LambdaTower.Ingame.Update
+      LambdaTower.Loop
+      LambdaTower.Menu.Input
+      LambdaTower.Menu.Render
+      LambdaTower.Menu.Update
+      LambdaTower.Pause.Render
+      LambdaTower.Pause.Update
+      LambdaTower.Render
+      LambdaTower.Replay.Input
+      LambdaTower.Replay.Render
+      LambdaTower.Replay.Update
+      LambdaTower.Score.Render
+      LambdaTower.Score.Update
+      LambdaTower.Screen
+      LambdaTower.Serialization
+      LambdaTower.State
+      LambdaTower.Types
+      LambdaTower.Types.Button
+      LambdaTower.Types.ButtonList
+      LambdaTower.Types.GameEvents
+      LambdaTower.Types.GameState
+      LambdaTower.Types.KeyEvents
+      LambdaTower.Types.Layer
+      LambdaTower.Types.MenuState
+      LambdaTower.Types.Pattern
+      LambdaTower.Types.PauseState
+      LambdaTower.Types.Player
+      LambdaTower.Types.ReplayState
+      LambdaTower.Types.ScoreState
+      LambdaTower.Types.Shape
+      LambdaTower.Types.Timer
   other-modules:
       Paths_lambda_tower
   hs-source-dirs:
       src
   ghc-options: -Wall -O2
   build-depends:
-      async >= 2.2.1
+      async >=2.2.1
     , base >=4.7 && <5
-    , bytestring >= 0.10.8.2
-    , directory >= 1.3.3.0
-    , lens >= 4.17
-    , linear >= 1.20.8
-    , mtl >= 2.2.2
-    , serialise >= 0.2.1.0
-    , sdl2 >= 2.4.1.0
-    , sdl2-gfx >= 0.2
-    , sdl2-ttf >= 2.1.0
-    , split >= 0.2.3.3
-    , stm >= 2.5.0.0
-    , text >= 1.2.3.1
-    , vector >= 0.12.0.2
+    , bytestring >=0.10.8.2
+    , directory >=1.3.3.0
+    , lens >=4.17
+    , linear >=1.20.8
+    , mtl >=2.2.2
+    , sdl2 >=2.4.1.0
+    , sdl2-gfx >=0.2
+    , sdl2-ttf >=2.1.0
+    , serialise >=0.2.1.0
+    , split >=0.2.3.3
+    , stm >=2.5.0.0
+    , text >=1.2.3.1
+    , vector >=0.12.0.2
   default-language: Haskell2010
 
-executable lambda-tower
+executable lambda-tower-exe
   main-is: Main.hs
   other-modules:
       Paths_lambda_tower
@@ -93,8 +93,22 @@ executable lambda-tower
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -O2
   build-depends:
-      base >=4.7 && <5
+      async >=2.2.1
+    , base >=4.7 && <5
+    , bytestring >=0.10.8.2
+    , directory >=1.3.3.0
     , lambda-tower
+    , lens >=4.17
+    , linear >=1.20.8
+    , mtl >=2.2.2
+    , sdl2 >=2.4.1.0
+    , sdl2-gfx >=0.2
+    , sdl2-ttf >=2.1.0
+    , serialise >=0.2.1.0
+    , split >=0.2.3.3
+    , stm >=2.5.0.0
+    , text >=1.2.3.1
+    , vector >=0.12.0.2
   default-language: Haskell2010
 
 test-suite lambda-tower-test
@@ -106,6 +120,20 @@ test-suite lambda-tower-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      async >=2.2.1
+    , base >=4.7 && <5
+    , bytestring >=0.10.8.2
+    , directory >=1.3.3.0
     , lambda-tower
+    , lens >=4.17
+    , linear >=1.20.8
+    , mtl >=2.2.2
+    , sdl2 >=2.4.1.0
+    , sdl2-gfx >=0.2
+    , sdl2-ttf >=2.1.0
+    , serialise >=0.2.1.0
+    , split >=0.2.3.3
+    , stm >=2.5.0.0
+    , text >=1.2.3.1
+    , vector >=0.12.0.2
   default-language: Haskell2010
