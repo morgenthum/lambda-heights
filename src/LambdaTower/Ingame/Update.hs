@@ -15,6 +15,7 @@ import           LambdaTower.Types
 import qualified Control.Lens                  as L
 import qualified Control.Monad.State           as M
 
+import qualified LambdaTower.Ingame.Collision  as Collision
 import qualified LambdaTower.Types.GameEvents  as Events
 import qualified LambdaTower.Types.GameState   as State
 import qualified LambdaTower.Types.Layer       as Layer
@@ -60,9 +61,8 @@ update timer events state = do
 
 updatedResult :: Events.GameEvents -> State.GameState -> Either State.GameResult State.GameState
 updatedResult events state =
-  let dead   = isDead (State.screen state) (State.player state)
-      paused = elem Events.Paused $ Events.controlEvents events
-  in  if dead
+  let paused = elem Events.Paused $ Events.controlEvents events
+  in  if dead (State.screen state) (State.player state)
         then Left $ State.GameResult State.Finished state
         else if paused then Left $ State.GameResult State.Pause state else Right state
 
@@ -177,21 +177,24 @@ updatePlayerMotion motion player = player { Player.position = pos, Player.veloci
   pos = applyVelocity (Player.position player) vel
 
 updateAcceleration :: Player.Acceleration -> Player.Velocity -> State.Motion -> Player.Acceleration
-updateAcceleration acc (velX, velY) motion =
-  if State.air motion then updateAirAcceleration motion else updateGroundAcceleration acc (velX, velY) motion
+updateAcceleration acc (velX, velY) motion = if velY == 0 && not (State.air motion)
+  then updateGroundAcceleration acc (velX, velY) motion
+  else updateAirAcceleration motion
 
 updateGroundAcceleration :: Player.Acceleration -> Player.Velocity -> State.Motion -> Player.Acceleration
-updateGroundAcceleration (accX, _) (velX, velY) motion | jump && fast      = (accX, 320000)
-                                                       | jump              = (accX, 160000)
-                                                       | left && not right = (-8000, -4000)
-                                                       | right && not left = (8000, -4000)
-                                                       | otherwise         = (0, -4000)
+updateGroundAcceleration acc vel motion | jump && fast      = (accX, 320000)
+                                        | jump              = (accX, 160000)
+                                        | left && not right = (-8000, 0)
+                                        | right && not left = (8000, 0)
+                                        | otherwise         = (0, 0)
  where
-  left  = State.moveLeft motion
-  right = State.moveRight motion
-  jump  = State.jump motion
-  vel   = sqrt $ (velX ** 2) + (velY ** 2)
-  fast  = vel >= 750
+  left         = State.moveLeft motion
+  right        = State.moveRight motion
+  jump         = State.jump motion
+  (accX, _   ) = acc
+  (velX, velY) = vel
+  velLength    = sqrt $ (velX ** 2) + (velY ** 2)
+  fast         = velLength >= 750
 
 updateAirAcceleration :: State.Motion -> Player.Acceleration
 updateAirAcceleration motion | left && not right = (-4000, -4000)
@@ -244,8 +247,8 @@ liftPlayerOnLayer layer player = player { Player.position = (posX, Layer.posY la
 resetVelocityY :: Player.Player -> Player.Player
 resetVelocityY player = player { Player.velocity = (velX, 0) } where (velX, _) = Player.velocity player
 
-isDead :: Screen.Screen -> Player.Player -> Bool
-isDead screen player = let (_, y) = Player.position player in y < Screen.bottom screen
+dead :: Screen.Screen -> Player.Player -> Bool
+dead screen player = let (_, y) = Player.position player in y < Screen.bottom screen
 
 falling :: Player.Player -> Bool
 falling player = let (_, y) = Player.velocity player in y < 0
@@ -254,21 +257,15 @@ inAir :: [Layer.Layer] -> Player.Player -> Bool
 inAir layers player = null $ find (player `intersecting`) layers
 
 intersecting :: Player.Player -> Layer.Layer -> Bool
-player `intersecting` layer = xInRect position size x && yInRect position size y
+player `intersecting` layer = playerPos `Collision.inside` (Collision.Rect layerPos size)
  where
-  (x, y)   = Player.position player
-  position = Layer.position layer
-  size     = Layer.size layer
+  playerPos = Player.position player
+  layerPos  = Layer.position layer
+  size      = Layer.size layer
 
 onTop :: Player.Player -> Layer.Layer -> Bool
-player `onTop` layer = xInRect position (w, h) x && yInRect position (w, 20) y
+player `onTop` layer = playerPos `Collision.inside` (Collision.Rect layerPos (w, 20))
  where
-  (x, y)   = Player.position player
-  position = Layer.position layer
-  (w, h)   = Layer.size layer
-
-xInRect :: Position -> Size -> Float -> Bool
-xInRect (posX, _) (w, _) x = x >= posX && x <= posX + w
-
-yInRect :: Position -> Size -> Float -> Bool
-yInRect (_, posY) (_, h) y = y <= posY && y >= posY - h
+  playerPos = Player.position player
+  layerPos  = Layer.position layer
+  (w, _)    = Layer.size layer
