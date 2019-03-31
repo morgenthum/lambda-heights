@@ -22,13 +22,12 @@ data GameState = GameState {
 data Motion = Motion {
   moveLeft :: Bool,
   moveRight :: Bool,
-  jump :: Bool,
-  air :: Bool
+  jump :: Bool
 }
 
 newGameState :: GameState
 newGameState =
-  GameState {time = 0, screen = Screen.newScreen, motion = newMotion, player = Player.newPlayer, layers = []}
+  GameState { time = 0, screen = Screen.newScreen, motion = newMotion, player = Player.newPlayer, layers = [] }
 
 newMotion :: Motion
-newMotion = Motion {moveLeft = False, moveRight = False, jump = False, air = False}
+newMotion = Motion { moveLeft = False, moveRight = False, jump = False }

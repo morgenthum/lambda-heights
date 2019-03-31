@@ -51,7 +51,7 @@ update timer events state = do
   let screen       = State.screen state
   let layers       = State.layers state
   let player       = State.player state
-  let motion = updateMotion playerEvents layers player $ State.motion state
+  let motion       = updateMotion playerEvents $ State.motion state
   return $ updatedResult events $ State.GameState { State.time   = time + fromIntegral (L.view Timer.rate timer)
                                                   , State.screen = updateScreen player screen
                                                   , State.motion = resetMotion motion
@@ -93,9 +93,8 @@ scrollScreen delta screen =
 
 -- Apply the player events to the motion.
 
-updateMotion :: [Events.PlayerEvent] -> [Layer.Layer] -> Player.Player -> State.Motion -> State.Motion
-updateMotion events layers player motion = motion' { State.air = inAir layers player }
-  where motion' = applyPlayerEvents motion events
+updateMotion :: [Events.PlayerEvent] -> State.Motion -> State.Motion
+updateMotion events motion = applyPlayerEvents motion events
 
 applyPlayerEvents :: State.Motion -> [Events.PlayerEvent] -> State.Motion
 applyPlayerEvents = foldl applyPlayerEvent
@@ -106,49 +105,7 @@ applyPlayerEvent moveState (Events.PlayerMoved Events.MoveRight b) = moveState {
 applyPlayerEvent moveState Events.PlayerJumped                     = moveState { State.jump = True }
 
 resetMotion :: State.Motion -> State.Motion
-resetMotion motion = motion { State.jump = False, State.air = False }
-
-
--- Drop passed and generate new layers.
-
-newPattern :: [Pattern.PatternEntry]
-newPattern = Pattern.combine 1 [Pattern.leftRightPattern, Pattern.boostPattern, Pattern.stairsPattern]
-
-updateLayers :: Screen.Screen -> [Layer.Layer] -> [Layer.Layer]
-updateLayers screen = fillLayers screen . dropPassedLayers screen
-
-fillLayers :: Screen.Screen -> [Layer.Layer] -> [Layer.Layer]
-fillLayers screen []               = unfoldLayers screen Layer.ground
-fillLayers screen (layer : layers) = unfoldLayers screen layer ++ layers
-
-unfoldLayers :: Screen.Screen -> Layer.Layer -> [Layer.Layer]
-unfoldLayers screen = reverse . unfoldr (generateLayer generator screen)
-  where generator = nextLayerByPattern newPattern
-
-nextLayerByPattern :: [Pattern.PatternEntry] -> Layer.Layer -> Layer.Layer
-nextLayerByPattern []       layer = layer
-nextLayerByPattern (p : ps) layer = case elemIndex (Layer.entryId layer) entryIds of
-  Nothing -> deriveLayer p layer
-  Just i  -> case (p : ps ++ [p]) !! (i + 1) of
-    p' -> deriveLayer p' layer
-  where entryIds = map Pattern.entryId (p : ps)
-
-deriveLayer :: Pattern.PatternEntry -> Layer.Layer -> Layer.Layer
-deriveLayer entry layer = Layer.Layer layerId entryId (w, h) (x, y + d)
- where
-  Pattern.PatternEntry entryId ((w, h), x) d = entry
-  layerId = Layer.id layer + 1
-  (_, y)  = Layer.position layer
-
-generateLayer :: (Layer.Layer -> Layer.Layer) -> Screen.Screen -> Layer.Layer -> Maybe (Layer.Layer, Layer.Layer)
-generateLayer generator screen layer =
-  if Screen.top screen < Layer.posY layer - 500 then Nothing else Just (layer, generator layer)
-
-dropPassedLayers :: Screen.Screen -> [Layer.Layer] -> [Layer.Layer]
-dropPassedLayers screen = filter $ not . passed screen
-
-passed :: Screen.Screen -> Layer.Layer -> Bool
-passed screen layer = Screen.bottom screen > Layer.posY layer
+resetMotion motion = motion { State.jump = False }
 
 
 -- Updating the player involves the following steps:
@@ -158,7 +115,11 @@ passed screen layer = Screen.bottom screen > Layer.posY layer
 
 updatePlayer :: Screen.Screen -> State.Motion -> [Layer.Layer] -> Player.Player -> Player.Player
 updatePlayer screen motion layers =
-  updateScore layers . collidePlayerWithLayers layers . bouncePlayerFromBounds screen . updatePlayerMotion motion
+  updateScore layers
+    . updateStanding layers
+    . collidePlayerWithLayers layers
+    . bouncePlayerFromBounds screen
+    . updatePlayerMotion motion
 
 updateScore :: [Layer.Layer] -> Player.Player -> Player.Player
 updateScore layers player = case foundLayer of
@@ -166,52 +127,61 @@ updateScore layers player = case foundLayer of
   Just layer -> player { Player.score = max (Layer.id layer) (Player.score player) }
   where foundLayer = find (player `onTop`) layers
 
+updateStanding :: [Layer.Layer] -> Player.Player -> Player.Player
+updateStanding layers player = player { Player.motionType = if standing then Player.Ground else Player.Air }
+  where standing = not $ null $ find (player `standingOn`) layers
+
 
 -- Update the motion of the player (acceleration, velocity, position).
 
 updatePlayerMotion :: State.Motion -> Player.Player -> Player.Player
 updatePlayerMotion motion player = player { Player.position = pos, Player.velocity = vel, Player.acceleration = acc }
  where
-  acc = updateAcceleration (Player.acceleration player) (Player.velocity player) motion
-  vel = updateVelocity (Player.velocity player) motion acc
+  acc = calcAcceleration motion player
+  vel = updateVelocity (Player.motionType player) acc (Player.velocity player)
   pos = applyVelocity (Player.position player) vel
 
-updateAcceleration :: Player.Acceleration -> Player.Velocity -> State.Motion -> Player.Acceleration
-updateAcceleration acc (velX, velY) motion = if velY == 0 && not (State.air motion)
-  then updateGroundAcceleration acc (velX, velY) motion
-  else updateAirAcceleration motion
+calcAcceleration :: State.Motion -> Player.Player -> Player.Acceleration
+calcAcceleration motion player = case Player.motionType player of
+  Player.Ground -> applyJumpAcceleration motion (Player.velocity player) $ applyGroundAcceleration motion
+  Player.Air    -> applyAirAcceleration motion
 
-updateGroundAcceleration :: Player.Acceleration -> Player.Velocity -> State.Motion -> Player.Acceleration
-updateGroundAcceleration acc vel motion | jump && fast      = (accX, 320000)
-                                        | jump              = (accX, 160000)
-                                        | left && not right = (-8000, 0)
-                                        | right && not left = (8000, 0)
-                                        | otherwise         = (0, 0)
+applyJumpAcceleration :: State.Motion -> Player.Velocity -> Player.Acceleration -> Player.Acceleration
+applyJumpAcceleration motion vel acc | jump && fast = (accX, 320000)
+                                     | jump         = (accX, 160000)
+                                     | otherwise    = acc
  where
-  left         = State.moveLeft motion
-  right        = State.moveRight motion
   jump         = State.jump motion
   (accX, _   ) = acc
   (velX, velY) = vel
   velLength    = sqrt $ (velX ** 2) + (velY ** 2)
   fast         = velLength >= 750
 
-updateAirAcceleration :: State.Motion -> Player.Acceleration
-updateAirAcceleration motion | left && not right = (-4000, -4000)
-                             | right && not left = (4000, -4000)
-                             | otherwise         = (0, -4000)
+applyGroundAcceleration :: State.Motion -> Player.Acceleration
+applyGroundAcceleration motion | left && not right = (-8000, -4000)
+                               | right && not left = (8000, -4000)
+                               | otherwise         = (0, -4000)
  where
   left  = State.moveLeft motion
   right = State.moveRight motion
 
-updateVelocity :: Player.Velocity -> State.Motion -> Player.Acceleration -> Player.Velocity
-updateVelocity vel motion = applyAcceleration (decelerate motion vel)
+applyAirAcceleration :: State.Motion -> Player.Acceleration
+applyAirAcceleration motion | left && not right = (-4000, -4000)
+                            | right && not left = (4000, -4000)
+                            | otherwise         = (0, -4000)
+ where
+  left  = State.moveLeft motion
+  right = State.moveRight motion
+
+updateVelocity :: Player.MotionType -> Player.Acceleration -> Player.Velocity -> Player.Velocity
+updateVelocity motionType acc vel = applyAcceleration (decelerate motionType vel) acc
+
+decelerate :: Player.MotionType -> Player.Velocity -> Player.Velocity
+decelerate Player.Ground (x, y) = (x * 0.925, y)
+decelerate Player.Air    (x, y) = (x * 0.99, y)
 
 applyAcceleration :: Player.Velocity -> Player.Acceleration -> Player.Velocity
 applyAcceleration (velX, velY) (accX, accY) = (velX + accX * updateFactor, velY + accY * updateFactor)
-
-decelerate :: State.Motion -> Player.Velocity -> Player.Velocity
-decelerate motion (x, y) = if State.air motion then (x * 0.99, y) else (x * 0.925, y)
 
 applyVelocity :: Position -> Player.Velocity -> Position
 applyVelocity = applyAcceleration
@@ -253,19 +223,58 @@ dead screen player = let (_, y) = Player.position player in y < Screen.bottom sc
 falling :: Player.Player -> Bool
 falling player = let (_, y) = Player.velocity player in y < 0
 
-inAir :: [Layer.Layer] -> Player.Player -> Bool
-inAir layers player = null $ find (player `intersecting`) layers
-
-intersecting :: Player.Player -> Layer.Layer -> Bool
-player `intersecting` layer = playerPos `Collision.inside` (Collision.Rect layerPos size)
+standingOn :: Player.Player -> Layer.Layer -> Bool
+player `standingOn` layer = playerPos `Collision.inside` Collision.Rect layerPos size
  where
   playerPos = Player.position player
   layerPos  = Layer.position layer
   size      = Layer.size layer
 
 onTop :: Player.Player -> Layer.Layer -> Bool
-player `onTop` layer = playerPos `Collision.inside` (Collision.Rect layerPos (w, 20))
+player `onTop` layer = playerPos `Collision.inside` Collision.Rect layerPos (w, 20)
  where
   playerPos = Player.position player
   layerPos  = Layer.position layer
   (w, _)    = Layer.size layer
+
+
+-- Drop passed and generate new layers.
+
+newPattern :: [Pattern.PatternEntry]
+newPattern = Pattern.combine 1 [Pattern.leftRightPattern, Pattern.boostPattern, Pattern.stairsPattern]
+
+updateLayers :: Screen.Screen -> [Layer.Layer] -> [Layer.Layer]
+updateLayers screen = fillLayers screen . dropPassedLayers screen
+
+fillLayers :: Screen.Screen -> [Layer.Layer] -> [Layer.Layer]
+fillLayers screen []               = unfoldLayers screen Layer.ground
+fillLayers screen (layer : layers) = unfoldLayers screen layer ++ layers
+
+unfoldLayers :: Screen.Screen -> Layer.Layer -> [Layer.Layer]
+unfoldLayers screen = reverse . unfoldr (generateLayer generator screen)
+  where generator = nextLayerByPattern newPattern
+
+nextLayerByPattern :: [Pattern.PatternEntry] -> Layer.Layer -> Layer.Layer
+nextLayerByPattern []       layer = layer
+nextLayerByPattern (p : ps) layer = case elemIndex (Layer.entryId layer) entryIds of
+  Nothing -> deriveLayer p layer
+  Just i  -> case (p : ps ++ [p]) !! (i + 1) of
+    p' -> deriveLayer p' layer
+  where entryIds = map Pattern.entryId (p : ps)
+
+deriveLayer :: Pattern.PatternEntry -> Layer.Layer -> Layer.Layer
+deriveLayer entry layer = Layer.Layer layerId entryId (w, h) (x, y + d)
+ where
+  Pattern.PatternEntry entryId ((w, h), x) d = entry
+  layerId = Layer.id layer + 1
+  (_, y)  = Layer.position layer
+
+generateLayer :: (Layer.Layer -> Layer.Layer) -> Screen.Screen -> Layer.Layer -> Maybe (Layer.Layer, Layer.Layer)
+generateLayer generator screen layer =
+  if Screen.top screen < Layer.posY layer - 500 then Nothing else Just (layer, generator layer)
+
+dropPassedLayers :: Screen.Screen -> [Layer.Layer] -> [Layer.Layer]
+dropPassedLayers screen = filter (not . passed screen)
+
+passed :: Screen.Screen -> Layer.Layer -> Bool
+screen `passed` layer = Screen.bottom screen > Layer.posY layer
