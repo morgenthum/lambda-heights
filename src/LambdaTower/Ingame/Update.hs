@@ -12,7 +12,6 @@ import           Data.List
 import           LambdaTower.Loop
 import           LambdaTower.Types
 
-import qualified Control.Lens                  as L
 import qualified Control.Monad.State           as M
 
 import qualified LambdaTower.Ingame.Collision  as Collision
@@ -52,7 +51,7 @@ update timer events state = do
   let layers       = State.layers state
   let player       = State.player state
   let motion       = updateMotion playerEvents $ State.motion state
-  return $ updatedResult events $ State.GameState { State.time   = time + fromIntegral (L.view Timer.rate timer)
+  return $ updatedResult events $ State.GameState { State.time   = time + fromIntegral (Timer.rate timer)
                                                   , State.screen = updateScreen player screen
                                                   , State.motion = resetMotion motion
                                                   , State.player = updatePlayer screen motion layers player

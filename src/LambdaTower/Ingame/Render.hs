@@ -17,8 +17,6 @@ import           LambdaTower.Graphics
 import           LambdaTower.Loop
 import           LambdaTower.Types
 
-import qualified Control.Lens                  as L
-
 import qualified Data.Vector.Storable          as V
 
 import qualified SDL
@@ -120,7 +118,7 @@ renderHudScore renderer config state = do
 renderHudFPS :: SDL.Renderer -> RenderConfig -> Timer.LoopTimer -> IO ()
 renderHudFPS renderer config timer = do
   let textFont = font config
-  let fps      = L.view (Timer.counter . Timer.fps) timer
+  let fps      = Timer.fps . Timer.counter $ timer
   Render.renderText renderer textFont (SDL.V2 250 20) (whiteColor config) "fps"
   Render.renderText renderer textFont (SDL.V2 320 20) (textColor config) (show fps)
 
