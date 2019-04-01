@@ -6,14 +6,14 @@ import qualified SDL
 import qualified SDL.Font                      as SDLF
 
 import           LambdaTower.Graphics
-import           LambdaTower.Loop
 import           LambdaTower.Types
 
 import qualified LambdaTower.Render            as Render
 import qualified LambdaTower.Screen            as Screen
+import qualified LambdaTower.Score.State       as Score
+import qualified LambdaTower.Timing.Timer      as Timer
 import qualified LambdaTower.Types.Button      as Button
 import qualified LambdaTower.Types.ButtonList  as ButtonList
-import qualified LambdaTower.Types.ScoreState  as State
 
 data RenderConfig = RenderConfig {
   font :: SDLF.Font,
@@ -35,15 +35,15 @@ defaultConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-render :: Graphics -> RenderConfig -> Renderer IO State.ScoreState
+render :: Graphics -> RenderConfig -> Timer.LoopTimer -> Score.State -> IO ()
 render (window, renderer) config _ state = do
   SDL.rendererDrawColor renderer SDL.$= backgroundColor config
   SDL.clear renderer
 
-  let buttonList = State.buttonList state
+  let buttonList = Score.buttonList state
   let view       = ButtonList.screen buttonList
   let selectedId = ButtonList.selected buttonList
-  let text       = "score: " ++ show (State.score state)
+  let text       = "score: " ++ show (Score.score state)
 
   windowSize <- SDL.get $ SDL.windowSize window
   renderButton renderer config windowSize view (-1) $ Button.Button 0 text (500, 550)

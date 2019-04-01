@@ -3,7 +3,6 @@ module LambdaTower.Pause.Render where
 import           Data.Word
 
 import           LambdaTower.Graphics
-import           LambdaTower.Loop
 import           LambdaTower.Types
 
 import qualified SDL
@@ -12,9 +11,10 @@ import qualified SDL.Font                      as SDLF
 import qualified LambdaTower.Render            as Render
 import qualified LambdaTower.Screen            as Screen
 import qualified LambdaTower.Ingame.Render     as Ingame
+import qualified LambdaTower.Pause.State       as Pause
+import qualified LambdaTower.Timing.Timer      as Timer
 import qualified LambdaTower.Types.Button      as Button
 import qualified LambdaTower.Types.ButtonList  as ButtonList
-import qualified LambdaTower.Types.PauseState  as State
 
 data RenderConfig = RenderConfig {
   font :: SDLF.Font,
@@ -36,23 +36,31 @@ defaultConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-render :: Graphics -> RenderConfig -> Ingame.RenderConfig -> Renderer IO State.PauseState
+render :: Graphics -> RenderConfig -> Ingame.RenderConfig -> Timer.LoopTimer -> Pause.State -> IO ()
 render (window, renderer) pauseConfig ingameConfig timer state = do
-  let pre = Ingame.clear renderer $ Ingame.bgColor ingameConfig
+  renderIngame (window, renderer) ingameConfig timer state
+  renderOverlay (window, renderer) pauseConfig
+  renderButtons (window, renderer) pauseConfig $ Pause.buttonList state
+  SDL.present renderer
+
+renderIngame :: Graphics -> Ingame.RenderConfig -> Timer.LoopTimer -> Pause.State -> IO ()
+renderIngame (window, renderer) config timer state = do
+  let pre = Ingame.clear renderer $ Ingame.bgColor config
   let post = return ()
+  Ingame.render pre post (window, renderer) config timer $ Pause.state state
 
-  Ingame.render pre post (window, renderer) ingameConfig timer (State.state state)
-
+renderOverlay :: Graphics -> RenderConfig -> IO ()
+renderOverlay (window, renderer) config = do
   windowSize <- SDL.get $ SDL.windowSize window
-  SDL.rendererDrawColor renderer SDL.$= overlayColor pauseConfig
+  SDL.rendererDrawColor renderer SDL.$= overlayColor config
   SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P $ SDL.V2 0 0) windowSize
 
-  let buttonList = State.buttonList state
-  let view       = ButtonList.screen buttonList
-  let selectedId = ButtonList.selected buttonList
-  mapM_ (renderButton renderer pauseConfig windowSize view selectedId) $ ButtonList.buttons buttonList
-
-  SDL.present renderer
+renderButtons :: Graphics -> RenderConfig -> ButtonList.ButtonList -> IO ()
+renderButtons (window, renderer) config list = do
+  let view       = ButtonList.screen list
+  let selectedId = ButtonList.selected list
+  windowSize <- SDL.get $ SDL.windowSize window
+  mapM_ (renderButton renderer config windowSize view selectedId) $ ButtonList.buttons list
 
 renderButton :: SDL.Renderer -> RenderConfig -> WindowSize -> Screen.Screen -> Int -> Button.Button -> IO ()
 renderButton renderer config windowSize screen selectedId button = do

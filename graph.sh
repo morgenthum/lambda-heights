@@ -1,0 +1,1 @@
+find src -name '*.hs' | xargs graphmod -q -p | xdot -

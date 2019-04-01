@@ -2,6 +2,7 @@ module LambdaTower.Types.ButtonList where
 
 import           LambdaTower.Screen
 import           LambdaTower.Types.Button
+import           LambdaTower.Types.KeyEvents
 
 data ButtonList = ButtonList {
   screen :: Screen,
@@ -23,12 +24,21 @@ activate :: ButtonList -> ButtonList
 activate list = list { action = True }
 
 ensureValidIndex :: ButtonList -> ButtonList
-ensureValidIndex list | index < 0         = list { selected = 0 }
-                      | index > count - 1 = list { selected = count - 1 }
-                      | otherwise         = list
- where
-  index = selected list
-  count = length $ buttons list
+ensureValidIndex list =
+  let index = selected list
+      count = length $ buttons list
+      go | index < 0         = list { selected = 0 }
+         | index > count - 1 = list { selected = count - 1 }
+         | otherwise         = list
+  in  go
 
 selectedButton :: ButtonList -> Button
 selectedButton list = buttons list !! selected list
+
+applyEvents :: ButtonList -> [KeyEvent] -> ButtonList
+applyEvents = foldl applyEvent
+
+applyEvent :: ButtonList -> KeyEvent -> ButtonList
+applyEvent buttonList Up    = up buttonList
+applyEvent buttonList Down  = down buttonList
+applyEvent buttonList Enter = activate buttonList

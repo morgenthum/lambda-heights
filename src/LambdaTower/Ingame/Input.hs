@@ -5,13 +5,11 @@ where
 
 import           Data.Maybe
 
-import           LambdaTower.Loop
-
 import qualified SDL
 
-import qualified LambdaTower.Types.GameEvents  as Events
+import qualified LambdaTower.Ingame.GameEvents as Events
 
-keyInput :: InputHandler IO Events.GameEvents
+keyInput :: IO Events.GameEvents
 keyInput = do
   events <- SDL.pollEvents
   let controlEvents = mapMaybe eventToControlEvent events
@@ -20,11 +18,11 @@ keyInput = do
 
 eventToControlEvent :: SDL.Event -> Maybe Events.ControlEvent
 eventToControlEvent event = case SDL.eventPayload event of
-  SDL.QuitEvent              -> Just Events.Paused
-  SDL.KeyboardEvent keyEvent -> keyToControlEvent code motion
-   where
-    code   = SDL.keysymKeycode (SDL.keyboardEventKeysym keyEvent)
-    motion = SDL.keyboardEventKeyMotion keyEvent
+  SDL.QuitEvent -> Just Events.Paused
+  SDL.KeyboardEvent keyEvent ->
+    let code   = SDL.keysymKeycode (SDL.keyboardEventKeysym keyEvent)
+        motion = SDL.keyboardEventKeyMotion keyEvent
+    in  keyToControlEvent code motion
   _ -> Nothing
 
 keyToControlEvent :: SDL.Keycode -> SDL.InputMotion -> Maybe Events.ControlEvent
@@ -34,10 +32,10 @@ keyToControlEvent _                 _           = Nothing
 
 eventToPlayerEvent :: SDL.Event -> Maybe Events.PlayerEvent
 eventToPlayerEvent event = case SDL.eventPayload event of
-  SDL.KeyboardEvent keyEvent -> keyToPlayerEvent code motion
-   where
-    code   = SDL.keysymKeycode (SDL.keyboardEventKeysym keyEvent)
-    motion = SDL.keyboardEventKeyMotion keyEvent
+  SDL.KeyboardEvent keyEvent ->
+    let code   = SDL.keysymKeycode (SDL.keyboardEventKeysym keyEvent)
+        motion = SDL.keyboardEventKeyMotion keyEvent
+    in  keyToPlayerEvent code motion
   _ -> Nothing
 
 keyToPlayerEvent :: SDL.Keycode -> SDL.InputMotion -> Maybe Events.PlayerEvent

@@ -8,17 +8,16 @@ import           Data.Maybe
 import qualified SDL
 
 import           LambdaTower.Types.KeyEvents
-import           LambdaTower.Loop
 
-keyInput :: InputHandler IO [KeyEvent]
+keyInput :: IO [KeyEvent]
 keyInput = mapMaybe eventToKeyEvent <$> SDL.pollEvents
 
 eventToKeyEvent :: SDL.Event -> Maybe KeyEvent
 eventToKeyEvent event = case SDL.eventPayload event of
-  SDL.KeyboardEvent keyEvent -> keyToKeyEvent code motion
-   where
-    code   = SDL.keysymKeycode (SDL.keyboardEventKeysym keyEvent)
-    motion = SDL.keyboardEventKeyMotion keyEvent
+  SDL.KeyboardEvent keyEvent ->
+    let code   = SDL.keysymKeycode (SDL.keyboardEventKeysym keyEvent)
+        motion = SDL.keyboardEventKeyMotion keyEvent
+    in  keyToKeyEvent code motion
   _ -> Nothing
 
 keyToKeyEvent :: SDL.Keycode -> SDL.InputMotion -> Maybe KeyEvent

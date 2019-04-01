@@ -2,8 +2,8 @@ module LambdaTower.Serialization where
 
 import           Codec.Serialise
 
-import           Control.Monad.STM
 import           Control.Concurrent.STM.TChan
+import           Control.Monad.STM
 
 import           System.Directory
 

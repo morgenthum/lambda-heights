@@ -10,18 +10,18 @@ import           Control.Concurrent.STM.TChan
 import           Data.Function
 import           Data.List
 
-import           LambdaTower.Loop
-
 import qualified Control.Monad.State           as M
 
 import qualified LambdaTower.Ingame.Collision  as Collision
-import qualified LambdaTower.Types.GameEvents  as Events
-import qualified LambdaTower.Types.GameState   as State
-import qualified LambdaTower.Types.Layer       as Layer
-import qualified LambdaTower.Types.Pattern     as Pattern
-import qualified LambdaTower.Types.Player      as Player
-import qualified LambdaTower.Types.Timer       as Timer
+import qualified LambdaTower.Ingame.GameEvents as Events
+import qualified LambdaTower.Ingame.GameState  as State
+import qualified LambdaTower.Ingame.Layer      as Layer
+import qualified LambdaTower.Ingame.Pattern    as Pattern
+import qualified LambdaTower.Ingame.Player     as Player
+import qualified LambdaTower.Timing.Timer      as Timer
 import qualified LambdaTower.Screen            as Screen
+
+type Updater = Timer.LoopTimer -> Events.GameEvents -> State.GameState -> IO (Either State.GameResult State.GameState)
 
 -- Factor for scrolling the screen and update the players motion.
 
@@ -31,7 +31,7 @@ updateFactor = 1 / 128
 
 -- Wrapper around one update to broadcast the occured events for serialization.
 
-updateAndWrite :: TChan (Maybe [Events.PlayerEvent]) -> Updater IO State.GameState State.GameResult Events.GameEvents
+updateAndWrite :: TChan (Maybe [Events.PlayerEvent]) -> Updater
 updateAndWrite channel timer events gameState = do
   result <- update timer events gameState
   M.liftIO $ atomically $ writeTChan channel $ Just $ Events.playerEvents events
@@ -43,7 +43,7 @@ updateAndWrite channel timer events gameState = do
 
 -- Control flow over one update cycle.
 
-update :: Updater IO State.GameState State.GameResult Events.GameEvents
+update :: Updater
 update timer events state = do
   let playerEvents = Events.playerEvents events
   let time         = State.time state
@@ -51,12 +51,13 @@ update timer events state = do
   let layers       = State.layers state
   let player       = State.player state
   let motion       = updateMotion playerEvents $ State.motion state
-  let state' = State.GameState { State.time   = time + fromIntegral (Timer.rate timer)
-                               , State.screen = updateScreen player screen
-                               , State.motion = resetMotion motion
-                               , State.player = updatePlayer screen motion layers player
-                               , State.layers = updateLayers screen layers
-                               }
+  let state' = State.GameState
+        { State.time   = time + fromIntegral (Timer.rate timer)
+        , State.screen = updateScreen player screen
+        , State.motion = resetMotion motion
+        , State.player = updatePlayer screen motion layers player
+        , State.layers = updateLayers screen layers
+        }
   return $ updatedResult events $ state'
 
 updatedResult :: Events.GameEvents -> State.GameState -> Either State.GameResult State.GameState
@@ -75,16 +76,16 @@ updateScreen :: Player.Player -> Screen.Screen -> Screen.Screen
 updateScreen player = scrollScreenToPlayer player . scrollScreenOverTime
 
 scrollScreenOverTime :: Screen.Screen -> Screen.Screen
-scrollScreenOverTime screen = if height == 0 then screen else scrollScreen (updateFactor * factor) screen
- where
-  height = Screen.bottom screen
-  factor = min 400 (100 + height / 100)
+scrollScreenOverTime screen =
+  let height = Screen.bottom screen
+      factor = min 400 (100 + height / 100)
+  in  if height == 0 then screen else scrollScreen (updateFactor * factor) screen
 
 scrollScreenToPlayer :: Player.Player -> Screen.Screen -> Screen.Screen
-scrollScreenToPlayer player screen = if distance < 250 then scrollScreen (250 - distance) screen else screen
- where
-  (_, y)   = Player.position player
-  distance = Screen.top screen - y
+scrollScreenToPlayer player screen =
+  let (_, y)   = Player.position player
+      distance = Screen.top screen - y
+  in  if distance < 250 then scrollScreen (250 - distance) screen else screen
 
 scrollScreen :: Float -> Screen.Screen -> Screen.Screen
 scrollScreen delta screen =
@@ -116,17 +117,15 @@ resetMotion motion = motion { State.jump = False }
 updatePlayer :: Screen.Screen -> State.Motion -> [Layer.Layer] -> Player.Player -> Player.Player
 updatePlayer screen motion layers =
   updateScore layers
-    . updateStanding layers
     . (`collideWith` layers)
     . (`bounceFrom` screen)
     . updatePlayerMotion motion
+    . updateStanding layers
 
 updateScore :: [Layer.Layer] -> Player.Player -> Player.Player
-updateScore layers player =
-  let foundLayer = find (player `onTop`) layers
-  in  case foundLayer of
-        Nothing    -> player
-        Just layer -> player { Player.score = max (Layer.id layer) (Player.score player) }
+updateScore layers player = case find (player `onTop`) layers of
+  Nothing    -> player
+  Just layer -> player { Player.score = max (Layer.id layer) (Player.score player) }
 
 updateStanding :: [Layer.Layer] -> Player.Player -> Player.Player
 updateStanding layers player =
@@ -137,18 +136,18 @@ updateStanding layers player =
 -- Update the motion of the player (acceleration, velocity, position).
 
 updatePlayerMotion :: State.Motion -> Player.Player -> Player.Player
-updatePlayerMotion motion player = updateAcceleration motion player & updateVelocity & updatePosition
+updatePlayerMotion motion player = updateAcc motion player & updateVel & updatePos
 
-updateAcceleration :: State.Motion -> Player.Player -> Player.Player
-updateAcceleration motion player =
+updateAcc :: State.Motion -> Player.Player -> Player.Player
+updateAcc motion player =
   let vel = Player.velocity player
       acc = case Player.motionType player of
-        Player.Ground -> applyJumpAcceleration motion vel $ applyGroundAcceleration motion
-        Player.Air    -> applyAirAcceleration motion
+        Player.Ground -> calcJumpAcc motion vel $ calcGroundAcc motion
+        Player.Air    -> calcAirAcc motion
   in  player { Player.acceleration = acc }
 
-applyJumpAcceleration :: State.Motion -> Player.Velocity -> Player.Acceleration -> Player.Acceleration
-applyJumpAcceleration motion vel acc =
+calcJumpAcc :: State.Motion -> Player.Velocity -> Player.Acceleration -> Player.Acceleration
+calcJumpAcc motion vel acc =
   let jump         = State.jump motion
       (accX, _   ) = acc
       (velX, velY) = vel
@@ -159,8 +158,8 @@ applyJumpAcceleration motion vel acc =
          | otherwise    = acc
   in  go
 
-applyGroundAcceleration :: State.Motion -> Player.Acceleration
-applyGroundAcceleration motion =
+calcGroundAcc :: State.Motion -> Player.Acceleration
+calcGroundAcc motion =
   let left  = State.moveLeft motion
       right = State.moveRight motion
       go | left && not right = (-8000, -4000)
@@ -168,8 +167,8 @@ applyGroundAcceleration motion =
          | otherwise         = (0, -4000)
   in  go
 
-applyAirAcceleration :: State.Motion -> Player.Acceleration
-applyAirAcceleration motion =
+calcAirAcc :: State.Motion -> Player.Acceleration
+calcAirAcc motion =
   let left  = State.moveLeft motion
       right = State.moveRight motion
       go | left && not right = (-4000, -4000)
@@ -177,20 +176,18 @@ applyAirAcceleration motion =
          | otherwise         = (0, -4000)
   in  go
 
-updateVelocity :: Player.Player -> Player.Player
-updateVelocity player =
-  let motionType = Player.motionType player
-      vel        = Player.velocity player
-      acc        = Player.acceleration player
-      vel'       = applyWithFactor updateFactor (decelerate motionType vel) acc
-  in  player { Player.velocity = vel' }
+updateVel :: Player.Player -> Player.Player
+updateVel player =
+  let vel = decelerate (Player.motionType player) $ Player.velocity player
+      acc = Player.acceleration player
+  in  player { Player.velocity = applyWithFactor updateFactor vel acc }
 
 decelerate :: Player.MotionType -> Player.Velocity -> Player.Velocity
 decelerate Player.Ground (x, y) = (x * 0.925, y)
 decelerate Player.Air    (x, y) = (x * 0.99, y)
 
-updatePosition :: Player.Player -> Player.Player
-updatePosition player =
+updatePos :: Player.Player -> Player.Player
+updatePos player =
   let pos = Player.position player
       vel = Player.velocity player
   in  player { Player.position = applyWithFactor updateFactor pos vel }
@@ -203,17 +200,18 @@ applyWithFactor factor (x, y) (x', y') = (x + x' * factor, y + y' * factor)
 -- or the bounds of the level.
 
 bounceFrom :: Player.Player -> Screen.Screen -> Player.Player
-player `bounceFrom` screen
-  | outLeft   = player { Player.position = (minX, posY), Player.velocity = (-velX, velY) }
-  | outRight  = player { Player.position = (maxX, posY), Player.velocity = (-velX, velY) }
-  | otherwise = player
- where
-  (posX, posY) = Player.position player
-  (velX, velY) = Player.velocity player
-  minX         = Screen.left screen
-  maxX         = Screen.right screen
-  outLeft      = posX < minX && velX < 0
-  outRight     = posX > maxX && velX > 0
+player `bounceFrom` screen =
+  let (posX, posY) = Player.position player
+      (velX, velY) = Player.velocity player
+      minX         = Screen.left screen
+      maxX         = Screen.right screen
+      outLeft      = posX < minX && velX < 0
+      outRight     = posX > maxX && velX > 0
+      go | outLeft   = player { Player.position = (minX, posY), Player.velocity = (-velX, velY) }
+         | outRight  = player { Player.position = (maxX, posY), Player.velocity = (-velX, velY) }
+         | otherwise = player
+  in  go
+
 
 collideWith :: Player.Player -> [Layer.Layer] -> Player.Player
 player `collideWith` layers = if falling player

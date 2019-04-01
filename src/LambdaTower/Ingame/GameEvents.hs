@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module LambdaTower.Types.GameEvents where
+module LambdaTower.Ingame.GameEvents where
 
 import           Codec.Serialise
 

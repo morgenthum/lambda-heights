@@ -3,24 +3,24 @@ module LambdaTower.Menu.Update
   )
 where
 
-import           LambdaTower.Loop
 import           LambdaTower.State
 
+import qualified LambdaTower.Menu.State        as Menu
+import qualified LambdaTower.Timing.Timer      as Timer
 import qualified LambdaTower.Types.Button      as Button
 import qualified LambdaTower.Types.ButtonList  as ButtonList
 import qualified LambdaTower.Types.KeyEvents   as Events
-import qualified LambdaTower.Types.MenuState   as State
 
-update :: Updater IO State.MenuState State [Events.KeyEvent]
+update :: Timer.LoopTimer -> [Events.KeyEvent] -> Menu.State -> IO (Either State Menu.State)
 update _ events state = do
-  let buttonList = ButtonList.ensureValidIndex $ Events.applyEvents (State.buttonList state) events
-  return $ if ButtonList.action buttonList
-    then Left $ stateByButton $ ButtonList.selectedButton buttonList
-    else Right $ state { State.buttonList = buttonList }
+  let list = ButtonList.ensureValidIndex $ ButtonList.applyEvents (Menu.buttonList state) events
+  return $ if ButtonList.action list
+    then Left $ stateByButton $ ButtonList.selectedButton list
+    else Right $ state { Menu.buttonList = list }
 
 stateByButton :: Button.Button -> State
-stateByButton button = case Button.id button of
-  0 -> Ingame
-  1 -> Replay
-  2 -> Exit
-  _ -> Menu
+stateByButton button = case Button.text button of
+  "play"   -> Ingame
+  "replay" -> Replay
+  "exit"   -> Exit
+  _        -> Menu

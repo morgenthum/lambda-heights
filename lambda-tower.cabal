@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7a7ce306a9b6d4b474fedf09791c0b0b27668ea952520589a35887ccffaf6250
+-- hash: 028792706df9d0f3968ab1327ebcf8fc1726f588edfb3575cc55e9d478008f89
 
 name:           lambda-tower
 version:        0.1.0.0
@@ -30,39 +30,39 @@ library
       LambdaTower.Game
       LambdaTower.Graphics
       LambdaTower.Ingame.Collision
+      LambdaTower.Ingame.GameEvents
+      LambdaTower.Ingame.GameState
       LambdaTower.Ingame.Input
+      LambdaTower.Ingame.Layer
+      LambdaTower.Ingame.Pattern
+      LambdaTower.Ingame.Player
       LambdaTower.Ingame.Render
       LambdaTower.Ingame.Update
-      LambdaTower.Loop
       LambdaTower.Menu.Input
       LambdaTower.Menu.Render
+      LambdaTower.Menu.State
       LambdaTower.Menu.Update
       LambdaTower.Pause.Render
+      LambdaTower.Pause.State
       LambdaTower.Pause.Update
       LambdaTower.Render
       LambdaTower.Replay.Input
       LambdaTower.Replay.Render
+      LambdaTower.Replay.State
       LambdaTower.Replay.Update
       LambdaTower.Score.Render
+      LambdaTower.Score.State
       LambdaTower.Score.Update
       LambdaTower.Screen
       LambdaTower.Serialization
       LambdaTower.State
+      LambdaTower.Timing.Loop
+      LambdaTower.Timing.Timer
       LambdaTower.Types
       LambdaTower.Types.Button
       LambdaTower.Types.ButtonList
-      LambdaTower.Types.GameEvents
-      LambdaTower.Types.GameState
       LambdaTower.Types.KeyEvents
-      LambdaTower.Types.Layer
-      LambdaTower.Types.MenuState
-      LambdaTower.Types.Pattern
-      LambdaTower.Types.PauseState
-      LambdaTower.Types.Player
-      LambdaTower.Types.ReplayState
-      LambdaTower.Types.ScoreState
       LambdaTower.Types.Shape
-      LambdaTower.Types.Timer
   other-modules:
       Paths_lambda_tower
   hs-source-dirs:

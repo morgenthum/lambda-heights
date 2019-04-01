@@ -1,4 +1,4 @@
-module LambdaTower.Types.Pattern where
+module LambdaTower.Ingame.Pattern where
 
 import           LambdaTower.Types
 

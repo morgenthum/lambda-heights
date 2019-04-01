@@ -1,10 +1,10 @@
 module LambdaTower.Replay.Render where
 
 import           LambdaTower.Graphics
-import           LambdaTower.Loop
 
 import qualified LambdaTower.Ingame.Render     as Ingame
-import qualified LambdaTower.Types.ReplayState as State
+import qualified LambdaTower.Replay.State      as Replay
+import qualified LambdaTower.Timing.Timer      as Timer
 
-render :: Graphics -> Ingame.RenderConfig -> Renderer IO State.ReplayState
-render graphics config timer = Ingame.renderDefault graphics config timer . State.state
+render :: Graphics -> Ingame.RenderConfig -> Timer.LoopTimer -> Replay.State -> IO ()
+render graphics config timer = Ingame.renderDefault graphics config timer . Replay.state

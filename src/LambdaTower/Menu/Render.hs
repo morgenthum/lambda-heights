@@ -3,7 +3,6 @@ module LambdaTower.Menu.Render where
 import           Data.Word
 
 import           LambdaTower.Graphics
-import           LambdaTower.Loop
 import           LambdaTower.Types
 
 import qualified SDL
@@ -11,9 +10,10 @@ import qualified SDL.Font                      as SDLF
 
 import qualified LambdaTower.Render            as Render
 import qualified LambdaTower.Screen            as Screen
+import qualified LambdaTower.Menu.State        as Menu
+import qualified LambdaTower.Timing.Timer      as Timer
 import qualified LambdaTower.Types.Button      as Button
 import qualified LambdaTower.Types.ButtonList  as ButtonList
-import qualified LambdaTower.Types.MenuState   as State
 
 data RenderConfig = RenderConfig {
   font :: SDLF.Font,
@@ -35,17 +35,15 @@ defaultConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-render :: Graphics -> RenderConfig -> Renderer IO State.MenuState
+render :: Graphics -> RenderConfig -> Timer.LoopTimer -> Menu.State -> IO ()
 render (window, renderer) config _ state = do
   SDL.rendererDrawColor renderer SDL.$= backgroundColor config
   SDL.clear renderer
-
-  windowSize <- SDL.get $ SDL.windowSize window
-  let buttonList = State.buttonList state
+  let buttonList = Menu.buttonList state
   let view       = ButtonList.screen buttonList
   let selectedId = ButtonList.selected buttonList
+  windowSize <- SDL.get $ SDL.windowSize window
   mapM_ (renderButton renderer config windowSize view selectedId) $ ButtonList.buttons buttonList
-
   SDL.present renderer
 
 renderButton :: SDL.Renderer -> RenderConfig -> WindowSize -> Screen.Screen -> Int -> Button.Button -> IO ()

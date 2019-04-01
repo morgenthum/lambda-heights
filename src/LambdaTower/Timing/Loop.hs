@@ -1,11 +1,11 @@
-module LambdaTower.Loop where
+module LambdaTower.Timing.Loop where
 
 import qualified SDL
 
 import qualified Control.Monad.Fail            as M
 import qualified Control.Monad.State           as M
 
-import qualified LambdaTower.Types.Timer       as Timer
+import qualified LambdaTower.Timing.Timer      as Timer
 
 type LoopState m s r = M.StateT (Timer.TimedState s r) m ()
 
@@ -39,10 +39,8 @@ incrementFrame = M.modify f
   f s = s
     { Timer.timer =
       (Timer.timer s)
-        { Timer.counter = (Timer.counter $ Timer.timer s)
-                            { Timer.frameCount = (Timer.frameCount $ Timer.counter $ Timer.timer s)
-                                                   + 1
-                            }
+        { Timer.counter =
+          (Timer.counter $ Timer.timer s) { Timer.frameCount = (Timer.frameCount $ Timer.counter $ Timer.timer s) + 1 }
         }
     }
 
@@ -55,9 +53,7 @@ updateTimer = do
   let elapsed = current - Timer.current timer
   let lag     = Timer.lag timer + elapsed
 
-  M.put $ timedState
-    { Timer.timer = timer { Timer.current = current, Timer.elapsed = elapsed, Timer.lag = lag }
-    }
+  M.put $ timedState { Timer.timer = timer { Timer.current = current, Timer.elapsed = elapsed, Timer.lag = lag } }
 
 updateFrameCounter :: (M.MonadIO m) => LoopState m s r
 updateFrameCounter = do
@@ -71,12 +67,9 @@ updateFrameCounter = do
   let fps = round (realToFrac frameCount / realToFrac elapsedSeconds :: Float)
 
   M.when (elapsedSeconds >= 0.25 && frameCount > 10) $ M.put $ timedState
-    { Timer.timer = timer
-                      { Timer.counter = counter { Timer.countStart = Timer.current timer
-                                                , Timer.frameCount = 0
-                                                , Timer.fps        = fps
-                                                }
-                      }
+    { Timer.timer =
+      timer { Timer.counter = counter { Timer.countStart = Timer.current timer, Timer.frameCount = 0, Timer.fps = fps }
+            }
     }
 
 inputAndUpdate :: (M.MonadIO m) => InputHandler m e -> Updater m s r e -> LoopState m s r
@@ -91,7 +84,5 @@ inputAndUpdate handleInput update = do
         newGameState <- M.lift $ update timer events gameState
         let lag  = Timer.lag timer
         let rate = Timer.rate timer
-        M.put $ timedState { Timer.timer = timer { Timer.lag = lag - rate }
-                           , Timer.state = newGameState
-                           }
+        M.put $ timedState { Timer.timer = timer { Timer.lag = lag - rate }, Timer.state = newGameState }
         inputAndUpdate handleInput update

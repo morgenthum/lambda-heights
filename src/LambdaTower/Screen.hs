@@ -15,16 +15,16 @@ newScreen :: Screen
 newScreen = Screen {top = 1000, left = 0, bottom = 0, right = 1000}
 
 toWindowSize :: Screen -> WindowSize -> Size -> WindowSize
-toWindowSize screen (SDL.V2 w h) (x, y) = SDL.V2 x' y'
- where
-  x' = translate screen w x
-  y' = translate screen h y
+toWindowSize screen (SDL.V2 w h) (x, y) =
+  let x' = translate screen w x
+      y' = translate screen h y
+  in  SDL.V2 x' y'
 
 toWindowPosition :: Screen -> WindowSize -> Position -> WindowPosition
-toWindowPosition screen (SDL.V2 w h) (x, y) = SDL.V2 x' y'
- where
-  x' = translate screen w x
-  y' = translateFlipped screen h y
+toWindowPosition screen (SDL.V2 w h) (x, y) =
+  let x' = translate screen w x
+      y' = translateFlipped screen h y
+  in  SDL.V2 x' y'
 
 translate :: (Integral a) => Screen -> a -> Float -> a
 translate screen w = round . (* fromIntegral w) . normalize (left screen, right screen)
