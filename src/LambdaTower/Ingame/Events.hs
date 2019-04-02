@@ -1,12 +1,12 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module LambdaTower.Ingame.GameEvents where
+module LambdaTower.Ingame.Events where
 
 import           Codec.Serialise
 
 import           GHC.Generics
 
-data GameEvents = GameEvents {
+data Events = Events {
   controlEvents :: [ControlEvent],
   playerEvents :: [PlayerEvent]
 }

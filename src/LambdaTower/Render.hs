@@ -12,12 +12,19 @@ import qualified LambdaTower.Types.Button      as Button
 import qualified SDL
 import qualified SDL.Font                      as SDLF
 
-renderButton :: SDL.Renderer -> WindowSize -> Screen.Screen -> SDLF.Font -> SDLF.Color -> Button.Button -> IO ()
+renderButton
+  :: SDL.Renderer
+  -> WindowSize
+  -> Screen.Screen
+  -> SDLF.Font
+  -> SDLF.Color
+  -> Button.Button
+  -> IO ()
 renderButton renderer windowSize screen font color button = do
-  let SDL.V2 x y = Screen.toWindowPosition screen windowSize (Button.position button)
   (w, h) <- SDLF.size font $ T.pack $ Button.text button
-  let deltaX = round (realToFrac w / 2 :: Float)
-  let deltaY = round (realToFrac h / 2 :: Float)
+  let SDL.V2 x y = Screen.toWindowPosition screen windowSize (Button.position button)
+  let deltaX     = round (realToFrac w / 2 :: Float)
+  let deltaY     = round (realToFrac h / 2 :: Float)
   renderText renderer font (SDL.V2 (x - deltaX) (y - deltaY)) color $ Button.text button
 
 renderText :: SDL.Renderer -> SDLF.Font -> SDL.V2 CInt -> SDLF.Color -> String -> IO ()

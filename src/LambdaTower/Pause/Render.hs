@@ -10,11 +10,12 @@ import qualified SDL.Font                      as SDLF
 
 import qualified LambdaTower.Render            as Render
 import qualified LambdaTower.Screen            as Screen
-import qualified LambdaTower.Ingame.Render     as Ingame
 import qualified LambdaTower.Pause.State       as Pause
 import qualified LambdaTower.Timing.Timer      as Timer
 import qualified LambdaTower.Types.Button      as Button
 import qualified LambdaTower.Types.ButtonList  as ButtonList
+
+type ProxyRenderer a = Timer.LoopTimer -> a -> IO ()
 
 data RenderConfig = RenderConfig {
   font :: SDLF.Font,
@@ -36,18 +37,12 @@ defaultConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-render :: Graphics -> RenderConfig -> Ingame.RenderConfig -> Timer.LoopTimer -> Pause.State -> IO ()
-render (window, renderer) pauseConfig ingameConfig timer state = do
-  renderIngame (window, renderer) ingameConfig timer state
+render :: Graphics -> RenderConfig -> ProxyRenderer a -> Timer.LoopTimer -> Pause.State a -> IO ()
+render (window, renderer) pauseConfig proxyRenderer timer state = do
+  proxyRenderer timer $ Pause.state state
   renderOverlay (window, renderer) pauseConfig
   renderButtons (window, renderer) pauseConfig $ Pause.buttonList state
   SDL.present renderer
-
-renderIngame :: Graphics -> Ingame.RenderConfig -> Timer.LoopTimer -> Pause.State -> IO ()
-renderIngame (window, renderer) config timer state = do
-  let pre = Ingame.clear renderer $ Ingame.bgColor config
-  let post = return ()
-  Ingame.render pre post (window, renderer) config timer $ Pause.state state
 
 renderOverlay :: Graphics -> RenderConfig -> IO ()
 renderOverlay (window, renderer) config = do
@@ -62,7 +57,8 @@ renderButtons (window, renderer) config list = do
   windowSize <- SDL.get $ SDL.windowSize window
   mapM_ (renderButton renderer config windowSize view selectedId) $ ButtonList.buttons list
 
-renderButton :: SDL.Renderer -> RenderConfig -> WindowSize -> Screen.Screen -> Int -> Button.Button -> IO ()
+renderButton
+  :: SDL.Renderer -> RenderConfig -> WindowSize -> Screen.Screen -> Int -> Button.Button -> IO ()
 renderButton renderer config windowSize screen selectedId button = do
   let color = if selectedId == Button.id button then selectedTextColor config else textColor config
   Render.renderButton renderer windowSize screen (font config) color button

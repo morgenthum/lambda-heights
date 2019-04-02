@@ -10,6 +10,7 @@ newtype State = State {
 
 newMenuState :: State
 newMenuState = State
-  { buttonList = newButtonList newScreen
-                               [Button 0 "play" (500, 600), Button 1 "replay" (500, 500), Button 2 "exit" (500, 400)]
+  { buttonList = newButtonList
+    newScreen
+    [Button 0 "play" (500, 600), Button 1 "replay" (500, 500), Button 2 "exit" (500, 400)]
   }

@@ -16,8 +16,8 @@ import           LambdaTower.Timing.Loop
 
 import           System.Directory
 
-import qualified LambdaTower.Ingame.GameEvents as Ingame
-import qualified LambdaTower.Ingame.GameState  as Ingame
+import qualified LambdaTower.Ingame.Events     as Ingame
+import qualified LambdaTower.Ingame.State      as Ingame
 import qualified LambdaTower.Ingame.Input      as Ingame
 import qualified LambdaTower.Ingame.Player     as Ingame
 import qualified LambdaTower.Ingame.Render     as Ingame
@@ -43,8 +43,8 @@ import qualified LambdaTower.Score.Update      as Score
 
 import qualified LambdaTower.Timing.Timer      as Timer
 
-type IngameLoopState = LoopState IO Ingame.GameState Ingame.GameResult
-type PauseLoopState = LoopState IO Pause.State Pause.ExitReason
+type IngameLoopState = LoopState IO Ingame.State Ingame.Result
+type PauseLoopState = LoopState IO (Pause.State Ingame.State) Pause.ExitReason
 
 defaultReplayFilePath :: String
 defaultReplayFilePath = "replay.dat"
@@ -79,16 +79,26 @@ startGame replayFilePath graphics = do
   pauseConfig  <- Pause.defaultConfig
   safeDeleteFile replayFilePath
 
-  let gameLoop  = timedLoop Ingame.keyInput (Ingame.updateAndWrite channel) (Ingame.renderDefault graphics ingameConfig)
-  let pauseLoop = timedLoop Menu.keyInput Pause.update (Pause.render graphics pauseConfig ingameConfig)
-  state <- startGameLoop replayFilePath channel Ingame.newGameState gameLoop pauseLoop >>= showScore graphics
+  let ingameRenderer = Ingame.renderDefault graphics ingameConfig
+  let pauseRenderer = Pause.render graphics pauseConfig $ Ingame.renderPause graphics ingameConfig
+
+  let gameLoop       = timedLoop Ingame.keyInput (Ingame.updateAndWrite channel) ingameRenderer
+  let pauseLoop      = timedLoop Menu.keyInput Pause.update $ pauseRenderer
+
+  state <- startGameLoop replayFilePath channel Ingame.newState gameLoop pauseLoop
+    >>= showScore graphics
 
   Pause.deleteConfig pauseConfig
   Ingame.deleteConfig ingameConfig
   return state
 
 startGameLoop
-  :: FilePath -> Channel Ingame.PlayerEvent -> Ingame.GameState -> IngameLoopState -> PauseLoopState -> IO Int
+  :: FilePath
+  -> Channel Ingame.PlayerEvent
+  -> Ingame.State
+  -> IngameLoopState
+  -> PauseLoopState
+  -> IO Score.Score
 startGameLoop replayFilePath channel gameState ingameLoop pauseLoop = do
   timer  <- Timer.defaultTimer
   handle <- async $ serializeFromTChanToFile replayFilePath channel
@@ -100,15 +110,16 @@ startGameLoop replayFilePath channel gameState ingameLoop pauseLoop = do
     Ingame.Pause    -> do
       reason <- startLoop timer (Pause.newPauseState $ Ingame.state result) pauseLoop
       case reason of
-        Pause.Resume -> startGameLoop replayFilePath channel (Ingame.state result) ingameLoop pauseLoop
-        Pause.Exit   -> return score
+        Pause.Resume ->
+          startGameLoop replayFilePath channel (Ingame.state result) ingameLoop pauseLoop
+        Pause.Exit -> return score
 
 showScore :: Graphics -> Score.Score -> IO State
 showScore graphics score = do
   timer  <- Timer.defaultTimer
   config <- Score.defaultConfig
 
-  let loop = timedLoop Menu.keyInput Score.update (Score.render graphics config)
+  let loop = timedLoop Menu.keyInput Score.update $ Score.render graphics config
   _ <- startLoop timer (Score.newScoreState score) loop
 
   Score.deleteConfig config
@@ -116,15 +127,15 @@ showScore graphics score = do
 
 startReplay :: FilePath -> Graphics -> IO State
 startReplay replayFilePath graphics = do
-  maybeStates <- deserializeFromFile replayFilePath
-  case maybeStates of
+  serialized <- deserializeFromFile replayFilePath
+  case serialized of
     Nothing     -> return Menu
     Just events -> do
       timer  <- Timer.defaultTimer
       config <- Ingame.defaultConfig
 
-      let loop = timedLoop Replay.keyInput Replay.update (Replay.render graphics config)
-      _ <- startLoop timer (Replay.State Ingame.newGameState events) loop
+      let loop = timedLoop Replay.keyInput Replay.update $ Replay.render graphics config
+      _ <- startLoop timer (Replay.State Ingame.newState events) loop
 
       Ingame.deleteConfig config
       return Menu

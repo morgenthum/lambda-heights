@@ -30,7 +30,8 @@ translate :: (Integral a) => Screen -> a -> Float -> a
 translate screen w = round . (* fromIntegral w) . normalize (left screen, right screen)
 
 translateFlipped :: (Integral a) => Screen -> a -> Float -> a
-translateFlipped screen h = round . (* fromIntegral h) . flipRange . normalize (bottom screen, top screen)
+translateFlipped screen h =
+  round . (* fromIntegral h) . flipRange . normalize (bottom screen, top screen)
 
 normalize :: (Fractional a) => (a, a) -> a -> a
 normalize (minRange, maxRange) x = (x - minRange) / (maxRange - minRange)

@@ -1,9 +1,9 @@
 module LambdaTower.Replay.State where
 
-import           LambdaTower.Ingame.GameEvents
-import           LambdaTower.Ingame.GameState
+import qualified LambdaTower.Ingame.Events     as Ingame
+import qualified LambdaTower.Ingame.State      as Ingame
 
 data State = State {
-  state :: GameState,
-  events :: [[PlayerEvent]]
+  state :: Ingame.State,
+  events :: [[Ingame.PlayerEvent]]
 }

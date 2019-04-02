@@ -46,7 +46,8 @@ render (window, renderer) config _ state = do
   mapM_ (renderButton renderer config windowSize view selectedId) $ ButtonList.buttons buttonList
   SDL.present renderer
 
-renderButton :: SDL.Renderer -> RenderConfig -> WindowSize -> Screen.Screen -> Int -> Button.Button -> IO ()
+renderButton
+  :: SDL.Renderer -> RenderConfig -> WindowSize -> Screen.Screen -> Int -> Button.Button -> IO ()
 renderButton renderer config windowSize screen selectedId button = do
   let color = if selectedId == Button.id button then selectedTextColor config else textColor config
   Render.renderButton renderer windowSize screen (font config) color button

@@ -29,4 +29,10 @@ defaultTimer = newTimer 7
 newTimer :: Word32 -> IO LoopTimer
 newTimer timerRate = do
   millis <- fromIntegral <$> SDL.ticks
-  return $ LoopTimer {counter = FrameCounter millis 0 0, rate = timerRate, current = millis, elapsed = 0, lag = 0}
+  return $ LoopTimer
+    { counter = FrameCounter millis 0 0
+    , rate    = timerRate
+    , current = millis
+    , elapsed = 0
+    , lag     = 0
+    }

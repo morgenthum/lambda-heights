@@ -16,11 +16,11 @@ increasingIdsFrom _ []       = []
 increasingIdsFrom i (p : ps) = p { entryId = i } : increasingIdsFrom (i + 1) ps
 
 combine :: Int -> [Int -> [PatternEntry]] -> [PatternEntry]
-combine _     []       = []
-combine begin (f : fs) = ps ++ combine end fs
- where
-  ps  = f begin
-  end = begin + length ps
+combine _ [] = []
+combine begin (f : fs) =
+  let ps  = f begin
+      end = begin + length ps
+  in  ps ++ combine end fs
 
 leftRightPattern :: Int -> [PatternEntry]
 leftRightPattern begin = repeatPattern
@@ -51,4 +51,7 @@ boostPattern :: Int -> [PatternEntry]
 boostPattern begin = repeatPattern
   1
   begin
-  [PatternEntry 0 ((1000, 50), 0) 400, PatternEntry 0 ((600, 300), 200) 650, PatternEntry 0 ((1000, 50), 0) 1000]
+  [ PatternEntry 0 ((1000, 50), 0)   400
+  , PatternEntry 0 ((600, 300), 200) 650
+  , PatternEntry 0 ((1000, 50), 0)   1000
+  ]

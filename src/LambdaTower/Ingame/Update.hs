@@ -13,15 +13,16 @@ import           Data.List
 import qualified Control.Monad.State           as M
 
 import qualified LambdaTower.Ingame.Collision  as Collision
-import qualified LambdaTower.Ingame.GameEvents as Events
-import qualified LambdaTower.Ingame.GameState  as State
+import qualified LambdaTower.Ingame.Events     as Events
+import qualified LambdaTower.Ingame.State      as State
 import qualified LambdaTower.Ingame.Layer      as Layer
 import qualified LambdaTower.Ingame.Pattern    as Pattern
 import qualified LambdaTower.Ingame.Player     as Player
 import qualified LambdaTower.Timing.Timer      as Timer
 import qualified LambdaTower.Screen            as Screen
 
-type Updater = Timer.LoopTimer -> Events.GameEvents -> State.GameState -> IO (Either State.GameResult State.GameState)
+type Updater
+  = Timer.LoopTimer -> Events.Events -> State.State -> IO (Either State.Result State.State)
 
 -- Factor for scrolling the screen and update the players motion.
 
@@ -51,7 +52,7 @@ update timer events state = do
   let layers       = State.layers state
   let player       = State.player state
   let motion       = updateMotion playerEvents $ State.motion state
-  let state' = State.GameState
+  let state' = State.State
         { State.time   = time + fromIntegral (Timer.rate timer)
         , State.screen = updateScreen player screen
         , State.motion = resetMotion motion
@@ -60,12 +61,12 @@ update timer events state = do
         }
   return $ updatedResult events $ state'
 
-updatedResult :: Events.GameEvents -> State.GameState -> Either State.GameResult State.GameState
+updatedResult :: Events.Events -> State.State -> Either State.Result State.State
 updatedResult events state =
   let paused = elem Events.Paused $ Events.controlEvents events
   in  if dead (State.screen state) (State.player state)
-        then Left $ State.GameResult State.Finished state
-        else if paused then Left $ State.GameResult State.Pause state else Right state
+        then Left $ State.Result State.Finished state
+        else if paused then Left $ State.Result State.Pause state else Right state
 
 
 -- Updating the view involves two steps:
@@ -101,9 +102,11 @@ applyPlayerEvents :: State.Motion -> [Events.PlayerEvent] -> State.Motion
 applyPlayerEvents = foldl applyPlayerEvent
 
 applyPlayerEvent :: State.Motion -> Events.PlayerEvent -> State.Motion
-applyPlayerEvent moveState (Events.PlayerMoved Events.MoveLeft  b) = moveState { State.moveLeft = b }
-applyPlayerEvent moveState (Events.PlayerMoved Events.MoveRight b) = moveState { State.moveRight = b }
-applyPlayerEvent moveState Events.PlayerJumped                     = moveState { State.jump = True }
+applyPlayerEvent moveState (Events.PlayerMoved Events.MoveLeft b) =
+  moveState { State.moveLeft = b }
+applyPlayerEvent moveState (Events.PlayerMoved Events.MoveRight b) =
+  moveState { State.moveRight = b }
+applyPlayerEvent moveState Events.PlayerJumped = moveState { State.jump = True }
 
 resetMotion :: State.Motion -> State.Motion
 resetMotion motion = motion { State.jump = False }
@@ -125,7 +128,7 @@ updatePlayer screen motion layers =
 updateScore :: [Layer.Layer] -> Player.Player -> Player.Player
 updateScore layers player = case find (player `onTop`) layers of
   Nothing    -> player
-  Just layer -> player { Player.score = max (Layer.id layer) (Player.score player) }
+  Just layer -> player { Player.score = max (Layer.layerId layer) (Player.score player) }
 
 updateStanding :: [Layer.Layer] -> Player.Player -> Player.Player
 updateStanding layers player =
@@ -221,7 +224,8 @@ player `collideWith` layers = if falling player
   else player
 
 onto :: Player.Player -> Layer.Layer -> Player.Player
-player `onto` layer = let (posX, _) = Player.position player in player { Player.position = (posX, Layer.posY layer) }
+player `onto` layer =
+  let (posX, _) = Player.position player in player { Player.position = (posX, Layer.posY layer) }
 
 settle :: Player.Player -> Player.Player
 settle player = let (velX, _) = Player.velocity player in player { Player.velocity = (velX, 0) }
@@ -250,7 +254,8 @@ player `onTop` layer =
 -- Drop passed and generate new layers.
 
 newPattern :: [Pattern.PatternEntry]
-newPattern = Pattern.combine 1 [Pattern.leftRightPattern, Pattern.boostPattern, Pattern.stairsPattern]
+newPattern =
+  Pattern.combine 1 [Pattern.leftRightPattern, Pattern.boostPattern, Pattern.stairsPattern]
 
 updateLayers :: Screen.Screen -> [Layer.Layer] -> [Layer.Layer]
 updateLayers screen = fillLayers screen . dropPassedLayers screen
@@ -275,11 +280,15 @@ nextLayerByPattern (p : ps) layer =
 deriveFrom :: Layer.Layer -> Pattern.PatternEntry -> Layer.Layer
 layer `deriveFrom` entry =
   let Pattern.PatternEntry entryId ((w, h), x) d = entry
-      layerId = Layer.id layer + 1
+      layerId = Layer.layerId layer + 1
       (_, y)  = Layer.position layer
   in  Layer.Layer layerId entryId (w, h) (x, y + d)
 
-generateLayer :: (Layer.Layer -> Layer.Layer) -> Screen.Screen -> Layer.Layer -> Maybe (Layer.Layer, Layer.Layer)
+generateLayer
+  :: (Layer.Layer -> Layer.Layer)
+  -> Screen.Screen
+  -> Layer.Layer
+  -> Maybe (Layer.Layer, Layer.Layer)
 generateLayer generator screen layer =
   if Screen.top screen < Layer.posY layer - 500 then Nothing else Just (layer, generator layer)
 

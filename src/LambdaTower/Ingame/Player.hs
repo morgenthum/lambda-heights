@@ -17,4 +17,10 @@ data Player = Player {
 }
 
 newPlayer :: Player
-newPlayer = Player {score = 0, position = (500, 50), velocity = (0, 0), acceleration = (0, 0), motionType = Ground}
+newPlayer = Player
+  { score        = 0
+  , position     = (500, 50)
+  , velocity     = (0, 0)
+  , acceleration = (0, 0)
+  , motionType   = Ground
+  }

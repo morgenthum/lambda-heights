@@ -3,6 +3,7 @@ module LambdaTower.Ingame.Render
   , defaultConfig
   , deleteConfig
   , renderDefault
+  , renderPause
   , render
   , clear
   , present
@@ -24,7 +25,7 @@ import qualified SDL.Primitive                 as SDLP
 
 import qualified LambdaTower.Render            as Render
 import qualified LambdaTower.Screen            as Screen
-import qualified LambdaTower.Ingame.GameState  as State
+import qualified LambdaTower.Ingame.State      as State
 import qualified LambdaTower.Ingame.Layer      as Layer
 import qualified LambdaTower.Ingame.Player     as Player
 import qualified LambdaTower.Timing.Timer      as Timer
@@ -68,11 +69,15 @@ clear renderer color = do
 present :: SDL.Renderer -> IO ()
 present = SDL.present
 
-renderDefault :: Graphics -> RenderConfig -> Timer.LoopTimer -> State.GameState -> IO ()
+renderDefault :: Graphics -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
 renderDefault (window, renderer) config =
   render (clear renderer $ bgColor config) (present renderer) (window, renderer) config
 
-render :: IO () -> IO () -> Graphics -> RenderConfig -> Timer.LoopTimer -> State.GameState -> IO ()
+renderPause :: Graphics -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
+renderPause (window, renderer) config =
+  render (clear renderer $ bgColor config) (return ()) (window, renderer) config
+
+render :: IO () -> IO () -> Graphics -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
 render pre post (window, renderer) config timer state = do
   pre
   windowSize <- SDL.get $ SDL.windowSize window
@@ -82,14 +87,14 @@ render pre post (window, renderer) config timer state = do
   renderHud renderer config timer state
   post
 
-renderHud :: SDL.Renderer -> RenderConfig -> Timer.LoopTimer -> State.GameState -> IO ()
+renderHud :: SDL.Renderer -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
 renderHud renderer config timer state = do
   renderHudVelocity renderer config state
   renderHudTime renderer config state
   renderHudScore renderer config state
   renderHudFPS renderer config timer
 
-renderHudVelocity :: SDL.Renderer -> RenderConfig -> State.GameState -> IO ()
+renderHudVelocity :: SDL.Renderer -> RenderConfig -> State.State -> IO ()
 renderHudVelocity renderer config state = do
   let textFont = font config
   let (x, y)   = Player.velocity . State.player $ state
@@ -97,7 +102,7 @@ renderHudVelocity renderer config state = do
   Render.renderText renderer textFont (SDL.V2 100 20) (textColor config) $ show (round x :: Int)
   Render.renderText renderer textFont (SDL.V2 150 20) (textColor config) $ show (round y :: Int)
 
-renderHudTime :: SDL.Renderer -> RenderConfig -> State.GameState -> IO ()
+renderHudTime :: SDL.Renderer -> RenderConfig -> State.State -> IO ()
 renderHudTime renderer config state = do
   let textFont = font config
   let duration = State.time state
@@ -107,7 +112,7 @@ renderHudTime renderer config state = do
   Render.renderText renderer textFont (SDL.V2 100 40) (textColor config) (show seconds)
   Render.renderText renderer textFont (SDL.V2 150 40) (textColor config) (show millis)
 
-renderHudScore :: SDL.Renderer -> RenderConfig -> State.GameState -> IO ()
+renderHudScore :: SDL.Renderer -> RenderConfig -> State.State -> IO ()
 renderHudScore renderer config state = do
   let textFont = font config
   let score    = Player.score . State.player $ state
@@ -121,17 +126,21 @@ renderHudFPS renderer config timer = do
   Render.renderText renderer textFont (SDL.V2 250 20) (headlineColor config) "fps"
   Render.renderText renderer textFont (SDL.V2 320 20) (textColor config) (show fps)
 
-renderPlayer :: SDL.Renderer -> RenderConfig -> SDL.V2 CInt -> Screen.Screen -> Player.Player -> IO ()
+renderPlayer
+  :: SDL.Renderer -> RenderConfig -> SDL.V2 CInt -> Screen.Screen -> Player.Player -> IO ()
 renderPlayer renderer config windowSize screen player = do
-  let shape = centerBottom (Player.position player) $ flipByVel (Player.velocity player) playerShape
+  let shape =
+        centerBottom (Player.position player) $ flipByVel (Player.velocity player) playerShape
   renderShape renderer windowSize screen (playerColor config) shape
 
-renderPlayerShadow :: SDL.Renderer -> RenderConfig -> SDL.V2 CInt -> Screen.Screen -> Player.Player -> IO ()
+renderPlayerShadow
+  :: SDL.Renderer -> RenderConfig -> SDL.V2 CInt -> Screen.Screen -> Player.Player -> IO ()
 renderPlayerShadow renderer config windowSize screen player = do
-  let (posX, posY)   = Player.position player
-  let (velX, _)      = Player.velocity player
-  let offX           = if velX >= 0 then -20 else 20
-  let shape = centerBottom (posX + offX, posY) $ flipByVel (Player.velocity player) playerShadowShape
+  let (posX, posY) = Player.position player
+  let (velX, _)    = Player.velocity player
+  let offX         = if velX >= 0 then -20 else 20
+  let shape =
+        centerBottom (posX + offX, posY) $ flipByVel (Player.velocity player) playerShadowShape
   let SDL.V4 r g b _ = playerShadowColor config
   let a = round $ if abs velX > 10000 then 255 else abs velX / 10000 * 255
   renderShape renderer windowSize screen (SDL.V4 r g b a) shape
