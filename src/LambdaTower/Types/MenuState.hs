@@ -1,8 +1,7 @@
 module LambdaTower.Types.MenuState where
 
 import           LambdaTower.Screen
-import           LambdaTower.UI.Button
-import           LambdaTower.UI.ButtonList
+import           LambdaTower.UserInterface
 
 newtype MenuState = MenuState {
   buttonList :: ButtonList

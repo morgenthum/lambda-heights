@@ -14,13 +14,13 @@ import           LambdaTower.Types.IngameState
 
 import qualified Control.Monad.State           as M
 
+import qualified LambdaTower.Screen            as Screen
+import qualified LambdaTower.Timer      as Timer
 import qualified LambdaTower.Ingame.Collision  as Collision
 import qualified LambdaTower.Ingame.Events     as Events
 import qualified LambdaTower.Ingame.Layer      as Layer
 import qualified LambdaTower.Ingame.Pattern    as Pattern
 import qualified LambdaTower.Ingame.Player     as Player
-import qualified LambdaTower.Timing.Timer      as Timer
-import qualified LambdaTower.Screen            as Screen
 
 type Updater
   = Timer.LoopTimer -> Events.Events -> IngameState -> IO (Either Result IngameState)

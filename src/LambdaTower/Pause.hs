@@ -11,10 +11,9 @@ import qualified SDL.Font                      as SDLF
 
 import qualified LambdaTower.Render            as Render
 import qualified LambdaTower.Screen            as Screen
-import qualified LambdaTower.Timing.Timer      as Timer
+import qualified LambdaTower.Timer      as Timer
 import qualified LambdaTower.Types.KeyEvents   as Events
-import qualified LambdaTower.UI.Button         as Button
-import qualified LambdaTower.UI.ButtonList     as ButtonList
+import qualified LambdaTower.UserInterface     as UI
 
 
 -- Update
@@ -22,14 +21,12 @@ import qualified LambdaTower.UI.ButtonList     as ButtonList
 update
   :: Timer.LoopTimer -> [Events.KeyEvent] -> PauseState a -> IO (Either ExitReason (PauseState a))
 update _ events state = do
-  let list = ButtonList.ensureValidIndex $ ButtonList.applyEvents (buttonList state) events
+  let list = UI.ensureValidIndex $ UI.applyEvents (buttonList state) events
   let newState = state { buttonList = list }
-  return $ if ButtonList.action list
-    then Left $ stateByButton $ ButtonList.selectedButton list
-    else Right newState
+  return $ if UI.action list then Left $ stateByButton $ UI.selectedButton list else Right newState
 
-stateByButton :: Button.Button -> ExitReason
-stateByButton button = case Button.text button of
+stateByButton :: UI.Button -> ExitReason
+stateByButton button = case UI.text button of
   "exit" -> Exit
   _      -> Resume
 
@@ -71,15 +68,15 @@ renderOverlay (window, renderer) config = do
   SDL.rendererDrawColor renderer SDL.$= overlayColor config
   SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P $ SDL.V2 0 0) windowSize
 
-renderButtons :: Graphics -> RenderConfig -> ButtonList.ButtonList -> IO ()
+renderButtons :: Graphics -> RenderConfig -> UI.ButtonList -> IO ()
 renderButtons (window, renderer) config list = do
-  let view       = ButtonList.screen list
-  let selectedId = ButtonList.selected list
+  let view       = UI.screen list
+  let selectedId = UI.selected list
   windowSize <- SDL.get $ SDL.windowSize window
-  mapM_ (renderButton renderer config windowSize view selectedId) $ ButtonList.buttons list
+  mapM_ (renderButton renderer config windowSize view selectedId) $ UI.buttons list
 
 renderButton
-  :: SDL.Renderer -> RenderConfig -> WindowSize -> Screen.Screen -> Int -> Button.Button -> IO ()
+  :: SDL.Renderer -> RenderConfig -> WindowSize -> Screen.Screen -> Int -> UI.Button -> IO ()
 renderButton renderer config windowSize screen selectedId button = do
-  let color = if selectedId == Button.id button then selectedTextColor config else textColor config
+  let color = if selectedId == UI.id button then selectedTextColor config else textColor config
   Render.renderButton renderer windowSize screen (font config) color button

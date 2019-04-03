@@ -9,9 +9,9 @@ import           Control.Concurrent.STM.TChan
 import           Control.Monad
 
 import           LambdaTower.Graphics
+import           LambdaTower.Loop
 import           LambdaTower.Serialization
 import           LambdaTower.State
-import           LambdaTower.Timing.Loop
 import           System.Directory
 
 import qualified LambdaTower.Ingame.Events     as Ingame
@@ -32,7 +32,7 @@ import qualified LambdaTower.Pause             as Pause
 import qualified LambdaTower.Replay            as Replay
 import qualified LambdaTower.Score             as Score
 
-import qualified LambdaTower.Timing.Timer      as Timer
+import qualified LambdaTower.Timer      as Timer
 
 type IngameLoopState = LoopState IO Ingame.IngameState Ingame.Result
 type PauseLoopState = LoopState IO (Pause.PauseState Ingame.IngameState) Pause.ExitReason

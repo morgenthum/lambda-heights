@@ -1,8 +1,14 @@
-module LambdaTower.UI.ButtonList where
+module LambdaTower.UserInterface where
 
 import           LambdaTower.Screen
+import           LambdaTower.Types
 import           LambdaTower.Types.KeyEvents
-import           LambdaTower.UI.Button
+
+data Button = Button {
+  id :: Int,
+  text :: String,
+  position :: Position
+}
 
 data ButtonList = ButtonList {
   screen :: Screen,

@@ -1,4 +1,4 @@
-module LambdaTower.Timing.Timer where
+module LambdaTower.Timer where
 
 import           Data.Word
 

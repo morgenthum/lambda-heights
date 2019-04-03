@@ -26,9 +26,9 @@ import qualified SDL.Primitive                 as SDLP
 
 import qualified LambdaTower.Render            as Render
 import qualified LambdaTower.Screen            as Screen
+import qualified LambdaTower.Timer      as Timer
 import qualified LambdaTower.Ingame.Layer      as Layer
 import qualified LambdaTower.Ingame.Player     as Player
-import qualified LambdaTower.Timing.Timer      as Timer
 import qualified LambdaTower.Types.Shape       as Shape
 
 data RenderConfig = RenderConfig {

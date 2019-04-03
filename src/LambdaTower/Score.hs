@@ -11,20 +11,19 @@ import           LambdaTower.Types.ScoreState
 
 import qualified LambdaTower.Render            as Render
 import qualified LambdaTower.Screen            as Screen
-import qualified LambdaTower.Timing.Timer      as Timer
+import qualified LambdaTower.Timer      as Timer
 import qualified LambdaTower.Types.KeyEvents   as Events
-import qualified LambdaTower.UI.Button         as Button
-import qualified LambdaTower.UI.ButtonList     as ButtonList
+import qualified LambdaTower.UserInterface     as UI
 
 
 -- Update
 
 update :: Timer.LoopTimer -> [Events.KeyEvent] -> ScoreState -> IO (Either () ScoreState)
 update _ events state = do
-  let list = ButtonList.ensureValidIndex $ ButtonList.applyEvents (buttonList state) events
-  return $ if ButtonList.action list then Left () else Right state
+  let list = UI.ensureValidIndex $ UI.applyEvents (buttonList state) events
+  return $ if UI.action list then Left () else Right state
 
-wrap :: ScoreState -> ButtonList.ButtonList -> ScoreState
+wrap :: ScoreState -> UI.ButtonList -> ScoreState
 wrap state list = state { buttonList = list }
 
 
@@ -56,19 +55,19 @@ render (window, renderer) config _ state = do
   SDL.clear renderer
 
   let list       = buttonList state
-  let view       = ButtonList.screen list
-  let selectedId = ButtonList.selected list
+  let view       = UI.screen list
+  let selectedId = UI.selected list
   let text       = "score: " ++ show (score state)
 
   windowSize <- SDL.get $ SDL.windowSize window
-  renderButton renderer config windowSize view (-1) $ Button.Button 0 text (500, 550)
-  mapM_ (renderButton renderer config windowSize view selectedId) $ ButtonList.buttons list
+  renderButton renderer config windowSize view (-1) $ UI.Button 0 text (500, 550)
+  mapM_ (renderButton renderer config windowSize view selectedId) $ UI.buttons list
 
   SDL.present renderer
 
 renderButton
-  :: SDL.Renderer -> RenderConfig -> WindowSize -> Screen.Screen -> Int -> Button.Button -> IO ()
+  :: SDL.Renderer -> RenderConfig -> WindowSize -> Screen.Screen -> Int -> UI.Button -> IO ()
 renderButton renderer config windowSize screen selectedId button = do
-  let color = if selectedId == Button.id button then selectedTextColor config else textColor config
+  let color = if selectedId == UI.id button then selectedTextColor config else textColor config
   Render.renderButton renderer windowSize screen (font config) color button
 

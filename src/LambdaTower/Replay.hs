@@ -8,7 +8,7 @@ import qualified LambdaTower.Ingame.Events     as Ingame
 import qualified LambdaTower.Ingame.Input      as Ingame
 import qualified LambdaTower.Ingame.Render     as Ingame
 import qualified LambdaTower.Ingame.Update     as Ingame
-import qualified LambdaTower.Timing.Timer      as Timer
+import qualified LambdaTower.Timer      as Timer
 
 
 -- Input

@@ -1,8 +1,7 @@
 module LambdaTower.Types.ScoreState where
 
 import           LambdaTower.Screen
-import           LambdaTower.UI.Button
-import           LambdaTower.UI.ButtonList
+import           LambdaTower.UserInterface
 
 type Score = Int
 
