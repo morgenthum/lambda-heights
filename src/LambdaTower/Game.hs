@@ -14,9 +14,8 @@ import           LambdaTower.Serialization
 import           LambdaTower.State
 import           System.Directory
 
-import qualified LambdaTower.Ingame.Events     as Ingame
+import qualified LambdaTower.Types.Events      as Ingame
 import qualified LambdaTower.Ingame.Input      as Ingame
-import qualified LambdaTower.Ingame.Player     as Ingame
 import qualified LambdaTower.Ingame.Render     as Ingame
 import qualified LambdaTower.Ingame.Update     as Ingame
 
@@ -24,6 +23,7 @@ import           LambdaTower.Types
 import qualified LambdaTower.Types.IngameState as Ingame
 import qualified LambdaTower.Types.MenuState   as Menu
 import qualified LambdaTower.Types.PauseState  as Pause
+import qualified LambdaTower.Types.Player      as Ingame
 import qualified LambdaTower.Types.ReplayState as Replay
 import qualified LambdaTower.Types.ScoreState  as Score
 
@@ -32,10 +32,10 @@ import qualified LambdaTower.Pause             as Pause
 import qualified LambdaTower.Replay            as Replay
 import qualified LambdaTower.Score             as Score
 
-import qualified LambdaTower.Timer      as Timer
+import qualified LambdaTower.Timer             as Timer
 
-type IngameLoopState = LoopState IO Ingame.IngameState Ingame.Result
-type PauseLoopState = LoopState IO (Pause.PauseState Ingame.IngameState) Pause.ExitReason
+type IngameLoopState = LoopState IO Ingame.State Ingame.Result
+type PauseLoopState = LoopState IO (Pause.PauseState Ingame.State) Pause.ExitReason
 
 defaultReplayFilePath :: String
 defaultReplayFilePath = "replay.dat"
@@ -58,7 +58,7 @@ startMenu graphics = do
   config <- Menu.defaultConfig
 
   let loop = timedLoop Menu.keyInput Menu.update (Menu.render graphics config)
-  state <- startLoop timer Menu.newMenuState loop
+  state <- startLoop timer Menu.newState loop
 
   Menu.deleteConfig config
   return state
@@ -76,7 +76,7 @@ startGame replayFilePath graphics = do
   let gameLoop       = timedLoop Ingame.keyInput (Ingame.updateAndWrite channel) ingameRenderer
   let pauseLoop      = timedLoop Menu.keyInput Pause.update $ pauseRenderer
 
-  state <- startGameLoop replayFilePath channel Ingame.newIngameState gameLoop pauseLoop
+  state <- startGameLoop replayFilePath channel Ingame.newState gameLoop pauseLoop
     >>= showScore graphics
 
   Pause.deleteConfig pauseConfig
@@ -86,7 +86,7 @@ startGame replayFilePath graphics = do
 startGameLoop
   :: FilePath
   -> Channel Ingame.PlayerEvent
-  -> Ingame.IngameState
+  -> Ingame.State
   -> IngameLoopState
   -> PauseLoopState
   -> IO Score.Score
@@ -126,7 +126,7 @@ startReplay replayFilePath graphics = do
       config <- Ingame.defaultConfig
 
       let loop = timedLoop Replay.keyInput Replay.update $ Replay.render graphics config
-      _ <- startLoop timer (Replay.ReplayState Ingame.newIngameState events) loop
+      _ <- startLoop timer (Replay.ReplayState Ingame.newState events) loop
 
       Ingame.deleteConfig config
       return Menu

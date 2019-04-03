@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cdd5e8cfb525195b4d983ced76063764556d4e60e23a4bb758c6138d567b4437
+-- hash: 448f75aa64e722e58d4af3844243e5748a299e840f83fd77b1fc4c06de3a4b08
 
 name:           lambda-tower
 version:        0.1.0.0
@@ -30,11 +30,8 @@ library
       LambdaTower.Game
       LambdaTower.Graphics
       LambdaTower.Ingame.Collision
-      LambdaTower.Ingame.Events
       LambdaTower.Ingame.Input
-      LambdaTower.Ingame.Layer
       LambdaTower.Ingame.Pattern
-      LambdaTower.Ingame.Player
       LambdaTower.Ingame.Render
       LambdaTower.Ingame.Update
       LambdaTower.Loop
@@ -48,10 +45,13 @@ library
       LambdaTower.State
       LambdaTower.Timer
       LambdaTower.Types
+      LambdaTower.Types.Events
       LambdaTower.Types.IngameState
       LambdaTower.Types.KeyEvents
+      LambdaTower.Types.Layer
       LambdaTower.Types.MenuState
       LambdaTower.Types.PauseState
+      LambdaTower.Types.Player
       LambdaTower.Types.ReplayState
       LambdaTower.Types.ScoreState
       LambdaTower.Types.Shape

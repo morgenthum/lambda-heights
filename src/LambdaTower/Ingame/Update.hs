@@ -10,20 +10,19 @@ import           Control.Concurrent.STM.TChan
 import           Data.Function
 import           Data.List
 
-import           LambdaTower.Types.IngameState
 
 import qualified Control.Monad.State           as M
 
 import qualified LambdaTower.Screen            as Screen
-import qualified LambdaTower.Timer      as Timer
+import qualified LambdaTower.Timer             as Timer
 import qualified LambdaTower.Ingame.Collision  as Collision
-import qualified LambdaTower.Ingame.Events     as Events
-import qualified LambdaTower.Ingame.Layer      as Layer
 import qualified LambdaTower.Ingame.Pattern    as Pattern
-import qualified LambdaTower.Ingame.Player     as Player
+import qualified LambdaTower.Types.Events      as Events
+import qualified LambdaTower.Types.Layer       as Layer
+import qualified LambdaTower.Types.Player      as Player
+import qualified LambdaTower.Types.IngameState       as State
 
-type Updater
-  = Timer.LoopTimer -> Events.Events -> IngameState -> IO (Either Result IngameState)
+type Updater = Timer.LoopTimer -> Events.Events -> State.State -> IO (Either State.Result State.State)
 
 -- Factor for scrolling the screen and update the players motion.
 
@@ -48,26 +47,25 @@ updateAndWrite channel timer events gameState = do
 update :: Updater
 update timer events state = do
   let playerEvents = Events.playerEvents events
-  let time'        = time state
-  let screen'      = screen state
-  let layers'      = layers state
-  let player'      = player state
-  let motion'      = updateMotion playerEvents $ motion state
-  let state' = IngameState
-        { time   = time' + fromIntegral (Timer.rate timer)
-        , screen = updateScreen player' screen'
-        , motion = resetMotion motion'
-        , player = updatePlayer screen' motion' layers' player'
-        , layers = updateLayers screen' layers'
-        }
+  let time        = State.time state
+  let screen      = State.screen state
+  let layers      = State.layers state
+  let player      = State.player state
+  let motion      = updateMotion playerEvents $ State.motion state
+  let state' = State.State { State.time   = time + fromIntegral (Timer.rate timer)
+                           , State.screen = updateScreen player screen
+                           , State.motion = resetMotion motion
+                           , State.player = updatePlayer screen motion layers player
+                           , State.layers = updateLayers screen layers
+                           }
   return $ updatedResult events $ state'
 
-updatedResult :: Events.Events -> IngameState -> Either Result IngameState
+updatedResult :: Events.Events -> State.State -> Either State.Result State.State
 updatedResult events state =
   let paused = elem Events.Paused $ Events.controlEvents events
-  in  if dead (screen state) (player state)
-        then Left $ Result Finished state
-        else if paused then Left $ Result Pause state else Right state
+  in  if dead (State.screen state) (State.player state)
+        then Left $ State.Result State.Finished state
+        else if paused then Left $ State.Result State.Pause state else Right state
 
 
 -- Updating the view involves two steps:
@@ -96,19 +94,19 @@ scrollScreen delta screen =
 
 -- Apply the player events to the motion.
 
-updateMotion :: [Events.PlayerEvent] -> Motion -> Motion
+updateMotion :: [Events.PlayerEvent] -> State.Motion -> State.Motion
 updateMotion events motion = applyPlayerEvents motion events
 
-applyPlayerEvents :: Motion -> [Events.PlayerEvent] -> Motion
+applyPlayerEvents :: State.Motion -> [Events.PlayerEvent] -> State.Motion
 applyPlayerEvents = foldl applyPlayerEvent
 
-applyPlayerEvent :: Motion -> Events.PlayerEvent -> Motion
-applyPlayerEvent moveState (Events.PlayerMoved Events.MoveLeft  b) = moveState { moveLeft = b }
-applyPlayerEvent moveState (Events.PlayerMoved Events.MoveRight b) = moveState { moveRight = b }
-applyPlayerEvent moveState Events.PlayerJumped                     = moveState { jump = True }
+applyPlayerEvent :: State.Motion -> Events.PlayerEvent -> State.Motion
+applyPlayerEvent moveState (Events.PlayerMoved Events.MoveLeft  b) = moveState { State.moveLeft = b }
+applyPlayerEvent moveState (Events.PlayerMoved Events.MoveRight b) = moveState { State.moveRight = b }
+applyPlayerEvent moveState Events.PlayerJumped                     = moveState { State.jump = True }
 
-resetMotion :: Motion -> Motion
-resetMotion motion = motion { jump = False }
+resetMotion :: State.Motion -> State.Motion
+resetMotion motion = motion { State.jump = False }
 
 
 -- Updating the player involves the following steps:
@@ -116,7 +114,7 @@ resetMotion motion = motion { jump = False }
 -- b) Apply collision detection and corrections.
 -- c) Update the score (highest reached layer).
 
-updatePlayer :: Screen.Screen -> Motion -> [Layer.Layer] -> Player.Player -> Player.Player
+updatePlayer :: Screen.Screen -> State.Motion -> [Layer.Layer] -> Player.Player -> Player.Player
 updatePlayer screen motion layers =
   updateScore layers
     . (`collideWith` layers)
@@ -137,10 +135,10 @@ updateStanding layers player =
 
 -- Update the motion of the player (acceleration, velocity, position).
 
-updatePlayerMotion :: Motion -> Player.Player -> Player.Player
+updatePlayerMotion :: State.Motion -> Player.Player -> Player.Player
 updatePlayerMotion motion player = updateAcc motion player & updateVel & updatePos
 
-updateAcc :: Motion -> Player.Player -> Player.Player
+updateAcc :: State.Motion -> Player.Player -> Player.Player
 updateAcc motion player =
   let vel = Player.velocity player
       acc = case Player.motionType player of
@@ -148,31 +146,31 @@ updateAcc motion player =
         Player.Air    -> calcAirAcc motion
   in  player { Player.acceleration = acc }
 
-calcJumpAcc :: Motion -> Player.Velocity -> Player.Acceleration -> Player.Acceleration
+calcJumpAcc :: State.Motion -> Player.Velocity -> Player.Acceleration -> Player.Acceleration
 calcJumpAcc motion vel acc =
-  let jumping      = jump motion
+  let jump      = State.jump motion
       (accX, _   ) = acc
       (velX, velY) = vel
       velLength    = sqrt $ (velX ** 2) + (velY ** 2)
       fast         = velLength >= 750
-      go | jumping && fast = (accX, 320000)
-         | jumping         = (accX, 160000)
+      go | jump && fast = (accX, 320000)
+         | jump         = (accX, 160000)
          | otherwise       = acc
   in  go
 
-calcGroundAcc :: Motion -> Player.Acceleration
+calcGroundAcc :: State.Motion -> Player.Acceleration
 calcGroundAcc motion =
-  let left  = moveLeft motion
-      right = moveRight motion
+  let left  = State.moveLeft motion
+      right = State.moveRight motion
       go | left && not right = (-8000, -4000)
          | right && not left = (8000, -4000)
          | otherwise         = (0, -4000)
   in  go
 
-calcAirAcc :: Motion -> Player.Acceleration
+calcAirAcc :: State.Motion -> Player.Acceleration
 calcAirAcc motion =
-  let left  = moveLeft motion
-      right = moveRight motion
+  let left  = State.moveLeft motion
+      right = State.moveRight motion
       go | left && not right = (-4000, -4000)
          | right && not left = (4000, -4000)
          | otherwise         = (0, -4000)

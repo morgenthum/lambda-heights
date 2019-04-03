@@ -16,7 +16,6 @@ import           Foreign.C.Types
 
 import           LambdaTower.Types
 import           LambdaTower.Graphics
-import           LambdaTower.Types.IngameState
 
 import qualified Data.Vector.Storable          as V
 
@@ -26,9 +25,10 @@ import qualified SDL.Primitive                 as SDLP
 
 import qualified LambdaTower.Render            as Render
 import qualified LambdaTower.Screen            as Screen
-import qualified LambdaTower.Timer      as Timer
-import qualified LambdaTower.Ingame.Layer      as Layer
-import qualified LambdaTower.Ingame.Player     as Player
+import qualified LambdaTower.Timer             as Timer
+import qualified LambdaTower.Types.IngameState as State
+import qualified LambdaTower.Types.Layer       as Layer
+import qualified LambdaTower.Types.Player      as Player
 import qualified LambdaTower.Types.Shape       as Shape
 
 data RenderConfig = RenderConfig {
@@ -43,14 +43,13 @@ data RenderConfig = RenderConfig {
 defaultConfig :: IO RenderConfig
 defaultConfig = do
   loadedFont <- SDLF.load "HighSchoolUSASans.ttf" 14
-  return $ RenderConfig
-    { font              = loadedFont
-    , headlineColor     = SDL.V4 255 255 255 255
-    , bgColor           = SDL.V4 30 30 30 255
-    , playerColor       = SDL.V4 135 31 120 255
-    , playerShadowColor = SDL.V4 255 255 255 255
-    , textColor         = SDL.V4 0 191 255 255
-    }
+  return $ RenderConfig { font              = loadedFont
+                        , headlineColor     = SDL.V4 255 255 255 255
+                        , bgColor           = SDL.V4 30 30 30 255
+                        , playerColor       = SDL.V4 135 31 120 255
+                        , playerShadowColor = SDL.V4 255 255 255 255
+                        , textColor         = SDL.V4 0 191 255 255
+                        }
 
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
@@ -69,53 +68,53 @@ clear renderer color = do
 present :: SDL.Renderer -> IO ()
 present = SDL.present
 
-renderDefault :: Graphics -> RenderConfig -> Timer.LoopTimer -> IngameState -> IO ()
+renderDefault :: Graphics -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
 renderDefault (window, renderer) config =
   render (clear renderer $ bgColor config) (present renderer) (window, renderer) config
 
-renderPause :: Graphics -> RenderConfig -> Timer.LoopTimer -> IngameState -> IO ()
+renderPause :: Graphics -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
 renderPause (window, renderer) config =
   render (clear renderer $ bgColor config) (return ()) (window, renderer) config
 
-render :: IO () -> IO () -> Graphics -> RenderConfig -> Timer.LoopTimer -> IngameState -> IO ()
+render :: IO () -> IO () -> Graphics -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
 render pre post (window, renderer) config timer state = do
   pre
   windowSize <- SDL.get $ SDL.windowSize window
-  mapM_ (renderLayer renderer windowSize $ screen state) $ layers state
-  renderPlayer renderer config windowSize (screen state) (player state)
-  renderPlayerShadow renderer config windowSize (screen state) (player state)
+  mapM_ (renderLayer renderer windowSize $ State.screen state) $ State.layers state
+  renderPlayer renderer config windowSize (State.screen state) (State.player state)
+  renderPlayerShadow renderer config windowSize (State.screen state) (State.player state)
   renderHud renderer config timer state
   post
 
-renderHud :: SDL.Renderer -> RenderConfig -> Timer.LoopTimer -> IngameState -> IO ()
+renderHud :: SDL.Renderer -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
 renderHud renderer config timer state = do
   renderHudVelocity renderer config state
   renderHudTime renderer config state
   renderHudScore renderer config state
   renderHudFPS renderer config timer
 
-renderHudVelocity :: SDL.Renderer -> RenderConfig -> IngameState -> IO ()
+renderHudVelocity :: SDL.Renderer -> RenderConfig -> State.State -> IO ()
 renderHudVelocity renderer config state = do
   let textFont = font config
-  let (x, y)   = Player.velocity . player $ state
+  let (x, y)   = Player.velocity . State.player $ state
   Render.renderText renderer textFont (SDL.V2 20 20) (headlineColor config) "velocity"
   Render.renderText renderer textFont (SDL.V2 100 20) (textColor config) $ show (round x :: Int)
   Render.renderText renderer textFont (SDL.V2 150 20) (textColor config) $ show (round y :: Int)
 
-renderHudTime :: SDL.Renderer -> RenderConfig -> IngameState -> IO ()
+renderHudTime :: SDL.Renderer -> RenderConfig -> State.State -> IO ()
 renderHudTime renderer config state = do
   let textFont = font config
-  let duration = time state
+  let duration = State.time state
   let seconds = round (realToFrac duration / 1000 :: Float) :: Integer
   let millis   = mod duration 1000
   Render.renderText renderer textFont (SDL.V2 20 40) (headlineColor config) "time"
   Render.renderText renderer textFont (SDL.V2 100 40) (textColor config) (show seconds)
   Render.renderText renderer textFont (SDL.V2 150 40) (textColor config) (show millis)
 
-renderHudScore :: SDL.Renderer -> RenderConfig -> IngameState -> IO ()
+renderHudScore :: SDL.Renderer -> RenderConfig -> State.State -> IO ()
 renderHudScore renderer config state = do
   let textFont = font config
-  let score    = Player.score . player $ state
+  let score    = Player.score . State.player $ state
   Render.renderText renderer textFont (SDL.V2 20 60) (headlineColor config) "score"
   Render.renderText renderer textFont (SDL.V2 100 60) (textColor config) (show score)
 

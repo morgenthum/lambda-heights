@@ -1,4 +1,4 @@
-module LambdaTower.Ingame.Player where
+module LambdaTower.Types.Player where
 
 import           LambdaTower.Types
 
