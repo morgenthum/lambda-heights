@@ -1,10 +1,10 @@
-module LambdaTower.Pause.State where
+module LambdaTower.Types.PauseState where
 
 import           LambdaTower.Screen
-import           LambdaTower.Types.Button
-import           LambdaTower.Types.ButtonList
+import           LambdaTower.UI.Button
+import           LambdaTower.UI.ButtonList
 
-data State a = State {
+data PauseState a = PauseState {
   state :: a,
   buttonList :: ButtonList,
   reason :: Maybe ExitReason
@@ -12,8 +12,8 @@ data State a = State {
 
 data ExitReason = Exit | Resume
 
-newPauseState :: a -> State a
-newPauseState s = State
+newPauseState :: a -> PauseState a
+newPauseState s = PauseState
   { state      = s
   , buttonList = newButtonList newScreen [Button 0 "resume" (500, 550), Button 1 "exit" (500, 450)]
   , reason     = Nothing

@@ -1,19 +1,40 @@
-module LambdaTower.Pause.Render where
+module LambdaTower.Pause where
 
 import           Data.Word
 
 import           LambdaTower.Graphics
 import           LambdaTower.Types
+import           LambdaTower.Types.PauseState
 
 import qualified SDL
 import qualified SDL.Font                      as SDLF
 
 import qualified LambdaTower.Render            as Render
 import qualified LambdaTower.Screen            as Screen
-import qualified LambdaTower.Pause.State       as Pause
 import qualified LambdaTower.Timing.Timer      as Timer
-import qualified LambdaTower.Types.Button      as Button
-import qualified LambdaTower.Types.ButtonList  as ButtonList
+import qualified LambdaTower.Types.KeyEvents   as Events
+import qualified LambdaTower.UI.Button         as Button
+import qualified LambdaTower.UI.ButtonList     as ButtonList
+
+
+-- Update
+
+update
+  :: Timer.LoopTimer -> [Events.KeyEvent] -> PauseState a -> IO (Either ExitReason (PauseState a))
+update _ events state = do
+  let list = ButtonList.ensureValidIndex $ ButtonList.applyEvents (buttonList state) events
+  let newState = state { buttonList = list }
+  return $ if ButtonList.action list
+    then Left $ stateByButton $ ButtonList.selectedButton list
+    else Right newState
+
+stateByButton :: Button.Button -> ExitReason
+stateByButton button = case Button.text button of
+  "exit" -> Exit
+  _      -> Resume
+
+
+-- Render
 
 type ProxyRenderer a = Timer.LoopTimer -> a -> IO ()
 
@@ -37,11 +58,11 @@ defaultConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-render :: Graphics -> RenderConfig -> ProxyRenderer a -> Timer.LoopTimer -> Pause.State a -> IO ()
-render (window, renderer) pauseConfig proxyRenderer timer state = do
-  proxyRenderer timer $ Pause.state state
+render :: Graphics -> RenderConfig -> ProxyRenderer a -> Timer.LoopTimer -> PauseState a -> IO ()
+render (window, renderer) pauseConfig proxyRenderer timer s = do
+  proxyRenderer timer $ state s
   renderOverlay (window, renderer) pauseConfig
-  renderButtons (window, renderer) pauseConfig $ Pause.buttonList state
+  renderButtons (window, renderer) pauseConfig $ buttonList s
   SDL.present renderer
 
 renderOverlay :: Graphics -> RenderConfig -> IO ()

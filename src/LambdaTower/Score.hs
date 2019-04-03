@@ -1,19 +1,34 @@
-module LambdaTower.Menu.Render where
+module LambdaTower.Score where
 
 import           Data.Word
-
-import           LambdaTower.Graphics
-import           LambdaTower.Types
 
 import qualified SDL
 import qualified SDL.Font                      as SDLF
 
+import           LambdaTower.Graphics
+import           LambdaTower.Types
+import           LambdaTower.Types.ScoreState
+
 import qualified LambdaTower.Render            as Render
 import qualified LambdaTower.Screen            as Screen
-import qualified LambdaTower.Menu.State        as Menu
 import qualified LambdaTower.Timing.Timer      as Timer
-import qualified LambdaTower.Types.Button      as Button
-import qualified LambdaTower.Types.ButtonList  as ButtonList
+import qualified LambdaTower.Types.KeyEvents   as Events
+import qualified LambdaTower.UI.Button         as Button
+import qualified LambdaTower.UI.ButtonList     as ButtonList
+
+
+-- Update
+
+update :: Timer.LoopTimer -> [Events.KeyEvent] -> ScoreState -> IO (Either () ScoreState)
+update _ events state = do
+  let list = ButtonList.ensureValidIndex $ ButtonList.applyEvents (buttonList state) events
+  return $ if ButtonList.action list then Left () else Right state
+
+wrap :: ScoreState -> ButtonList.ButtonList -> ScoreState
+wrap state list = state { buttonList = list }
+
+
+-- Render
 
 data RenderConfig = RenderConfig {
   font :: SDLF.Font,
@@ -35,15 +50,20 @@ defaultConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-render :: Graphics -> RenderConfig -> Timer.LoopTimer -> Menu.State -> IO ()
+render :: Graphics -> RenderConfig -> Timer.LoopTimer -> ScoreState -> IO ()
 render (window, renderer) config _ state = do
   SDL.rendererDrawColor renderer SDL.$= backgroundColor config
   SDL.clear renderer
-  let buttonList = Menu.buttonList state
-  let view       = ButtonList.screen buttonList
-  let selectedId = ButtonList.selected buttonList
+
+  let list       = buttonList state
+  let view       = ButtonList.screen list
+  let selectedId = ButtonList.selected list
+  let text       = "score: " ++ show (score state)
+
   windowSize <- SDL.get $ SDL.windowSize window
-  mapM_ (renderButton renderer config windowSize view selectedId) $ ButtonList.buttons buttonList
+  renderButton renderer config windowSize view (-1) $ Button.Button 0 text (500, 550)
+  mapM_ (renderButton renderer config windowSize view selectedId) $ ButtonList.buttons list
+
   SDL.present renderer
 
 renderButton
@@ -51,3 +71,4 @@ renderButton
 renderButton renderer config windowSize screen selectedId button = do
   let color = if selectedId == Button.id button then selectedTextColor config else textColor config
   Render.renderButton renderer windowSize screen (font config) color button
+

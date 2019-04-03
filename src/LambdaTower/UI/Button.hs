@@ -1,4 +1,4 @@
-module LambdaTower.Types.Button where
+module LambdaTower.UI.Button where
 
 import           LambdaTower.Types
 

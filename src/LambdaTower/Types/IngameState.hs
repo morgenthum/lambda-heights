@@ -1,4 +1,4 @@
-module LambdaTower.Ingame.State where
+module LambdaTower.Types.IngameState where
 
 import qualified LambdaTower.Screen            as Screen
 import qualified LambdaTower.Ingame.Layer      as Layer
@@ -6,12 +6,12 @@ import qualified LambdaTower.Ingame.Player     as Player
 
 data Result = Result {
   reason :: ExitReason,
-  state :: State
+  state :: IngameState
 }
 
 data ExitReason = Finished | Pause
 
-data State = State {
+data IngameState = IngameState {
   time :: Integer,
   screen :: Screen.Screen,
   motion :: Motion,
@@ -25,8 +25,8 @@ data Motion = Motion {
   jump :: Bool
 }
 
-newState :: State
-newState = State
+newIngameState :: IngameState
+newIngameState = IngameState
   { time   = 0
   , screen = Screen.newScreen
   , motion = newMotion

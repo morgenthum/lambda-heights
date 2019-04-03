@@ -1,8 +1,8 @@
-module LambdaTower.Types.ButtonList where
+module LambdaTower.UI.ButtonList where
 
 import           LambdaTower.Screen
-import           LambdaTower.Types.Button
 import           LambdaTower.Types.KeyEvents
+import           LambdaTower.UI.Button
 
 data ButtonList = ButtonList {
   screen :: Screen,

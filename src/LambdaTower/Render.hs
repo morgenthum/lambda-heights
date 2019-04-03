@@ -7,7 +7,7 @@ import           LambdaTower.Types
 import qualified Data.Text                     as T
 
 import qualified LambdaTower.Screen            as Screen
-import qualified LambdaTower.Types.Button      as Button
+import qualified LambdaTower.UI.Button         as Button
 
 import qualified SDL
 import qualified SDL.Font                      as SDLF
