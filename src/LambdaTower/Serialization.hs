@@ -10,6 +10,8 @@ import           System.Directory
 import qualified Data.ByteString.Lazy          as BS
 import qualified Data.ByteString.Lazy.Char8    as BS8
 
+type Channel a = TChan (Maybe [a])
+
 serializeFromTChanToFile :: (Serialise a) => FilePath -> TChan (Maybe a) -> IO ()
 serializeFromTChanToFile filePath channel = do
   maybeX <- atomically $ readTChan channel
