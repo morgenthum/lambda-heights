@@ -3,11 +3,11 @@ module LambdaTower.Types.MenuState where
 import           LambdaTower.Screen
 import           LambdaTower.UserInterface
 
-newtype MenuState = State {
+newtype State = State {
   buttonList :: ButtonList
 }
 
-newState :: MenuState
+newState :: State
 newState = State
   { buttonList = newButtonList
     newScreen

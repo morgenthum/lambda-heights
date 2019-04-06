@@ -4,14 +4,14 @@ import           Data.Word
 
 import           LambdaTower.Graphics
 import           LambdaTower.Types
-import           LambdaTower.Types.PauseState
 
 import qualified SDL
 import qualified SDL.Font                      as SDLF
 
+import qualified LambdaTower.Types.PauseState  as Pause
 import qualified LambdaTower.Render            as Render
 import qualified LambdaTower.Screen            as Screen
-import qualified LambdaTower.Timer      as Timer
+import qualified LambdaTower.Timer             as Timer
 import qualified LambdaTower.Types.KeyEvents   as Events
 import qualified LambdaTower.UserInterface     as UI
 
@@ -19,16 +19,16 @@ import qualified LambdaTower.UserInterface     as UI
 -- Update
 
 update
-  :: Timer.LoopTimer -> [Events.KeyEvent] -> PauseState a -> IO (Either ExitReason (PauseState a))
+  :: Timer.LoopTimer -> [Events.KeyEvent] -> Pause.State a -> IO (Either Pause.ExitReason (Pause.State a))
 update _ events state = do
-  let list = UI.ensureValidIndex $ UI.applyEvents (buttonList state) events
-  let newState = state { buttonList = list }
+  let list = UI.ensureValidIndex $ UI.applyEvents (Pause.buttonList state) events
+  let newState = state { Pause.buttonList = list }
   return $ if UI.action list then Left $ stateByButton $ UI.selectedButton list else Right newState
 
-stateByButton :: UI.Button -> ExitReason
+stateByButton :: UI.Button -> Pause.ExitReason
 stateByButton button = case UI.text button of
-  "exit" -> Exit
-  _      -> Resume
+  "exit" -> Pause.Exit
+  _      -> Pause.Resume
 
 
 -- Render
@@ -45,21 +45,20 @@ data RenderConfig = RenderConfig {
 defaultConfig :: IO RenderConfig
 defaultConfig = do
   loadedFont <- SDLF.load "HighSchoolUSASans.ttf" 28
-  return $ RenderConfig
-    { font              = loadedFont
-    , overlayColor      = SDL.V4 0 0 0 128
-    , textColor         = SDL.V4 255 255 255 255
-    , selectedTextColor = SDL.V4 0 191 255 255
-    }
+  return $ RenderConfig { font              = loadedFont
+                        , overlayColor      = SDL.V4 0 0 0 128
+                        , textColor         = SDL.V4 255 255 255 255
+                        , selectedTextColor = SDL.V4 0 191 255 255
+                        }
 
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-render :: Graphics -> RenderConfig -> ProxyRenderer a -> Timer.LoopTimer -> PauseState a -> IO ()
+render :: Graphics -> RenderConfig -> ProxyRenderer a -> Timer.LoopTimer -> Pause.State a -> IO ()
 render (window, renderer) pauseConfig proxyRenderer timer s = do
-  proxyRenderer timer $ state s
+  proxyRenderer timer $ Pause.state s
   renderOverlay (window, renderer) pauseConfig
-  renderButtons (window, renderer) pauseConfig $ buttonList s
+  renderButtons (window, renderer) pauseConfig $ Pause.buttonList s
   SDL.present renderer
 
 renderOverlay :: Graphics -> RenderConfig -> IO ()

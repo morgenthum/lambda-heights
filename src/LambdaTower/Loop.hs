@@ -5,7 +5,7 @@ import qualified SDL
 import qualified Control.Monad.Fail            as M
 import qualified Control.Monad.State           as M
 
-import qualified LambdaTower.Timer      as Timer
+import qualified LambdaTower.Timer             as Timer
 
 type LoopState m s r = M.StateT (Timer.TimedState s r) m ()
 

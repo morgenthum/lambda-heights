@@ -11,10 +11,8 @@ import           Data.Maybe
 import           Data.Word
 
 import           LambdaTower.Graphics
-import           LambdaTower.State
 import           LambdaTower.Types
 import           LambdaTower.Types.KeyEvents
-import           LambdaTower.Types.MenuState
 
 import qualified SDL
 import qualified SDL.Font                      as SDLF
@@ -23,6 +21,9 @@ import qualified LambdaTower.Render            as Render
 import qualified LambdaTower.Screen            as Screen
 import qualified LambdaTower.Timer             as Timer
 import qualified LambdaTower.UserInterface     as UI
+
+import qualified LambdaTower.Types.GameState   as Game
+import qualified LambdaTower.Types.MenuState   as Menu
 
 
 -- Input
@@ -49,19 +50,19 @@ keyToKeyEvent _                 _           = Nothing
 
 -- Update
 
-update :: Timer.LoopTimer -> [KeyEvent] -> MenuState -> IO (Either State MenuState)
+update :: Timer.LoopTimer -> [KeyEvent] -> Menu.State -> IO (Either Game.State Menu.State)
 update _ events state = do
-  let list = UI.ensureValidIndex $ UI.applyEvents (buttonList state) events
+  let list = UI.ensureValidIndex $ UI.applyEvents (Menu.buttonList state) events
   return $ if UI.action list
     then Left $ stateByButton $ UI.selectedButton list
-    else Right $ state { buttonList = list }
+    else Right $ state { Menu.buttonList = list }
 
-stateByButton :: UI.Button -> State
+stateByButton :: UI.Button -> Game.State
 stateByButton button = case UI.text button of
-  "play"   -> Ingame
-  "replay" -> Replay
-  "exit"   -> Exit
-  _        -> Menu
+  "play"   -> Game.Ingame
+  "replay" -> Game.Replay
+  "exit"   -> Game.Exit
+  _        -> Game.Menu
 
 
 -- Render
@@ -85,11 +86,11 @@ defaultConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-render :: Graphics -> RenderConfig -> Timer.LoopTimer -> MenuState -> IO ()
+render :: Graphics -> RenderConfig -> Timer.LoopTimer -> Menu.State -> IO ()
 render (window, renderer) config _ state = do
   SDL.rendererDrawColor renderer SDL.$= backgroundColor config
   SDL.clear renderer
-  let list       = buttonList state
+  let list       = Menu.buttonList state
   let view       = UI.screen list
   let selectedId = UI.selected list
   windowSize <- SDL.get $ SDL.windowSize window

@@ -20,7 +20,7 @@ import qualified LambdaTower.Ingame.Pattern    as Pattern
 import qualified LambdaTower.Types.Events      as Events
 import qualified LambdaTower.Types.Layer       as Layer
 import qualified LambdaTower.Types.Player      as Player
-import qualified LambdaTower.Types.IngameState       as State
+import qualified LambdaTower.Types.IngameState as State
 
 type Updater = Timer.LoopTimer -> Events.Events -> State.State -> IO (Either State.Result State.State)
 
@@ -47,17 +47,18 @@ updateAndWrite channel timer events gameState = do
 update :: Updater
 update timer events state = do
   let playerEvents = Events.playerEvents events
-  let time        = State.time state
-  let screen      = State.screen state
-  let layers      = State.layers state
-  let player      = State.player state
-  let motion      = updateMotion playerEvents $ State.motion state
-  let state' = State.State { State.time   = time + fromIntegral (Timer.rate timer)
-                           , State.screen = updateScreen player screen
-                           , State.motion = resetMotion motion
-                           , State.player = updatePlayer screen motion layers player
-                           , State.layers = updateLayers screen layers
-                           }
+  let time         = State.time state
+  let screen       = State.screen state
+  let layers       = State.layers state
+  let player       = State.player state
+  let motion       = updateMotion playerEvents $ State.motion state
+  let state' = State.State
+        { State.time   = time + fromIntegral (Timer.rate timer)
+        , State.screen = updateScreen player screen
+        , State.motion = resetMotion motion
+        , State.player = updatePlayer screen motion layers player
+        , State.layers = updateLayers screen layers
+        }
   return $ updatedResult events $ state'
 
 updatedResult :: Events.Events -> State.State -> Either State.Result State.State
@@ -101,9 +102,11 @@ applyPlayerEvents :: State.Motion -> [Events.PlayerEvent] -> State.Motion
 applyPlayerEvents = foldl applyPlayerEvent
 
 applyPlayerEvent :: State.Motion -> Events.PlayerEvent -> State.Motion
-applyPlayerEvent moveState (Events.PlayerMoved Events.MoveLeft  b) = moveState { State.moveLeft = b }
-applyPlayerEvent moveState (Events.PlayerMoved Events.MoveRight b) = moveState { State.moveRight = b }
-applyPlayerEvent moveState Events.PlayerJumped                     = moveState { State.jump = True }
+applyPlayerEvent moveState (Events.PlayerMoved Events.MoveLeft b) =
+  moveState { State.moveLeft = b }
+applyPlayerEvent moveState (Events.PlayerMoved Events.MoveRight b) =
+  moveState { State.moveRight = b }
+applyPlayerEvent moveState Events.PlayerJumped = moveState { State.jump = True }
 
 resetMotion :: State.Motion -> State.Motion
 resetMotion motion = motion { State.jump = False }
@@ -148,14 +151,14 @@ updateAcc motion player =
 
 calcJumpAcc :: State.Motion -> Player.Velocity -> Player.Acceleration -> Player.Acceleration
 calcJumpAcc motion vel acc =
-  let jump      = State.jump motion
+  let jump         = State.jump motion
       (accX, _   ) = acc
       (velX, velY) = vel
       velLength    = sqrt $ (velX ** 2) + (velY ** 2)
       fast         = velLength >= 750
       go | jump && fast = (accX, 320000)
          | jump         = (accX, 160000)
-         | otherwise       = acc
+         | otherwise    = acc
   in  go
 
 calcGroundAcc :: State.Motion -> Player.Acceleration
@@ -211,7 +214,6 @@ player `bounceFrom` screen =
          | outRight  = player { Player.position = (maxX, posY), Player.velocity = (-velX, velY) }
          | otherwise = player
   in  go
-
 
 collideWith :: Player.Player -> [Layer.Layer] -> Player.Player
 player `collideWith` layers = if falling player

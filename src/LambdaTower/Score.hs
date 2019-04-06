@@ -11,19 +11,19 @@ import           LambdaTower.Types.ScoreState
 
 import qualified LambdaTower.Render            as Render
 import qualified LambdaTower.Screen            as Screen
-import qualified LambdaTower.Timer      as Timer
+import qualified LambdaTower.Timer             as Timer
 import qualified LambdaTower.Types.KeyEvents   as Events
 import qualified LambdaTower.UserInterface     as UI
 
 
 -- Update
 
-update :: Timer.LoopTimer -> [Events.KeyEvent] -> ScoreState -> IO (Either () ScoreState)
+update :: Timer.LoopTimer -> [Events.KeyEvent] -> State -> IO (Either () State)
 update _ events state = do
   let list = UI.ensureValidIndex $ UI.applyEvents (buttonList state) events
   return $ if UI.action list then Left () else Right state
 
-wrap :: ScoreState -> UI.ButtonList -> ScoreState
+wrap :: State -> UI.ButtonList -> State
 wrap state list = state { buttonList = list }
 
 
@@ -49,7 +49,7 @@ defaultConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-render :: Graphics -> RenderConfig -> Timer.LoopTimer -> ScoreState -> IO ()
+render :: Graphics -> RenderConfig -> Timer.LoopTimer -> State -> IO ()
 render (window, renderer) config _ state = do
   SDL.rendererDrawColor renderer SDL.$= backgroundColor config
   SDL.clear renderer

@@ -5,11 +5,11 @@ import           LambdaTower.UserInterface
 
 type Score = Int
 
-data ScoreState = ScoreState {
+data State = State {
   score :: Score,
   buttonList :: ButtonList
 }
 
-newScoreState :: Int -> ScoreState
-newScoreState s =
-  ScoreState {score = s, buttonList = newButtonList newScreen [Button 0 "continue" (500, 450)]}
+newState :: Int -> State
+newState s =
+  State {score = s, buttonList = newButtonList newScreen [Button 0 "continue" (500, 450)]}

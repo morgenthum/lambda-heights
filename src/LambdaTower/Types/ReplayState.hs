@@ -4,7 +4,7 @@ import           LambdaTower.Types.Events
 
 import qualified LambdaTower.Types.IngameState as Ingame
 
-data ReplayState = ReplayState {
+data State = State {
   state :: Ingame.State,
   events :: [[PlayerEvent]]
 }

@@ -5,7 +5,7 @@ where
 
 import           Data.Maybe
 
-import LambdaTower.Types.Events
+import           LambdaTower.Types.Events
 
 import qualified SDL
 

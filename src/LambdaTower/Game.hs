@@ -11,15 +11,18 @@ import           Control.Monad
 import           LambdaTower.Graphics
 import           LambdaTower.Loop
 import           LambdaTower.Serialization
-import           LambdaTower.State
+
 import           System.Directory
 
-import qualified LambdaTower.Types.Events      as Ingame
-import qualified LambdaTower.Ingame.Input      as Ingame
-import qualified LambdaTower.Ingame.Render     as Ingame
-import qualified LambdaTower.Ingame.Update     as Ingame
+import qualified LambdaTower.Ingame            as Ingame
+import qualified LambdaTower.Menu              as Menu
+import qualified LambdaTower.Pause             as Pause
+import qualified LambdaTower.Replay            as Replay
+import qualified LambdaTower.Score             as Score
+import qualified LambdaTower.Timer             as Timer
 
-import           LambdaTower.Types
+import qualified LambdaTower.Types.Events      as Events
+import qualified LambdaTower.Types.GameState   as Game
 import qualified LambdaTower.Types.IngameState as Ingame
 import qualified LambdaTower.Types.MenuState   as Menu
 import qualified LambdaTower.Types.PauseState  as Pause
@@ -27,15 +30,8 @@ import qualified LambdaTower.Types.Player      as Ingame
 import qualified LambdaTower.Types.ReplayState as Replay
 import qualified LambdaTower.Types.ScoreState  as Score
 
-import qualified LambdaTower.Menu              as Menu
-import qualified LambdaTower.Pause             as Pause
-import qualified LambdaTower.Replay            as Replay
-import qualified LambdaTower.Score             as Score
-
-import qualified LambdaTower.Timer             as Timer
-
 type IngameLoopState = LoopState IO Ingame.State Ingame.Result
-type PauseLoopState = LoopState IO (Pause.PauseState Ingame.State) Pause.ExitReason
+type PauseLoopState = LoopState IO (Pause.State Ingame.State) Pause.ExitReason
 
 defaultReplayFilePath :: String
 defaultReplayFilePath = "replay.dat"
@@ -43,16 +39,17 @@ defaultReplayFilePath = "replay.dat"
 start :: IO ()
 start = do
   graphics <- newGraphics "LambdaTower"
-  _        <- startState graphics Menu
+  _        <- startState graphics Game.Menu
   deleteGraphics graphics
 
-startState :: Graphics -> State -> IO State
-startState _        Exit   = return Exit
-startState graphics Menu   = startMenu graphics >>= startState graphics
-startState graphics Ingame = startGame defaultReplayFilePath graphics >>= startState graphics
-startState graphics Replay = startReplay defaultReplayFilePath graphics >>= startState graphics
+startState :: Graphics -> Game.State -> IO Game.State
+startState _        Game.Exit   = return Game.Exit
+startState graphics Game.Menu   = startMenu graphics >>= startState graphics
+startState graphics Game.Ingame = startGame defaultReplayFilePath graphics >>= startState graphics
+startState graphics Game.Replay =
+  startReplay defaultReplayFilePath graphics >>= startState graphics
 
-startMenu :: Graphics -> IO State
+startMenu :: Graphics -> IO Game.State
 startMenu graphics = do
   timer  <- Timer.defaultTimer
   config <- Menu.defaultConfig
@@ -63,7 +60,7 @@ startMenu graphics = do
   Menu.deleteConfig config
   return state
 
-startGame :: FilePath -> Graphics -> IO State
+startGame :: FilePath -> Graphics -> IO Game.State
 startGame replayFilePath graphics = do
   channel      <- newTChanIO
   ingameConfig <- Ingame.defaultConfig
@@ -85,7 +82,7 @@ startGame replayFilePath graphics = do
 
 startGameLoop
   :: FilePath
-  -> Channel Ingame.PlayerEvent
+  -> Channel Events.PlayerEvent
   -> Ingame.State
   -> IngameLoopState
   -> PauseLoopState
@@ -99,37 +96,37 @@ startGameLoop replayFilePath channel gameState ingameLoop pauseLoop = do
   case Ingame.reason result of
     Ingame.Finished -> return score
     Ingame.Pause    -> do
-      reason <- startLoop timer (Pause.newPauseState $ Ingame.state result) pauseLoop
+      reason <- startLoop timer (Pause.newState $ Ingame.state result) pauseLoop
       case reason of
         Pause.Resume ->
           startGameLoop replayFilePath channel (Ingame.state result) ingameLoop pauseLoop
         Pause.Exit -> return score
 
-showScore :: Graphics -> Score.Score -> IO State
+showScore :: Graphics -> Score.Score -> IO Game.State
 showScore graphics score = do
   timer  <- Timer.defaultTimer
   config <- Score.defaultConfig
 
   let loop = timedLoop Menu.keyInput Score.update $ Score.render graphics config
-  _ <- startLoop timer (Score.newScoreState score) loop
+  _ <- startLoop timer (Score.newState score) loop
 
   Score.deleteConfig config
-  return Menu
+  return Game.Menu
 
-startReplay :: FilePath -> Graphics -> IO State
+startReplay :: FilePath -> Graphics -> IO Game.State
 startReplay replayFilePath graphics = do
   serialized <- deserializeFromFile replayFilePath
   case serialized of
-    Nothing     -> return Menu
+    Nothing     -> return Game.Menu
     Just events -> do
       timer  <- Timer.defaultTimer
       config <- Ingame.defaultConfig
 
       let loop = timedLoop Replay.keyInput Replay.update $ Replay.render graphics config
-      _ <- startLoop timer (Replay.ReplayState Ingame.newState events) loop
+      _ <- startLoop timer (Replay.State Ingame.newState events) loop
 
       Ingame.deleteConfig config
-      return Menu
+      return Game.Menu
 
 safeDeleteFile :: FilePath -> IO ()
 safeDeleteFile filePath = do

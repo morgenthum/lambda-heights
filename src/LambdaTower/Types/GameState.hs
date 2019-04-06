@@ -1,3 +1,3 @@
-module LambdaTower.State where
+module LambdaTower.Types.GameState where
 
 data State = Exit | Menu | Ingame | Replay
