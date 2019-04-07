@@ -48,7 +48,7 @@ start = do
 startState :: Graphics -> Game.State -> IO Game.State
 startState _        Game.Exit   = return Game.Exit
 startState graphics Game.Menu   = startMenu graphics >>= startState graphics
-startState graphics Game.Ingame = startGame defaultReplayFilePath graphics >>= startState graphics
+startState graphics Game.Ingame = startGame graphics >>= startState graphics
 startState graphics Game.Replay =
   startReplay defaultReplayFilePath graphics >>= startState graphics
 
@@ -63,11 +63,13 @@ startMenu graphics = do
   Menu.deleteConfig config
   return state
 
-startGame :: FilePath -> Graphics -> IO Game.State
-startGame replayFilePath graphics = do
-  channel      <- newTChanIO
-  ingameConfig <- Ingame.defaultConfig
-  pauseConfig  <- Pause.defaultConfig
+startGame :: Graphics -> IO Game.State
+startGame graphics = do
+  channel        <- newTChanIO
+  ingameConfig   <- Ingame.defaultConfig
+  pauseConfig    <- Pause.defaultConfig
+
+  replayFilePath <- Replay.fileName
   safeDeleteFile replayFilePath
 
   let ingameRenderer = Ingame.renderDefault graphics ingameConfig
@@ -125,7 +127,7 @@ startReplay replayFilePath graphics = do
       timer  <- defaultTimer
       config <- Ingame.defaultConfig
 
-      let loop = timedLoop Replay.keyInput Replay.update noOutput $ Replay.render graphics config
+      let loop = timedLoop Replay.input Replay.update noOutput $ Replay.render graphics config
       _ <- startLoop timer (Replay.State Ingame.newState events) loop
 
       Ingame.deleteConfig config

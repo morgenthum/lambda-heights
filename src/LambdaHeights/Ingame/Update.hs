@@ -11,19 +11,17 @@ import           Data.Function
 import           Data.List
 
 
-import qualified Control.Monad.State           as M
+import qualified Control.Monad.State                     as M
 
-import qualified LambdaHeights.Screen          as Screen
-import qualified LambdaHeights.Ingame.Collision
-                                               as Collision
-import qualified LambdaHeights.Ingame.Pattern  as Pattern
+import qualified LambdaHeights.Screen                    as Screen
+import qualified LambdaHeights.Ingame.Collision          as Collision
+import qualified LambdaHeights.Ingame.Pattern            as Pattern
 
-import qualified LambdaHeights.Types.Events    as Events
-import qualified LambdaHeights.Types.IngameState
-                                               as State
-import qualified LambdaHeights.Types.Layer     as Layer
-import qualified LambdaHeights.Types.Player    as Player
-import qualified LambdaHeights.Types.Timer     as Timer
+import qualified LambdaHeights.Types.Events              as Events
+import qualified LambdaHeights.Types.IngameState         as State
+import qualified LambdaHeights.Types.Layer               as Layer
+import qualified LambdaHeights.Types.Player              as Player
+import qualified LambdaHeights.Types.Timer               as Timer
 
 type Updater = Timer.LoopTimer -> Events.Events -> State.State -> Either State.Result State.State
 type Output = Timer.LoopTimer -> Events.Events -> Either State.Result State.State -> IO ()
@@ -44,12 +42,13 @@ update timer events state =
       layers       = State.layers state
       player       = State.player state
       motion       = updateMotion playerEvents $ State.motion state
-      state'       = State.State { State.time   = time + Timer.rate timer
-                                 , State.screen = updateScreen player screen
-                                 , State.motion = resetMotion motion
-                                 , State.player = updatePlayer screen motion layers player
-                                 , State.layers = updateLayers screen layers
-                                 }
+      state'       = State.State
+        { State.time   = time + Timer.rate timer
+        , State.screen = updateScreen player screen
+        , State.motion = resetMotion motion
+        , State.player = updatePlayer screen motion layers player
+        , State.layers = updateLayers screen layers
+        }
   in  updatedResult events state'
 
 updatedResult :: Events.Events -> State.State -> Either State.Result State.State
@@ -146,10 +145,10 @@ calcJumpAcc motion vel acc =
       (accX, _   ) = acc
       (velX, velY) = vel
       velLength    = sqrt $ (velX ** 2) + (velY ** 2)
-      fast         = velLength >= 750
-      go | jump && fast = (accX, 320000)
-         | jump         = (accX, 160000)
-         | otherwise    = acc
+      go | jump && velLength >= 1500 = (accX, 400000)
+         | jump && velLength >= 750  = (accX, 320000)
+         | jump                      = (accX, 160000)
+         | otherwise                 = acc
   in  go
 
 calcGroundAcc :: State.Motion -> Player.Acceleration

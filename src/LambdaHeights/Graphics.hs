@@ -5,10 +5,10 @@ module LambdaHeights.Graphics
   )
 where
 
-import qualified Data.Text                     as T
+import qualified Data.Text                               as T
 
 import qualified SDL
-import qualified SDL.Font                      as SDLF
+import qualified SDL.Font                                as SDLF
 
 type Graphics = (SDL.Window, SDL.Renderer)
 

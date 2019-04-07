@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d5738a50a0c299afad9cfa09a6f52ab5321a3b2272c01bacf1f62beb1fa2aa79
+-- hash: ab81246bda87f17b1d67580e2afad9b5253e1e96c2dbfb651b4911c6effa438c
 
 name:           lambda-heights
 version:        0.1.0.0
@@ -44,6 +44,8 @@ library
       LambdaHeights.Screen
       LambdaHeights.Serialization
       LambdaHeights.Types
+      LambdaHeights.Types.Button
+      LambdaHeights.Types.ButtonList
       LambdaHeights.Types.Events
       LambdaHeights.Types.GameState
       LambdaHeights.Types.IngameState
@@ -56,7 +58,6 @@ library
       LambdaHeights.Types.ScoreState
       LambdaHeights.Types.Shape
       LambdaHeights.Types.Timer
-      LambdaHeights.UserInterface
   other-modules:
       Paths_lambda_heights
   hs-source-dirs:
@@ -76,6 +77,7 @@ library
     , split >=0.2.3.3
     , stm >=2.5.0.0
     , text >=1.2.3.1
+    , time >=1.8.0.2
     , vector >=0.12.0.2
   default-language: Haskell2010
 
@@ -101,6 +103,7 @@ executable lambda-heights-exe
     , split >=0.2.3.3
     , stm >=2.5.0.0
     , text >=1.2.3.1
+    , time >=1.8.0.2
     , vector >=0.12.0.2
   default-language: Haskell2010
 
@@ -127,5 +130,6 @@ test-suite lambda-heights-test
     , split >=0.2.3.3
     , stm >=2.5.0.0
     , text >=1.2.3.1
+    , time >=1.8.0.2
     , vector >=0.12.0.2
   default-language: Haskell2010

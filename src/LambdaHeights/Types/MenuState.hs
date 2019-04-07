@@ -1,7 +1,8 @@
 module LambdaHeights.Types.MenuState where
 
 import           LambdaHeights.Screen
-import           LambdaHeights.UserInterface
+import           LambdaHeights.Types.Button
+import           LambdaHeights.Types.ButtonList
 
 newtype State = State {
   buttonList :: ButtonList

@@ -1,7 +1,8 @@
 module LambdaHeights.Types.ScoreState where
 
 import           LambdaHeights.Screen
-import           LambdaHeights.UserInterface
+import           LambdaHeights.Types.Button
+import           LambdaHeights.Types.ButtonList
 
 type Score = Int
 

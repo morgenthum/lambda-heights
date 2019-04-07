@@ -1,8 +1,8 @@
 module LambdaHeights.Types.IngameState where
 
-import qualified LambdaHeights.Screen            as Screen
-import qualified LambdaHeights.Types.Layer       as Layer
-import qualified LambdaHeights.Types.Player      as Player
+import qualified LambdaHeights.Screen                    as Screen
+import qualified LambdaHeights.Types.Layer               as Layer
+import qualified LambdaHeights.Types.Player              as Player
 
 data Result = Result {
   reason :: ExitReason,

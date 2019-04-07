@@ -7,8 +7,8 @@ import           Control.Monad.STM
 
 import           System.Directory
 
-import qualified Data.ByteString.Lazy          as BS
-import qualified Data.ByteString.Lazy.Char8    as BS8
+import qualified Data.ByteString.Lazy                    as BS
+import qualified Data.ByteString.Lazy.Char8              as BS8
 
 type Channel a = TChan (Maybe [a])
 

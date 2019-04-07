@@ -15,15 +15,16 @@ import           LambdaHeights.Types
 import           LambdaHeights.Types.KeyEvents
 
 import qualified SDL
-import qualified SDL.Font                      as SDLF
+import qualified SDL.Font                                as SDLF
 
-import qualified LambdaHeights.Render          as Render
-import qualified LambdaHeights.Screen          as Screen
-import qualified LambdaHeights.UserInterface   as UI
+import qualified LambdaHeights.Render                    as Render
+import qualified LambdaHeights.Screen                    as Screen
 
-import qualified LambdaHeights.Types.GameState as Game
-import qualified LambdaHeights.Types.MenuState as Menu
-import qualified LambdaHeights.Types.Timer     as Timer
+import qualified LambdaHeights.Types.Button              as UI
+import qualified LambdaHeights.Types.ButtonList          as UI
+import qualified LambdaHeights.Types.GameState           as Game
+import qualified LambdaHeights.Types.MenuState           as Menu
+import qualified LambdaHeights.Types.Timer               as Timer
 
 
 -- Input
@@ -77,11 +78,12 @@ data RenderConfig = RenderConfig {
 defaultConfig :: IO RenderConfig
 defaultConfig = do
   loadedFont <- SDLF.load "HighSchoolUSASans.ttf" 28
-  return $ RenderConfig { font              = loadedFont
-                        , backgroundColor   = SDL.V4 30 30 30 255
-                        , textColor         = SDL.V4 255 255 255 255
-                        , selectedTextColor = SDL.V4 0 191 255 255
-                        }
+  return $ RenderConfig
+    { font              = loadedFont
+    , backgroundColor   = SDL.V4 30 30 30 255
+    , textColor         = SDL.V4 255 255 255 255
+    , selectedTextColor = SDL.V4 0 191 255 255
+    }
 
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font

@@ -7,8 +7,8 @@ module LambdaHeights.Ingame
   )
 where
 
-import LambdaHeights.Ingame.Collision
-import LambdaHeights.Ingame.Input
-import LambdaHeights.Ingame.Pattern
-import LambdaHeights.Ingame.Render
-import LambdaHeights.Ingame.Update
+import           LambdaHeights.Ingame.Collision
+import           LambdaHeights.Ingame.Input
+import           LambdaHeights.Ingame.Pattern
+import           LambdaHeights.Ingame.Render
+import           LambdaHeights.Ingame.Update

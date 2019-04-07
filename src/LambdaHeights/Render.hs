@@ -4,13 +4,13 @@ import           Foreign.C.Types
 
 import           LambdaHeights.Types
 
-import qualified Data.Text                     as T
+import qualified Data.Text                               as T
 
-import qualified LambdaHeights.Screen            as Screen
-import qualified LambdaHeights.UserInterface     as UI
+import qualified LambdaHeights.Screen                    as Screen
+import qualified LambdaHeights.Types.Button              as UI
 
 import qualified SDL
-import qualified SDL.Font                      as SDLF
+import qualified SDL.Font                                as SDLF
 
 renderButton
   :: SDL.Renderer -> WindowSize -> Screen.Screen -> SDLF.Font -> SDLF.Color -> UI.Button -> IO ()

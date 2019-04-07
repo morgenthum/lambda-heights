@@ -26,10 +26,4 @@ data TimedState s r = TimedState {
 newTimer :: Double -> IO LoopTimer
 newTimer r = do
   m <- fromIntegral <$> SDL.ticks
-  return $ LoopTimer
-    { counter = FrameCounter m 0 0
-    , rate    = r
-    , current = m
-    , elapsed = 0
-    , lag     = 0
-    }
+  return $ LoopTimer {counter = FrameCounter m 0 0, rate = r, current = m, elapsed = 0, lag = 0}

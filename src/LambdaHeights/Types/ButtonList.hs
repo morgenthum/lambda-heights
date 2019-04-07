@@ -1,14 +1,8 @@
-module LambdaHeights.UserInterface where
+module LambdaHeights.Types.ButtonList where
 
 import           LambdaHeights.Screen
-import           LambdaHeights.Types
+import           LambdaHeights.Types.Button
 import           LambdaHeights.Types.KeyEvents
-
-data Button = Button {
-  id :: Int,
-  text :: String,
-  position :: Position
-}
 
 data ButtonList = ButtonList {
   screen :: Screen,
