@@ -1,15 +1,14 @@
-# Lambda-Tower
+# Lambda-Heights
 
 ## Description
 
-Lambda-Tower is a fast paced arcade game. You play a small lambda letter which has the mission to escape the tower to the top. You have the ability to jump onto layers to get to the top, sounds easy - but there is the darkness which comes closer and closer to you - and it gets faster over the time.
+Lambda-Heights is a fast paced arcade game. You play a small lambda letter which has the mission to escape the world to the top. You can jump onto layers to get to the top, sounds easy - but there is the darkness which comes closer and closer to you - and it gets faster over the time.
 
-![Ingame screenshot](https://github.com/morgenthum/lambda-tower/blob/master/screenshot.png "Ingame")
+![Ingame screenshot](https://github.com/morgenthum/lambda-heights/blob/master/screenshot.png "Ingame")
 
-### Features
+### Additional features
 
-- You have the ability to the play the game. :)
-- It always records your game and stores is to your hard disk drive. You can always replay your last game.
+- It always records your game and stores it to your hard disk drive - which can be replayed later.
 
 #### What is planned?
 
@@ -18,7 +17,7 @@ Lambda-Tower is a fast paced arcade game. You play a small lambda letter which h
 
 ## Build
 
-You need the following software installed on your machine to build lambda-tower yourself.
+You need the following software installed on your machine to build lambda-heights yourself.
 - [Haskell stack](https://docs.haskellstack.org/en/stable/README/)
 - SDL2 (developer library)
 - SDL2-ttf
