@@ -17,13 +17,13 @@ import           LambdaHeights.Types.KeyEvents
 import qualified SDL
 import qualified SDL.Font                      as SDLF
 
-import qualified LambdaHeights.Render            as Render
-import qualified LambdaHeights.Screen            as Screen
-import qualified LambdaHeights.Timer             as Timer
-import qualified LambdaHeights.UserInterface     as UI
+import qualified LambdaHeights.Render          as Render
+import qualified LambdaHeights.Screen          as Screen
+import qualified LambdaHeights.UserInterface   as UI
 
-import qualified LambdaHeights.Types.GameState   as Game
-import qualified LambdaHeights.Types.MenuState   as Menu
+import qualified LambdaHeights.Types.GameState as Game
+import qualified LambdaHeights.Types.MenuState as Menu
+import qualified LambdaHeights.Types.Timer     as Timer
 
 
 -- Input
@@ -50,12 +50,12 @@ keyToKeyEvent _                 _           = Nothing
 
 -- Update
 
-update :: Timer.LoopTimer -> [KeyEvent] -> Menu.State -> IO (Either Game.State Menu.State)
-update _ events state = do
+update :: Timer.LoopTimer -> [KeyEvent] -> Menu.State -> Either Game.State Menu.State
+update _ events state =
   let list = UI.ensureValidIndex $ UI.applyEvents (Menu.buttonList state) events
-  return $ if UI.action list
-    then Left $ stateByButton $ UI.selectedButton list
-    else Right $ state { Menu.buttonList = list }
+  in  if UI.action list
+        then Left $ stateByButton $ UI.selectedButton list
+        else Right $ state { Menu.buttonList = list }
 
 stateByButton :: UI.Button -> Game.State
 stateByButton button = case UI.text button of

@@ -12,7 +12,7 @@ data Result = Result {
 data ExitReason = Finished | Pause
 
 data State = State {
-  time :: Integer,
+  time :: Double,
   screen :: Screen.Screen,
   motion :: Motion,
   player :: Player.Player,

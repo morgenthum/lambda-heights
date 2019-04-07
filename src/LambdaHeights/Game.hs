@@ -14,24 +14,27 @@ import           LambdaHeights.Serialization
 
 import           System.Directory
 
-import qualified LambdaHeights.Ingame            as Ingame
-import qualified LambdaHeights.Menu              as Menu
-import qualified LambdaHeights.Pause             as Pause
-import qualified LambdaHeights.Replay            as Replay
-import qualified LambdaHeights.Score             as Score
-import qualified LambdaHeights.Timer             as Timer
+import qualified LambdaHeights.Ingame                    as Ingame
+import qualified LambdaHeights.Menu                      as Menu
+import qualified LambdaHeights.Pause                     as Pause
+import qualified LambdaHeights.Replay                    as Replay
+import qualified LambdaHeights.Score                     as Score
 
-import qualified LambdaHeights.Types.Events      as Events
-import qualified LambdaHeights.Types.GameState   as Game
-import qualified LambdaHeights.Types.IngameState as Ingame
-import qualified LambdaHeights.Types.MenuState   as Menu
-import qualified LambdaHeights.Types.PauseState  as Pause
-import qualified LambdaHeights.Types.Player      as Ingame
-import qualified LambdaHeights.Types.ReplayState as Replay
-import qualified LambdaHeights.Types.ScoreState  as Score
+import qualified LambdaHeights.Types.Events              as Events
+import qualified LambdaHeights.Types.GameState           as Game
+import qualified LambdaHeights.Types.IngameState         as Ingame
+import qualified LambdaHeights.Types.MenuState           as Menu
+import qualified LambdaHeights.Types.PauseState          as Pause
+import qualified LambdaHeights.Types.Player              as Ingame
+import qualified LambdaHeights.Types.ReplayState         as Replay
+import qualified LambdaHeights.Types.ScoreState          as Score
+import qualified LambdaHeights.Types.Timer               as Timer
 
 type IngameLoopState = LoopState IO Ingame.State Ingame.Result
 type PauseLoopState = LoopState IO (Pause.State Ingame.State) Pause.ExitReason
+
+defaultTimer :: IO Timer.LoopTimer
+defaultTimer = Timer.newTimer $ 1000 / 128
 
 defaultReplayFilePath :: String
 defaultReplayFilePath = "replay.dat"
@@ -51,10 +54,10 @@ startState graphics Game.Replay =
 
 startMenu :: Graphics -> IO Game.State
 startMenu graphics = do
-  timer  <- Timer.defaultTimer
+  timer  <- defaultTimer
   config <- Menu.defaultConfig
 
-  let loop = timedLoop Menu.keyInput Menu.update (Menu.render graphics config)
+  let loop = timedLoop Menu.keyInput Menu.update noOutput (Menu.render graphics config)
   state <- startLoop timer Menu.newState loop
 
   Menu.deleteConfig config
@@ -70,8 +73,8 @@ startGame replayFilePath graphics = do
   let ingameRenderer = Ingame.renderDefault graphics ingameConfig
   let pauseRenderer = Pause.render graphics pauseConfig $ Ingame.renderPause graphics ingameConfig
 
-  let gameLoop       = timedLoop Ingame.keyInput (Ingame.updateAndWrite channel) ingameRenderer
-  let pauseLoop      = timedLoop Menu.keyInput Pause.update $ pauseRenderer
+  let gameLoop = timedLoop Ingame.keyInput Ingame.update (Ingame.output channel) ingameRenderer
+  let pauseLoop      = timedLoop Menu.keyInput Pause.update noOutput pauseRenderer
 
   state <- startGameLoop replayFilePath channel Ingame.newState gameLoop pauseLoop
     >>= showScore graphics
@@ -88,7 +91,7 @@ startGameLoop
   -> PauseLoopState
   -> IO Score.Score
 startGameLoop replayFilePath channel gameState ingameLoop pauseLoop = do
-  timer  <- Timer.defaultTimer
+  timer  <- defaultTimer
   handle <- async $ serializeFromTChanToFile replayFilePath channel
   result <- startLoop timer gameState ingameLoop
   wait handle
@@ -104,10 +107,10 @@ startGameLoop replayFilePath channel gameState ingameLoop pauseLoop = do
 
 showScore :: Graphics -> Score.Score -> IO Game.State
 showScore graphics score = do
-  timer  <- Timer.defaultTimer
+  timer  <- defaultTimer
   config <- Score.defaultConfig
 
-  let loop = timedLoop Menu.keyInput Score.update $ Score.render graphics config
+  let loop = timedLoop Menu.keyInput Score.update noOutput $ Score.render graphics config
   _ <- startLoop timer (Score.newState score) loop
 
   Score.deleteConfig config
@@ -119,10 +122,10 @@ startReplay replayFilePath graphics = do
   case serialized of
     Nothing     -> return Game.Menu
     Just events -> do
-      timer  <- Timer.defaultTimer
+      timer  <- defaultTimer
       config <- Ingame.defaultConfig
 
-      let loop = timedLoop Replay.keyInput Replay.update $ Replay.render graphics config
+      let loop = timedLoop Replay.keyInput Replay.update noOutput $ Replay.render graphics config
       _ <- startLoop timer (Replay.State Ingame.newState events) loop
 
       Ingame.deleteConfig config

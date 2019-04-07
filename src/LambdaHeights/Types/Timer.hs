@@ -1,4 +1,4 @@
-module LambdaHeights.Timer where
+module LambdaHeights.Types.Timer where
 
 import           Data.Word
 
@@ -6,16 +6,16 @@ import qualified SDL
 
 data FrameCounter = FrameCounter {
   countStart :: Word32,
-  frameCount :: Word32,
+  frames :: Word32,
   fps :: Word32
 }
 
 data LoopTimer = LoopTimer {
   counter :: FrameCounter,
-  rate :: Word32,
   current :: Word32,
   elapsed :: Word32,
-  lag :: Word32
+  rate :: Double,
+  lag :: Double
 }
 
 data TimedState s r = TimedState {
@@ -23,16 +23,13 @@ data TimedState s r = TimedState {
   state :: Either r s
 }
 
-defaultTimer :: IO LoopTimer
-defaultTimer = newTimer 7
-
-newTimer :: Word32 -> IO LoopTimer
-newTimer timerRate = do
-  millis <- fromIntegral <$> SDL.ticks
+newTimer :: Double -> IO LoopTimer
+newTimer r = do
+  m <- fromIntegral <$> SDL.ticks
   return $ LoopTimer
-    { counter = FrameCounter millis 0 0
-    , rate    = timerRate
-    , current = millis
+    { counter = FrameCounter m 0 0
+    , rate    = r
+    , current = m
     , elapsed = 0
     , lag     = 0
     }

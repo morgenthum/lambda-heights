@@ -25,11 +25,12 @@ import qualified SDL.Primitive                 as SDLP
 
 import qualified LambdaHeights.Render            as Render
 import qualified LambdaHeights.Screen            as Screen
-import qualified LambdaHeights.Timer             as Timer
+
 import qualified LambdaHeights.Types.IngameState as State
 import qualified LambdaHeights.Types.Layer       as Layer
 import qualified LambdaHeights.Types.Player      as Player
 import qualified LambdaHeights.Types.Shape       as Shape
+import qualified LambdaHeights.Types.Timer       as Timer
 
 data RenderConfig = RenderConfig {
   font :: SDLF.Font,
@@ -106,8 +107,8 @@ renderHudTime :: SDL.Renderer -> RenderConfig -> State.State -> IO ()
 renderHudTime renderer config state = do
   let textFont = font config
   let duration = State.time state
-  let seconds = round (realToFrac duration / 1000 :: Float) :: Integer
-  let millis   = mod duration 1000
+  let seconds = round (duration / 1000 :: Double) :: Integer
+  let millis   = mod (round duration) 1000 :: Integer
   Render.renderText renderer textFont (SDL.V2 20 40) (headlineColor config) "time"
   Render.renderText renderer textFont (SDL.V2 100 40) (textColor config) (show seconds)
   Render.renderText renderer textFont (SDL.V2 150 40) (textColor config) (show millis)

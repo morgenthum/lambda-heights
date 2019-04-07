@@ -1,6 +1,6 @@
 module LambdaHeights.Ingame.Update
   ( update
-  , updateAndWrite
+  , output
   )
 where
 
@@ -13,53 +13,44 @@ import           Data.List
 
 import qualified Control.Monad.State           as M
 
-import qualified LambdaHeights.Screen            as Screen
-import qualified LambdaHeights.Timer             as Timer
-import qualified LambdaHeights.Ingame.Collision  as Collision
-import qualified LambdaHeights.Ingame.Pattern    as Pattern
-import qualified LambdaHeights.Types.Events      as Events
-import qualified LambdaHeights.Types.Layer       as Layer
-import qualified LambdaHeights.Types.Player      as Player
-import qualified LambdaHeights.Types.IngameState as State
+import qualified LambdaHeights.Screen          as Screen
+import qualified LambdaHeights.Ingame.Collision
+                                               as Collision
+import qualified LambdaHeights.Ingame.Pattern  as Pattern
 
-type Updater = Timer.LoopTimer -> Events.Events -> State.State -> IO (Either State.Result State.State)
+import qualified LambdaHeights.Types.Events    as Events
+import qualified LambdaHeights.Types.IngameState
+                                               as State
+import qualified LambdaHeights.Types.Layer     as Layer
+import qualified LambdaHeights.Types.Player    as Player
+import qualified LambdaHeights.Types.Timer     as Timer
 
--- Factor for scrolling the screen and update the players motion.
+type Updater = Timer.LoopTimer -> Events.Events -> State.State -> Either State.Result State.State
+type Output = Timer.LoopTimer -> Events.Events -> Either State.Result State.State -> IO ()
+
+
+-- Update th world state.
+-- 1. Applies occured events to the current world state.
+-- 2. Updates the current world state using the update factor.
 
 updateFactor :: Float
 updateFactor = 1 / 128
 
-
--- Wrapper around one update to broadcast the occured events for serialization.
-
-updateAndWrite :: TChan (Maybe [Events.PlayerEvent]) -> Updater
-updateAndWrite channel timer events gameState = do
-  result <- update timer events gameState
-  M.liftIO $ atomically $ writeTChan channel $ Just $ Events.playerEvents events
-  case result of
-    Left  _ -> M.liftIO $ atomically $ writeTChan channel Nothing
-    Right _ -> return ()
-  return result
-
-
--- Control flow over one update cycle.
-
 update :: Updater
-update timer events state = do
+update timer events state =
   let playerEvents = Events.playerEvents events
-  let time         = State.time state
-  let screen       = State.screen state
-  let layers       = State.layers state
-  let player       = State.player state
-  let motion       = updateMotion playerEvents $ State.motion state
-  let state' = State.State
-        { State.time   = time + fromIntegral (Timer.rate timer)
-        , State.screen = updateScreen player screen
-        , State.motion = resetMotion motion
-        , State.player = updatePlayer screen motion layers player
-        , State.layers = updateLayers screen layers
-        }
-  return $ updatedResult events $ state'
+      time         = State.time state
+      screen       = State.screen state
+      layers       = State.layers state
+      player       = State.player state
+      motion       = updateMotion playerEvents $ State.motion state
+      state'       = State.State { State.time   = time + Timer.rate timer
+                                 , State.screen = updateScreen player screen
+                                 , State.motion = resetMotion motion
+                                 , State.player = updatePlayer screen motion layers player
+                                 , State.layers = updateLayers screen layers
+                                 }
+  in  updatedResult events state'
 
 updatedResult :: Events.Events -> State.State -> Either State.Result State.State
 updatedResult events state =
@@ -69,9 +60,9 @@ updatedResult events state =
         else if paused then Left $ State.Result State.Pause state else Right state
 
 
--- Updating the view involves two steps:
--- a) Move the view upwards over time.
--- b) Ensure that the player is always visible within the view.
+-- Updating the screen involves two steps:
+-- 1. Move the screen upwards over time.
+-- 2. Ensure that the player is always visible within the screen.
 
 updateScreen :: Player.Player -> Screen.Screen -> Screen.Screen
 updateScreen player = scrollScreenToPlayer player . scrollScreenOverTime
@@ -113,9 +104,9 @@ resetMotion motion = motion { State.jump = False }
 
 
 -- Updating the player involves the following steps:
--- a) Update the motion of the player.
--- b) Apply collision detection and corrections.
--- c) Update the score (highest reached layer).
+-- 1. Update the motion of the player.
+-- 2. Apply collision detection and corrections.
+-- 3. Update the score (highest reached layer).
 
 updatePlayer :: Screen.Screen -> State.Motion -> [Layer.Layer] -> Player.Player -> Player.Player
 updatePlayer screen motion layers =
@@ -123,17 +114,17 @@ updatePlayer screen motion layers =
     . (`collideWith` layers)
     . (`bounceFrom` screen)
     . updatePlayerMotion motion
-    . updateStanding layers
+    . updateMotionType layers
 
 updateScore :: [Layer.Layer] -> Player.Player -> Player.Player
 updateScore layers player = case find (player `onTop`) layers of
   Nothing    -> player
   Just layer -> player { Player.score = max (Layer.layerId layer) (Player.score player) }
 
-updateStanding :: [Layer.Layer] -> Player.Player -> Player.Player
-updateStanding layers player =
-  let standing = not $ null $ find (player `standingOn`) layers
-  in  player { Player.motionType = if standing then Player.Ground else Player.Air }
+updateMotionType :: [Layer.Layer] -> Player.Player -> Player.Player
+updateMotionType layers player =
+  let collided = not $ null $ find (player `inside`) layers
+  in  player { Player.motionType = if collided then Player.Ground else Player.Air }
 
 
 -- Update the motion of the player (acceleration, velocity, position).
@@ -200,7 +191,7 @@ applyWithFactor factor (x, y) (x', y') = (x + x' * factor, y + y' * factor)
 
 
 -- Correct the position and velocity if it is colliding with a layer
--- or the bounds of the level.
+-- or the bounds of the screen.
 
 bounceFrom :: Player.Player -> Screen.Screen -> Player.Player
 player `bounceFrom` screen =
@@ -235,8 +226,8 @@ dead screen player = let (_, y) = Player.position player in y < Screen.bottom sc
 falling :: Player.Player -> Bool
 falling player = let (_, y) = Player.velocity player in y < 0
 
-standingOn :: Player.Player -> Layer.Layer -> Bool
-player `standingOn` layer =
+inside :: Player.Player -> Layer.Layer -> Bool
+player `inside` layer =
   let playerPos = Player.position player
       layerPos  = Layer.position layer
       size      = Layer.size layer
@@ -296,3 +287,13 @@ dropPassedLayers screen = filter (not . passed screen)
 
 passed :: Screen.Screen -> Layer.Layer -> Bool
 screen `passed` layer = Screen.bottom screen > Layer.posY layer
+
+
+-- Broadcast occured events into a channel.
+
+output :: TChan (Maybe [Events.PlayerEvent]) -> Output
+output channel _ events eitherState = do
+  M.liftIO $ atomically $ writeTChan channel $ Just $ Events.playerEvents events
+  case eitherState of
+    Left  _ -> M.liftIO $ atomically $ writeTChan channel Nothing
+    Right _ -> return ()

@@ -9,19 +9,19 @@ import           LambdaHeights.Graphics
 import           LambdaHeights.Types
 import           LambdaHeights.Types.ScoreState
 
-import qualified LambdaHeights.Render            as Render
-import qualified LambdaHeights.Screen            as Screen
-import qualified LambdaHeights.Timer             as Timer
-import qualified LambdaHeights.Types.KeyEvents   as Events
-import qualified LambdaHeights.UserInterface     as UI
+import qualified LambdaHeights.Render          as Render
+import qualified LambdaHeights.Screen          as Screen
+import qualified LambdaHeights.UserInterface   as UI
 
+import qualified LambdaHeights.Types.KeyEvents as Events
+import qualified LambdaHeights.Types.Timer     as Timer
 
 -- Update
 
-update :: Timer.LoopTimer -> [Events.KeyEvent] -> State -> IO (Either () State)
-update _ events state = do
+update :: Timer.LoopTimer -> [Events.KeyEvent] -> State -> Either () State
+update _ events state =
   let list = UI.ensureValidIndex $ UI.applyEvents (buttonList state) events
-  return $ if UI.action list then Left () else Right state
+  in  if UI.action list then Left () else Right state
 
 wrap :: State -> UI.ButtonList -> State
 wrap state list = state { buttonList = list }
@@ -39,12 +39,11 @@ data RenderConfig = RenderConfig {
 defaultConfig :: IO RenderConfig
 defaultConfig = do
   loadedFont <- SDLF.load "HighSchoolUSASans.ttf" 28
-  return $ RenderConfig
-    { font              = loadedFont
-    , backgroundColor   = SDL.V4 30 30 30 255
-    , textColor         = SDL.V4 255 255 255 255
-    , selectedTextColor = SDL.V4 0 191 255 255
-    }
+  return $ RenderConfig { font              = loadedFont
+                        , backgroundColor   = SDL.V4 30 30 30 255
+                        , textColor         = SDL.V4 255 255 255 255
+                        , selectedTextColor = SDL.V4 0 191 255 255
+                        }
 
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font

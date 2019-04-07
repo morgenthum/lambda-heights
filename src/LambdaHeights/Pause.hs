@@ -8,22 +8,26 @@ import           LambdaHeights.Types
 import qualified SDL
 import qualified SDL.Font                      as SDLF
 
-import qualified LambdaHeights.Types.PauseState  as Pause
-import qualified LambdaHeights.Render            as Render
-import qualified LambdaHeights.Screen            as Screen
-import qualified LambdaHeights.Timer             as Timer
-import qualified LambdaHeights.Types.KeyEvents   as Events
-import qualified LambdaHeights.UserInterface     as UI
+import qualified LambdaHeights.Types.PauseState
+                                               as Pause
+import qualified LambdaHeights.Render          as Render
+import qualified LambdaHeights.Screen          as Screen
+import qualified LambdaHeights.UserInterface   as UI
 
+import qualified LambdaHeights.Types.KeyEvents as Events
+import qualified LambdaHeights.Types.Timer     as Timer
 
 -- Update
 
 update
-  :: Timer.LoopTimer -> [Events.KeyEvent] -> Pause.State a -> IO (Either Pause.ExitReason (Pause.State a))
-update _ events state = do
-  let list = UI.ensureValidIndex $ UI.applyEvents (Pause.buttonList state) events
-  let newState = state { Pause.buttonList = list }
-  return $ if UI.action list then Left $ stateByButton $ UI.selectedButton list else Right newState
+  :: Timer.LoopTimer
+  -> [Events.KeyEvent]
+  -> Pause.State a
+  -> Either Pause.ExitReason (Pause.State a)
+update _ events state =
+  let list     = UI.ensureValidIndex $ UI.applyEvents (Pause.buttonList state) events
+      newState = state { Pause.buttonList = list }
+  in  if UI.action list then Left $ stateByButton $ UI.selectedButton list else Right newState
 
 stateByButton :: UI.Button -> Pause.ExitReason
 stateByButton button = case UI.text button of
