@@ -4,6 +4,6 @@
 out/**
 releases/**
 .DS_Store
-lambda-tower.exe
-lambda-tower.iml
+lambda-heights.exe
+lambda-heights.iml
 replay.dat

@@ -1,6 +1,6 @@
 module Main where
 
-import LambdaTower.Game
+import LambdaHeights.Game
 
 main :: IO ()
 main = start

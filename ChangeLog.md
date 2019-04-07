@@ -1,3 +1,3 @@
-# Changelog for lambda-tower
+# Changelog for lambda-heights
 
 ## Unreleased changes

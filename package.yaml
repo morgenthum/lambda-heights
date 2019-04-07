@@ -1,6 +1,6 @@
-name:                lambda-tower
+name:                lambda-heights
 version:             0.1.0.0
-github:              "morgenthum/lambda-tower"
+github:              "morgenthum/lambda-heights"
 license:             BSD3
 author:              "Mario Morgenthum"
 maintainer:          "mario.morgenthum@gmail.com"
@@ -17,7 +17,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/morgenthum/lambda-tower#readme>
+description:         Please see the README on GitHub at <https://github.com/morgenthum/lambda-heights#readme>
 
 dependencies:
 - base >= 4.7 && < 5
@@ -43,7 +43,7 @@ library:
   - -O2
 
 executables:
-  lambda-tower-exe:
+  lambda-heights-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -53,10 +53,10 @@ executables:
     - -Wall
     - -O2
     dependencies:
-    - lambda-tower
+    - lambda-heights
 
 tests:
-  lambda-tower-test:
+  lambda-heights-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -64,4 +64,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - lambda-tower
+    - lambda-heights
