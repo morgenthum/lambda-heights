@@ -3,6 +3,7 @@
 .vscode/**
 out/**
 releases/**
+*.replay
 .DS_Store
 lambda-heights.exe
 lambda-heights.iml

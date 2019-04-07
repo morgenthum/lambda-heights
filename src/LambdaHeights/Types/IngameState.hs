@@ -1,5 +1,7 @@
 module LambdaHeights.Types.IngameState where
 
+import           Data.Word
+
 import qualified LambdaHeights.Screen                    as Screen
 import qualified LambdaHeights.Types.Layer               as Layer
 import qualified LambdaHeights.Types.Player              as Player
@@ -12,7 +14,7 @@ data Result = Result {
 data ExitReason = Finished | Pause
 
 data State = State {
-  time :: Double,
+  time :: Word32,
   screen :: Screen.Screen,
   motion :: Motion,
   player :: Player.Player,

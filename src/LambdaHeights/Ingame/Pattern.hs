@@ -53,5 +53,6 @@ boostPattern begin = repeatPattern
   begin
   [ PatternEntry 0 ((1000, 50), 0)   400
   , PatternEntry 0 ((600, 300), 200) 650
+  , PatternEntry 0 ((600, 300), 200) 650
   , PatternEntry 0 ((1000, 50), 0)   1000
   ]

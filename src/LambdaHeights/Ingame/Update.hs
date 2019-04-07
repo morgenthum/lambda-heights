@@ -1,17 +1,10 @@
 module LambdaHeights.Ingame.Update
   ( update
-  , output
   )
 where
 
-import           Control.Monad.STM
-import           Control.Concurrent.STM.TChan
-
 import           Data.Function
 import           Data.List
-
-
-import qualified Control.Monad.State                     as M
 
 import qualified LambdaHeights.Screen                    as Screen
 import qualified LambdaHeights.Ingame.Collision          as Collision
@@ -24,8 +17,6 @@ import qualified LambdaHeights.Types.Player              as Player
 import qualified LambdaHeights.Types.Timer               as Timer
 
 type Updater = Timer.LoopTimer -> Events.Events -> State.State -> Either State.Result State.State
-type Output = Timer.LoopTimer -> Events.Events -> Either State.Result State.State -> IO ()
-
 
 -- Update th world state.
 -- 1. Applies occured events to the current world state.
@@ -69,7 +60,7 @@ updateScreen player = scrollScreenToPlayer player . scrollScreenOverTime
 scrollScreenOverTime :: Screen.Screen -> Screen.Screen
 scrollScreenOverTime screen =
   let height = Screen.bottom screen
-      factor = min 400 (100 + height / 100)
+      factor = min 500 (100 + height / 100)
   in  if height == 0 then screen else scrollScreen (updateFactor * factor) screen
 
 scrollScreenToPlayer :: Player.Player -> Screen.Screen -> Screen.Screen
@@ -145,28 +136,32 @@ calcJumpAcc motion vel acc =
       (accX, _   ) = acc
       (velX, velY) = vel
       velLength    = sqrt $ (velX ** 2) + (velY ** 2)
-      go | jump && velLength >= 1500 = (accX, 400000)
-         | jump && velLength >= 750  = (accX, 320000)
-         | jump                      = (accX, 160000)
-         | otherwise                 = acc
+      go | jump && velLength >= 750 = (accX, 320000)
+         | jump                     = (accX, 160000)
+         | otherwise                = acc
   in  go
+
+gravity :: Float
+gravity = -4000
 
 calcGroundAcc :: State.Motion -> Player.Acceleration
 calcGroundAcc motion =
   let left  = State.moveLeft motion
       right = State.moveRight motion
-      go | left && not right = (-8000, -4000)
-         | right && not left = (8000, -4000)
-         | otherwise         = (0, -4000)
+      acc   = 8000
+      go | left && not right = (-acc, gravity)
+         | right && not left = (acc, gravity)
+         | otherwise         = (0, gravity)
   in  go
 
 calcAirAcc :: State.Motion -> Player.Acceleration
 calcAirAcc motion =
   let left  = State.moveLeft motion
       right = State.moveRight motion
-      go | left && not right = (-4000, -4000)
-         | right && not left = (4000, -4000)
-         | otherwise         = (0, -4000)
+      acc   = 4000
+      go | left && not right = (-acc, gravity)
+         | right && not left = (acc, gravity)
+         | otherwise         = (0, gravity)
   in  go
 
 updateVel :: Player.Player -> Player.Player
@@ -286,13 +281,3 @@ dropPassedLayers screen = filter (not . passed screen)
 
 passed :: Screen.Screen -> Layer.Layer -> Bool
 screen `passed` layer = Screen.bottom screen > Layer.posY layer
-
-
--- Broadcast occured events into a channel.
-
-output :: TChan (Maybe [Events.PlayerEvent]) -> Output
-output channel _ events eitherState = do
-  M.liftIO $ atomically $ writeTChan channel $ Just $ Events.playerEvents events
-  case eitherState of
-    Left  _ -> M.liftIO $ atomically $ writeTChan channel Nothing
-    Right _ -> return ()

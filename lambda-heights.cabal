@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ab81246bda87f17b1d67580e2afad9b5253e1e96c2dbfb651b4911c6effa438c
+-- hash: 1a837f75c1394469349794ffeeec03e10ba2742c2237151eddfe0ad607238c43
 
 name:           lambda-heights
 version:        0.1.0.0
@@ -32,6 +32,7 @@ library
       LambdaHeights.Ingame
       LambdaHeights.Ingame.Collision
       LambdaHeights.Ingame.Input
+      LambdaHeights.Ingame.Output
       LambdaHeights.Ingame.Pattern
       LambdaHeights.Ingame.Render
       LambdaHeights.Ingame.Update

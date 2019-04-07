@@ -34,7 +34,7 @@ type IngameLoopState = LoopState IO Ingame.State Ingame.Result
 type PauseLoopState = LoopState IO (Pause.State Ingame.State) Pause.ExitReason
 
 defaultTimer :: IO Timer.LoopTimer
-defaultTimer = Timer.newTimer $ 1000 / 128
+defaultTimer = Timer.newTimer 7
 
 defaultReplayFilePath :: String
 defaultReplayFilePath = "replay.dat"
@@ -87,7 +87,7 @@ startGame graphics = do
 
 startGameLoop
   :: FilePath
-  -> Channel Events.PlayerEvent
+  -> TChan (Maybe [Events.PlayerEvent])
   -> Ingame.State
   -> IngameLoopState
   -> PauseLoopState
