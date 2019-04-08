@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 86deea9411f46660192df0321d8370d8c0bbd71085217bfd490c55a7121ed8fd
+-- hash: 87f5541eb23462000bd80ee1dd736baf792a929e9cb099339914aa6c36bc35c2
 
 name:           lambda-heights
 version:        0.1.0.0
@@ -43,7 +43,7 @@ library
       LambdaHeights.Replay
       LambdaHeights.Scale
       LambdaHeights.Score
-      LambdaHeights.Serialization
+      LambdaHeights.Serialize
       LambdaHeights.Types
       LambdaHeights.Types.Button
       LambdaHeights.Types.ButtonList

@@ -10,7 +10,7 @@ import           Control.Monad
 
 import           LambdaHeights.Graphics
 import           LambdaHeights.Loop
-import           LambdaHeights.Serialization
+import           LambdaHeights.Serialize
 
 import           System.Directory
 
@@ -94,7 +94,7 @@ startGameLoop
   -> IO Score.Score
 startGameLoop replayFilePath channel gameState ingameLoop pauseLoop = do
   timer  <- defaultTimer
-  handle <- async $ serializeFromTChanToFile replayFilePath channel
+  handle <- async $ serialize (fromTChan channel) (toFile replayFilePath)
   result <- startLoop timer gameState ingameLoop
   wait handle
   let score = Ingame.score . Ingame.player . Ingame.state $ result

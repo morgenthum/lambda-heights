@@ -17,7 +17,7 @@ import qualified LambdaHeights.Types.KeyEvents           as Events
 import qualified LambdaHeights.Types.Screen              as Screen
 import qualified LambdaHeights.Types.Timer               as Timer
 
--- Update
+-- Update the menu.
 
 update
   :: Timer.LoopTimer
@@ -35,7 +35,8 @@ stateByButton button = case UI.text button of
   _      -> Pause.Resume
 
 
--- Render
+-- Render the 'real' state using the proxy-renderer
+-- and render the pause overlay on top.
 
 type ProxyRenderer a = Timer.LoopTimer -> a -> IO ()
 

@@ -49,7 +49,7 @@ keyToKeyEvent SDL.KeycodeDown   SDL.Pressed = Just Down
 keyToKeyEvent _                 _           = Nothing
 
 
--- Update
+-- Update the menu.
 
 update :: Timer.LoopTimer -> [KeyEvent] -> Menu.State -> Either Game.State Menu.State
 update _ events state =
@@ -66,7 +66,7 @@ stateByButton button = case UI.text button of
   _        -> Game.Menu
 
 
--- Render
+-- Render the menu.
 
 data RenderConfig = RenderConfig {
   font :: SDLF.Font,

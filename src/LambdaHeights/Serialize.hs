@@ -1,4 +1,4 @@
-module LambdaHeights.Serialization where
+module LambdaHeights.Serialize where
 
 import           Codec.Serialise
 
@@ -11,13 +11,23 @@ import           System.Directory
 import qualified Data.ByteString.Lazy                    as BS
 import qualified Data.ByteString.Lazy.Char8              as BS8
 
-serializeFromTChanToFile :: (Serialise a) => FilePath -> TChan (Maybe a) -> IO ()
-serializeFromTChanToFile filePath channel = do
-  maybeX <- atomically $ readTChan channel
+type Source m a = m (Maybe a)
+type Target m a = a -> m ()
+
+fromTChan :: TChan (Maybe a) -> Source IO a
+fromTChan = atomically . readTChan
+
+toFile :: (Serialise a) => FilePath -> Target IO a
+toFile path x = do
+  BS.appendFile path $ serialise x
+  BS.appendFile path $ BS8.pack "/"
+
+serialize :: (Monad m, Serialise a) => Source m a -> Target m a -> m ()
+serialize from to = do
+  maybeX <- from
   whenJust maybeX $ \x -> do
-    BS.appendFile filePath $ serialise x
-    BS.appendFile filePath $ BS8.pack "/"
-    serializeFromTChanToFile filePath channel
+    to x
+    serialize from to
 
 deserializeFromFile :: (Serialise a) => FilePath -> IO (Maybe [a])
 deserializeFromFile filePath = do

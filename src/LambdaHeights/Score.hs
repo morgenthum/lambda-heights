@@ -17,7 +17,7 @@ import qualified LambdaHeights.Types.KeyEvents           as Events
 import qualified LambdaHeights.Types.Screen              as Screen
 import qualified LambdaHeights.Types.Timer               as Timer
 
--- Update
+-- Refresh the menu.
 
 update :: Timer.LoopTimer -> [Events.KeyEvent] -> State -> Either () State
 update _ events state =
@@ -28,7 +28,7 @@ wrap :: State -> UI.ButtonList -> State
 wrap state list = state { buttonList = list }
 
 
--- Render
+-- Render the score screen after game over.
 
 data RenderConfig = RenderConfig {
   font :: SDLF.Font,
