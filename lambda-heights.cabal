@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1a837f75c1394469349794ffeeec03e10ba2742c2237151eddfe0ad607238c43
+-- hash: 86deea9411f46660192df0321d8370d8c0bbd71085217bfd490c55a7121ed8fd
 
 name:           lambda-heights
 version:        0.1.0.0
@@ -41,8 +41,8 @@ library
       LambdaHeights.Pause
       LambdaHeights.Render
       LambdaHeights.Replay
+      LambdaHeights.Scale
       LambdaHeights.Score
-      LambdaHeights.Screen
       LambdaHeights.Serialization
       LambdaHeights.Types
       LambdaHeights.Types.Button
@@ -57,6 +57,7 @@ library
       LambdaHeights.Types.Player
       LambdaHeights.Types.ReplayState
       LambdaHeights.Types.ScoreState
+      LambdaHeights.Types.Screen
       LambdaHeights.Types.Shape
       LambdaHeights.Types.Timer
   other-modules:
@@ -69,6 +70,7 @@ library
     , base >=4.7 && <5
     , bytestring >=0.10.8.2
     , directory >=1.3.3.0
+    , extra >=1.6.14
     , linear >=1.20.8
     , mtl >=2.2.2
     , sdl2 >=2.4.1.0
@@ -94,6 +96,7 @@ executable lambda-heights-exe
     , base >=4.7 && <5
     , bytestring >=0.10.8.2
     , directory >=1.3.3.0
+    , extra >=1.6.14
     , lambda-heights
     , linear >=1.20.8
     , mtl >=2.2.2
@@ -121,6 +124,7 @@ test-suite lambda-heights-test
     , base >=4.7 && <5
     , bytestring >=0.10.8.2
     , directory >=1.3.3.0
+    , extra >=1.6.14
     , lambda-heights
     , linear >=1.20.8
     , mtl >=2.2.2

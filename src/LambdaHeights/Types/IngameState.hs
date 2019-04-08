@@ -2,9 +2,9 @@ module LambdaHeights.Types.IngameState where
 
 import           Data.Word
 
-import qualified LambdaHeights.Screen                    as Screen
 import qualified LambdaHeights.Types.Layer               as Layer
 import qualified LambdaHeights.Types.Player              as Player
+import qualified LambdaHeights.Types.Screen              as Screen
 
 data Result = Result {
   reason :: ExitReason,
@@ -28,13 +28,12 @@ data Motion = Motion {
 }
 
 newState :: State
-newState = State
-  { time   = 0
-  , screen = Screen.newScreen
-  , motion = newMotion
-  , player = Player.newPlayer
-  , layers = []
-  }
+newState = State { time   = 0
+                 , screen = Screen.newScreen
+                 , motion = newMotion
+                 , player = Player.newPlayer
+                 , layers = []
+                 }
 
 newMotion :: Motion
-newMotion = Motion {moveLeft = False, moveRight = False, jump = False}
+newMotion = Motion { moveLeft = False, moveRight = False, jump = False }

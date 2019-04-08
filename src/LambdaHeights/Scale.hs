@@ -1,18 +1,14 @@
-module LambdaHeights.Screen where
+module LambdaHeights.Scale where
+
+import           Foreign.C.Types
 
 import           LambdaHeights.Types
+import           LambdaHeights.Types.Screen
 
 import qualified SDL
 
-data Screen = Screen {
-  top :: Float,
-  left :: Float,
-  bottom :: Float,
-  right :: Float
-}
-
-newScreen :: Screen
-newScreen = Screen {top = 1000, left = 0, bottom = 0, right = 1000}
+type WindowPosition = SDL.V2 CInt
+type WindowSize = SDL.V2 CInt
 
 toWindowSize :: Screen -> WindowSize -> Size -> WindowSize
 toWindowSize screen (SDL.V2 w h) (x, y) =

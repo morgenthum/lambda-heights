@@ -24,11 +24,12 @@ import qualified SDL.Font                                as SDLF
 import qualified SDL.Primitive                           as SDLP
 
 import qualified LambdaHeights.Render                    as Render
-import qualified LambdaHeights.Screen                    as Screen
+import qualified LambdaHeights.Scale                     as Scale
 
 import qualified LambdaHeights.Types.IngameState         as State
 import qualified LambdaHeights.Types.Layer               as Layer
 import qualified LambdaHeights.Types.Player              as Player
+import qualified LambdaHeights.Types.Screen              as Screen
 import qualified LambdaHeights.Types.Shape               as Shape
 import qualified LambdaHeights.Types.Timer               as Timer
 
@@ -44,14 +45,13 @@ data RenderConfig = RenderConfig {
 defaultConfig :: IO RenderConfig
 defaultConfig = do
   loadedFont <- SDLF.load "HighSchoolUSASans.ttf" 14
-  return $ RenderConfig
-    { font              = loadedFont
-    , headlineColor     = SDL.V4 255 255 255 255
-    , bgColor           = SDL.V4 30 30 30 255
-    , playerColor       = SDL.V4 135 31 120 255
-    , playerShadowColor = SDL.V4 255 255 255 255
-    , textColor         = SDL.V4 0 191 255 255
-    }
+  return $ RenderConfig { font              = loadedFont
+                        , headlineColor     = SDL.V4 255 255 255 255
+                        , bgColor           = SDL.V4 30 30 30 255
+                        , playerColor       = SDL.V4 135 31 120 255
+                        , playerShadowColor = SDL.V4 255 255 255 255
+                        , textColor         = SDL.V4 0 191 255 255
+                        }
 
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
@@ -146,19 +146,20 @@ renderPlayerShadow renderer config windowSize screen player = do
   let a = round $ if abs velX > 10000 then 255 else abs velX / 10000 * 255
   renderShape renderer windowSize screen (SDL.V4 r g b a) shape
 
-renderShape :: SDL.Renderer -> WindowSize -> Screen.Screen -> SDLP.Color -> Shape.Shape -> IO ()
+renderShape
+  :: SDL.Renderer -> Scale.WindowSize -> Screen.Screen -> SDLP.Color -> Shape.Shape -> IO ()
 renderShape renderer (SDL.V2 w h) screen color shape = do
   let toVector   = foldl V.snoc V.empty
-  let transformX = fromIntegral . Screen.translate screen w
-  let transformY = fromIntegral . Screen.translateFlipped screen h
+  let transformX = fromIntegral . Scale.translate screen w
+  let transformY = fromIntegral . Scale.translateFlipped screen h
   let xs         = toVector . map transformX $ Shape.polygonXs shape
   let ys         = toVector . map transformY $ Shape.polygonYs shape
   SDLP.fillPolygon renderer xs ys color
 
-renderLayer :: SDL.Renderer -> WindowSize -> Screen.Screen -> Layer.Layer -> IO ()
+renderLayer :: SDL.Renderer -> Scale.WindowSize -> Screen.Screen -> Layer.Layer -> IO ()
 renderLayer renderer windowSize screen layer = do
-  let size     = Screen.toWindowSize screen windowSize (Layer.size layer)
-  let position = Screen.toWindowPosition screen windowSize (Layer.position layer)
+  let size     = Scale.toWindowSize screen windowSize (Layer.size layer)
+  let position = Scale.toWindowPosition screen windowSize (Layer.position layer)
   SDL.rendererDrawColor renderer SDL.$= layerColor layer
   SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P position) size
 

@@ -41,7 +41,7 @@ defaultReplayFilePath = "replay.dat"
 
 start :: IO ()
 start = do
-  graphics <- newGraphics "LambdaHeights"
+  graphics <- newGraphics "Lambda-Heights"
   _        <- startState graphics Game.Menu
   deleteGraphics graphics
 
@@ -128,7 +128,8 @@ startReplay replayFilePath graphics = do
       config <- Ingame.defaultConfig
 
       let loop = timedLoop Replay.input Replay.update noOutput $ Replay.render graphics config
-      _ <- startLoop timer (Replay.State Ingame.newState events) loop
+      result <- startLoop timer (Replay.State Ingame.newState events) loop
+      _ <- showScore graphics $ Ingame.score $ Ingame.player $ Replay.state result
 
       Ingame.deleteConfig config
       return Game.Menu

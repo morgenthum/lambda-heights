@@ -1,8 +1,8 @@
 module LambdaHeights.Types.PauseState where
 
-import           LambdaHeights.Screen
 import           LambdaHeights.Types.Button
 import           LambdaHeights.Types.ButtonList
+import           LambdaHeights.Types.Screen
 
 data State a = State {
   state :: a,

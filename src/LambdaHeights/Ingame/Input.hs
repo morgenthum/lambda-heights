@@ -45,5 +45,7 @@ keyToPlayerEvent SDL.KeycodeD     SDL.Pressed  = Just $ PlayerMoved MoveRight Tr
 keyToPlayerEvent SDL.KeycodeD     SDL.Released = Just $ PlayerMoved MoveRight False
 keyToPlayerEvent SDL.KeycodeRight SDL.Pressed  = Just $ PlayerMoved MoveRight True
 keyToPlayerEvent SDL.KeycodeRight SDL.Released = Just $ PlayerMoved MoveRight False
+keyToPlayerEvent SDL.KeycodeW     SDL.Pressed  = Just PlayerJumped
+keyToPlayerEvent SDL.KeycodeUp    SDL.Pressed  = Just PlayerJumped
 keyToPlayerEvent SDL.KeycodeSpace SDL.Pressed  = Just PlayerJumped
 keyToPlayerEvent _                _            = Nothing

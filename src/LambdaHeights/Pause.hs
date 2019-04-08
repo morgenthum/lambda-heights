@@ -3,18 +3,18 @@ module LambdaHeights.Pause where
 import           Data.Word
 
 import           LambdaHeights.Graphics
-import           LambdaHeights.Types
 
 import qualified SDL
 import qualified SDL.Font                                as SDLF
 
 import qualified LambdaHeights.Types.PauseState          as Pause
 import qualified LambdaHeights.Render                    as Render
-import qualified LambdaHeights.Screen                    as Screen
+import qualified LambdaHeights.Scale                     as Scale
 
 import qualified LambdaHeights.Types.Button              as UI
 import qualified LambdaHeights.Types.ButtonList          as UI
 import qualified LambdaHeights.Types.KeyEvents           as Events
+import qualified LambdaHeights.Types.Screen              as Screen
 import qualified LambdaHeights.Types.Timer               as Timer
 
 -- Update
@@ -80,7 +80,7 @@ renderButtons (window, renderer) config list = do
   mapM_ (renderButton renderer config windowSize view selectedId) $ UI.buttons list
 
 renderButton
-  :: SDL.Renderer -> RenderConfig -> WindowSize -> Screen.Screen -> Int -> UI.Button -> IO ()
+  :: SDL.Renderer -> RenderConfig -> Scale.WindowSize -> Screen.Screen -> Int -> UI.Button -> IO ()
 renderButton renderer config windowSize screen selectedId button = do
   let color = if selectedId == UI.id button then selectedTextColor config else textColor config
   Render.renderButton renderer windowSize screen (font config) color button

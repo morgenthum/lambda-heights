@@ -11,19 +11,19 @@ import           Data.Maybe
 import           Data.Word
 
 import           LambdaHeights.Graphics
-import           LambdaHeights.Types
 import           LambdaHeights.Types.KeyEvents
 
 import qualified SDL
 import qualified SDL.Font                                as SDLF
 
 import qualified LambdaHeights.Render                    as Render
-import qualified LambdaHeights.Screen                    as Screen
+import qualified LambdaHeights.Scale                     as Scale
 
 import qualified LambdaHeights.Types.Button              as UI
 import qualified LambdaHeights.Types.ButtonList          as UI
 import qualified LambdaHeights.Types.GameState           as Game
 import qualified LambdaHeights.Types.MenuState           as Menu
+import qualified LambdaHeights.Types.Screen              as Screen
 import qualified LambdaHeights.Types.Timer               as Timer
 
 
@@ -100,7 +100,7 @@ render (window, renderer) config _ state = do
   SDL.present renderer
 
 renderButton
-  :: SDL.Renderer -> RenderConfig -> WindowSize -> Screen.Screen -> Int -> UI.Button -> IO ()
+  :: SDL.Renderer -> RenderConfig -> Scale.WindowSize -> Screen.Screen -> Int -> UI.Button -> IO ()
 renderButton renderer config windowSize screen selectedId button = do
   let color = if selectedId == UI.id button then selectedTextColor config else textColor config
   Render.renderButton renderer windowSize screen (font config) color button

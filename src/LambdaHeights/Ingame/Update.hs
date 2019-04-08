@@ -6,7 +6,6 @@ where
 import           Data.Function
 import           Data.List
 
-import qualified LambdaHeights.Screen                    as Screen
 import qualified LambdaHeights.Ingame.Collision          as Collision
 import qualified LambdaHeights.Ingame.Pattern            as Pattern
 
@@ -14,6 +13,7 @@ import qualified LambdaHeights.Types.Events              as Events
 import qualified LambdaHeights.Types.IngameState         as State
 import qualified LambdaHeights.Types.Layer               as Layer
 import qualified LambdaHeights.Types.Player              as Player
+import qualified LambdaHeights.Types.Screen              as Screen
 import qualified LambdaHeights.Types.Timer               as Timer
 
 type Updater = Timer.LoopTimer -> Events.Events -> State.State -> Either State.Result State.State

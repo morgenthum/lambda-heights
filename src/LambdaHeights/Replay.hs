@@ -16,13 +16,13 @@ input = Events.controlEvents <$> Ingame.keyInput
 
 update
   :: Timer.LoopTimer -> [Events.ControlEvent] -> Replay.State -> Either Replay.State Replay.State
-update _ _ (Replay.State gameState []) = Left $ Replay.State gameState []
+update _ _ (Replay.State state []) = Left $ Replay.State state []
 update timer controlEvents state =
   let events : eventStore = Replay.events state
-      eitherState = Ingame.update timer (Events.Events controlEvents events) $ Replay.state state
-  in  case eitherState of
-        Left  result       -> Left $ Replay.State (Ingame.state result) eventStore
-        Right wrappedState -> Right $ Replay.State wrappedState eventStore
+      newState = Ingame.update timer (Events.Events controlEvents events) $ Replay.state state
+  in  case newState of
+        Left  result      -> Left $ Replay.State (Ingame.state result) eventStore
+        Right ingameState -> Right $ Replay.State ingameState eventStore
 
 render :: Graphics -> Ingame.RenderConfig -> Timer.LoopTimer -> Replay.State -> IO ()
 render graphics config timer = Ingame.renderDefault graphics config timer . Replay.state
