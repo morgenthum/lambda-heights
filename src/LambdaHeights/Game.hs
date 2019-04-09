@@ -129,7 +129,7 @@ startReplay replayFilePath graphics = do
 
       let loop = timedLoop Replay.input Replay.update noOutput $ Replay.render graphics config
       result <- startLoop timer (Replay.State Ingame.newState events) loop
-      _ <- showScore graphics $ Ingame.score $ Ingame.player $ Replay.state result
+      _      <- showScore graphics $ Ingame.score $ Ingame.player $ Replay.state result
 
       Ingame.deleteConfig config
       return Game.Menu

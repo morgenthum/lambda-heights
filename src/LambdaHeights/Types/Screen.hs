@@ -8,4 +8,4 @@ data Screen = Screen {
 }
 
 newScreen :: Screen
-newScreen = Screen { top = 1000, left = 0, bottom = 0, right = 1000 }
+newScreen = Screen {top = 1000, left = 0, bottom = 0, right = 1000}

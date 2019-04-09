@@ -13,4 +13,4 @@ data State = State {
 
 newState :: Int -> State
 newState s =
-  State { score = s, buttonList = newButtonList newScreen [Button 0 "continue" (500, 450)] }
+  State {score = s, buttonList = newButtonList newScreen [Button 0 "continue" (500, 450)]}

@@ -45,13 +45,14 @@ data RenderConfig = RenderConfig {
 defaultConfig :: IO RenderConfig
 defaultConfig = do
   loadedFont <- SDLF.load "HighSchoolUSASans.ttf" 14
-  return $ RenderConfig { font              = loadedFont
-                        , headlineColor     = SDL.V4 255 255 255 255
-                        , bgColor           = SDL.V4 30 30 30 255
-                        , playerColor       = SDL.V4 135 31 120 255
-                        , playerShadowColor = SDL.V4 255 255 255 255
-                        , textColor         = SDL.V4 0 191 255 255
-                        }
+  return $ RenderConfig
+    { font              = loadedFont
+    , headlineColor     = SDL.V4 255 255 255 255
+    , bgColor           = SDL.V4 30 30 30 255
+    , playerColor       = SDL.V4 135 31 120 255
+    , playerShadowColor = SDL.V4 255 255 255 255
+    , textColor         = SDL.V4 0 191 255 255
+    }
 
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font

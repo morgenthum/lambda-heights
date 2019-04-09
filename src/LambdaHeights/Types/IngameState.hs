@@ -28,12 +28,13 @@ data Motion = Motion {
 }
 
 newState :: State
-newState = State { time   = 0
-                 , screen = Screen.newScreen
-                 , motion = newMotion
-                 , player = Player.newPlayer
-                 , layers = []
-                 }
+newState = State
+  { time   = 0
+  , screen = Screen.newScreen
+  , motion = newMotion
+  , player = Player.newPlayer
+  , layers = []
+  }
 
 newMotion :: Motion
-newMotion = Motion { moveLeft = False, moveRight = False, jump = False }
+newMotion = Motion {moveLeft = False, moveRight = False, jump = False}

@@ -26,6 +26,9 @@ import qualified LambdaHeights.Types.MenuState           as Menu
 import qualified LambdaHeights.Types.Screen              as Screen
 import qualified LambdaHeights.Types.Timer               as Timer
 
+import qualified SDL.GUI.Button as SDLG
+import qualified SDL.GUI.Renderable as SDLG
+import qualified SDL.GUI.Types as SDLG
 
 -- Input
 
@@ -97,6 +100,7 @@ render (window, renderer) config _ state = do
   let selectedId = UI.selected list
   windowSize <- SDL.get $ SDL.windowSize window
   mapM_ (renderButton renderer config windowSize view selectedId) $ UI.buttons list
+  --testButton (window, renderer) (font config)
   SDL.present renderer
 
 renderButton
@@ -104,3 +108,12 @@ renderButton
 renderButton renderer config windowSize screen selectedId button = do
   let color = if selectedId == UI.id button then selectedTextColor config else textColor config
   Render.renderButton renderer windowSize screen (font config) color button
+
+
+testButton :: Graphics -> SDLF.Font -> IO ()
+testButton (window, renderer) f = do 
+  let ctx = SDLG.RenderContext window renderer
+  let loc = SDLG.Location (SDL.P $ SDL.V2 50 50) (SDL.V2 100 25)
+  let style = SDLG.Style f (SDL.V4 0 191 255 255) (SDL.V4 255 255 255 255)
+  let button = SDLG.Button loc style "Hallo"
+  SDLG.render ctx button

@@ -23,11 +23,11 @@ toFile path x = do
   BS.appendFile path $ BS8.pack "/"
 
 serialize :: (Monad m, Serialise a) => Source m a -> Target m a -> m ()
-serialize from to = do
-  maybeX <- from
+serialize source target = do
+  maybeX <- source
   whenJust maybeX $ \x -> do
-    to x
-    serialize from to
+    target x
+    serialize source target
 
 deserializeFromFile :: (Serialise a) => FilePath -> IO (Maybe [a])
 deserializeFromFile filePath = do

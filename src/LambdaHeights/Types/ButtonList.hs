@@ -12,7 +12,7 @@ data ButtonList = ButtonList {
 }
 
 newButtonList :: Screen -> [Button] -> ButtonList
-newButtonList s bs = ButtonList { screen = s, buttons = bs, selected = 0, action = False }
+newButtonList s bs = ButtonList {screen = s, buttons = bs, selected = 0, action = False}
 
 up :: ButtonList -> ButtonList
 up list = list { selected = selected list - 1 }
