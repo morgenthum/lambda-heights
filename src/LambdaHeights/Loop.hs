@@ -69,7 +69,7 @@ updateTimer = do
 
   let timer   = Timer.timer timedState
   let elapsed = current - Timer.current timer
-  let lag     = Timer.lag timer + (fromIntegral elapsed)
+  let lag     = Timer.lag timer + fromIntegral elapsed
 
   M.put $ timedState
     { Timer.timer = timer { Timer.current = current, Timer.elapsed = elapsed, Timer.lag = lag }
