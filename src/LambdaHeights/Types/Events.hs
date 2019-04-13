@@ -3,7 +3,6 @@
 module LambdaHeights.Types.Events where
 
 import           Codec.Serialise
-
 import           GHC.Generics
 
 data Events = Events {

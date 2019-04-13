@@ -1,12 +1,10 @@
-module LambdaHeights.Ingame.Input
+module LambdaHeights.Play.Input
   ( keyInput
   )
 where
 
 import           Data.Maybe
-
 import           LambdaHeights.Types.Events
-
 import qualified SDL
 
 keyInput :: IO Events

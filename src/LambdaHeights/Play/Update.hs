@@ -1,16 +1,14 @@
-module LambdaHeights.Ingame.Update
+module LambdaHeights.Play.Update
   ( update
   )
 where
 
 import           Data.Function
 import           Data.List
-
-import qualified LambdaHeights.Ingame.Collision          as Collision
-import qualified LambdaHeights.Ingame.Pattern            as Pattern
-
+import qualified LambdaHeights.Play.Collision            as Collision
+import qualified LambdaHeights.Play.Pattern              as Pattern
 import qualified LambdaHeights.Types.Events              as Events
-import qualified LambdaHeights.Types.IngameState         as State
+import qualified LambdaHeights.Types.PlayState           as State
 import qualified LambdaHeights.Types.Layer               as Layer
 import qualified LambdaHeights.Types.Player              as Player
 import qualified LambdaHeights.Types.Screen              as Screen
@@ -33,13 +31,12 @@ update timer events state =
       layers       = State.layers state
       player       = State.player state
       motion       = updateMotion playerEvents $ State.motion state
-      state'       = State.State
-        { State.time   = time + Timer.rate timer
-        , State.screen = updateScreen player screen
-        , State.motion = resetMotion motion
-        , State.player = updatePlayer screen motion layers player
-        , State.layers = updateLayers screen layers
-        }
+      state'       = state { State.time   = time + Timer.rate timer
+                           , State.screen = updateScreen player screen
+                           , State.motion = resetMotion motion
+                           , State.player = updatePlayer screen motion layers player
+                           , State.layers = updateLayers screen layers
+                           }
   in  updatedResult events state'
 
 updatedResult :: Events.Events -> State.State -> Either State.Result State.State

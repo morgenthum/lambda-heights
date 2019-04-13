@@ -1,13 +1,10 @@
 module LambdaHeights.Replay where
 
 import           Data.Time
-
 import           LambdaHeights.Graphics
-
-import qualified LambdaHeights.Ingame                    as Ingame
-
+import qualified LambdaHeights.Play                      as Ingame
 import qualified LambdaHeights.Types.Events              as Events
-import qualified LambdaHeights.Types.IngameState         as Ingame
+import qualified LambdaHeights.Types.PlayState           as Ingame
 import qualified LambdaHeights.Types.ReplayState         as Replay
 import qualified LambdaHeights.Types.Timer               as Timer
 
@@ -34,7 +31,7 @@ update timer controlEvents state =
 
 -- Unwrap the game state and apply it to the default ingame renderer.
 
-render :: Graphics -> Ingame.RenderConfig -> Timer.LoopTimer -> Replay.State -> IO ()
+render :: RenderContext -> Ingame.RenderConfig -> Timer.LoopTimer -> Replay.State -> IO ()
 render graphics config timer = Ingame.renderDefault graphics config timer . Replay.state
 
 

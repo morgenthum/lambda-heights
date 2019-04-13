@@ -1,10 +1,8 @@
 module LambdaHeights.Scale where
 
 import           Foreign.C.Types
-
 import           LambdaHeights.Types
 import           LambdaHeights.Types.Screen
-
 import qualified SDL
 
 type WindowPosition = SDL.V2 CInt

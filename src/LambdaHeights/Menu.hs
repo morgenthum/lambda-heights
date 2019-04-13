@@ -9,25 +9,18 @@ where
 
 import           Data.Maybe
 import           Data.Word
-
 import           LambdaHeights.Graphics
-import           LambdaHeights.Types.KeyEvents
-
-import qualified SDL
-import qualified SDL.Font                                as SDLF
-
 import qualified LambdaHeights.Render                    as Render
 import qualified LambdaHeights.Scale                     as Scale
-
 import qualified LambdaHeights.Types.Button              as UI
 import qualified LambdaHeights.Types.ButtonList          as UI
 import qualified LambdaHeights.Types.GameState           as Game
+import           LambdaHeights.Types.KeyEvents
 import qualified LambdaHeights.Types.MenuState           as Menu
 import qualified LambdaHeights.Types.Screen              as Screen
 import qualified LambdaHeights.Types.Timer               as Timer
-
-import qualified SDL.GUI.Button                          as SDLG
-import qualified SDL.GUI.Types                           as SDLG
+import qualified SDL
+import qualified SDL.Font                                as SDLF
 
 -- Input
 
@@ -62,7 +55,7 @@ update _ events state =
 
 stateByButton :: UI.Button -> Game.State
 stateByButton button = case UI.text button of
-  "play"   -> Game.Ingame
+  "play"   -> Game.Play
   "replay" -> Game.Replay
   "exit"   -> Game.Exit
   _        -> Game.Menu
@@ -90,7 +83,7 @@ defaultConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-render :: Graphics -> RenderConfig -> Timer.LoopTimer -> Menu.State -> IO ()
+render :: RenderContext -> RenderConfig -> Timer.LoopTimer -> Menu.State -> IO ()
 render (window, renderer) config _ state = do
   SDL.rendererDrawColor renderer SDL.$= backgroundColor config
   SDL.clear renderer
@@ -99,7 +92,6 @@ render (window, renderer) config _ state = do
   let selectedId = UI.selected list
   windowSize <- SDL.get $ SDL.windowSize window
   mapM_ (renderButton renderer config windowSize view selectedId) $ UI.buttons list
-  --testButton (window, renderer) (font config)
   SDL.present renderer
 
 renderButton
@@ -107,12 +99,3 @@ renderButton
 renderButton renderer config windowSize screen selectedId button = do
   let color = if selectedId == UI.id button then selectedTextColor config else textColor config
   Render.renderButton renderer windowSize screen (font config) color button
-
-
-testButton :: Graphics -> SDLF.Font -> IO ()
-testButton (window, renderer) f = do
-  let ctx    = SDLG.RenderContext window renderer
-  let loc    = SDLG.Location (SDL.P $ SDL.V2 50 50) (SDL.V2 100 25)
-  let style = SDLG.Style f (SDL.V4 0 191 255 255) (SDL.V4 255 255 255 255)
-  let button = SDLG.Button loc style "Hallo"
-  SDLG.render ctx button

@@ -1,14 +1,10 @@
 module LambdaHeights.Render where
 
-import           Foreign.C.Types
-
 import qualified Data.Text                               as T
-
+import           Foreign.C.Types
 import qualified LambdaHeights.Scale                     as Scale
-
 import qualified LambdaHeights.Types.Button              as UI
 import qualified LambdaHeights.Types.Screen              as Screen
-
 import qualified SDL
 import qualified SDL.Font                                as SDLF
 
@@ -21,11 +17,16 @@ renderButton
   -> UI.Button
   -> IO ()
 renderButton renderer windowSize screen font color button = do
-  (w, h) <- SDLF.size font $ T.pack $ UI.text button
-  let SDL.V2 x y = Scale.toWindowPosition screen windowSize (UI.position button)
-  let deltaX     = round (realToFrac w / 2 :: Float)
-  let deltaY     = round (realToFrac h / 2 :: Float)
-  renderText renderer font (SDL.V2 (x - deltaX) (y - deltaY)) color $ UI.text button
+  let position = Scale.toWindowPosition screen windowSize (UI.position button)
+  renderCenteredText renderer font position color $ UI.text button
+
+renderCenteredText :: SDL.Renderer -> SDLF.Font -> SDL.V2 CInt -> SDLF.Color -> String -> IO ()
+renderCenteredText renderer font (SDL.V2 x y) color text = do
+  (w, h) <- SDLF.size font $ T.pack text
+  let deltaX   = round (realToFrac w / 2 :: Float)
+  let deltaY   = round (realToFrac h / 2 :: Float)
+  let position = SDL.V2 (x - deltaX) (y - deltaY)
+  renderText renderer font position color text
 
 renderText :: SDL.Renderer -> SDLF.Font -> SDL.V2 CInt -> SDLF.Color -> String -> IO ()
 renderText renderer font position color text = do

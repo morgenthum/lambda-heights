@@ -10,12 +10,10 @@ module LambdaHeights.Loop
   )
 where
 
-import qualified SDL
-
 import qualified Control.Monad.Fail                      as M
 import qualified Control.Monad.State                     as M
-
 import qualified LambdaHeights.Types.Timer               as Timer
+import qualified SDL
 
 type LoopState m s r = M.StateT (Timer.TimedState s r) m ()
 

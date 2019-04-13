@@ -1,4 +1,4 @@
-module LambdaHeights.Ingame.Pattern where
+module LambdaHeights.Play.Pattern where
 
 import           LambdaHeights.Types
 

@@ -1,7 +1,6 @@
 module LambdaHeights.Types.Timer where
 
 import           Data.Word
-
 import qualified SDL
 
 data FrameCounter = FrameCounter {

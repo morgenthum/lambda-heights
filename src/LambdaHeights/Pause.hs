@@ -1,21 +1,17 @@
 module LambdaHeights.Pause where
 
 import           Data.Word
-
 import           LambdaHeights.Graphics
-
-import qualified SDL
-import qualified SDL.Font                                as SDLF
-
-import qualified LambdaHeights.Types.PauseState          as Pause
 import qualified LambdaHeights.Render                    as Render
 import qualified LambdaHeights.Scale                     as Scale
-
 import qualified LambdaHeights.Types.Button              as UI
 import qualified LambdaHeights.Types.ButtonList          as UI
 import qualified LambdaHeights.Types.KeyEvents           as Events
+import qualified LambdaHeights.Types.PauseState          as Pause
 import qualified LambdaHeights.Types.Screen              as Screen
 import qualified LambdaHeights.Types.Timer               as Timer
+import qualified SDL
+import qualified SDL.Font                                as SDLF
 
 -- Update the menu.
 
@@ -60,20 +56,21 @@ defaultConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-render :: Graphics -> RenderConfig -> ProxyRenderer a -> Timer.LoopTimer -> Pause.State a -> IO ()
+render
+  :: RenderContext -> RenderConfig -> ProxyRenderer a -> Timer.LoopTimer -> Pause.State a -> IO ()
 render (window, renderer) pauseConfig proxyRenderer timer s = do
   proxyRenderer timer $ Pause.state s
   renderOverlay (window, renderer) pauseConfig
   renderButtons (window, renderer) pauseConfig $ Pause.buttonList s
   SDL.present renderer
 
-renderOverlay :: Graphics -> RenderConfig -> IO ()
+renderOverlay :: RenderContext -> RenderConfig -> IO ()
 renderOverlay (window, renderer) config = do
   windowSize <- SDL.get $ SDL.windowSize window
   SDL.rendererDrawColor renderer SDL.$= overlayColor config
   SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P $ SDL.V2 0 0) windowSize
 
-renderButtons :: Graphics -> RenderConfig -> UI.ButtonList -> IO ()
+renderButtons :: RenderContext -> RenderConfig -> UI.ButtonList -> IO ()
 renderButtons (window, renderer) config list = do
   let view       = UI.screen list
   let selectedId = UI.selected list

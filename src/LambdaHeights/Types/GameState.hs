@@ -1,3 +1,3 @@
 module LambdaHeights.Types.GameState where
 
-data State = Exit | Menu | Ingame | Replay
+data State = Exit | Menu | Play | Replay

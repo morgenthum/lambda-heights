@@ -1,21 +1,17 @@
 module LambdaHeights.Score where
 
 import           Data.Word
-
-import qualified SDL
-import qualified SDL.Font                                as SDLF
-
 import           LambdaHeights.Graphics
-import           LambdaHeights.Types.ScoreState
-
 import qualified LambdaHeights.Render                    as Render
 import qualified LambdaHeights.Scale                     as Scale
-
 import qualified LambdaHeights.Types.Button              as UI
 import qualified LambdaHeights.Types.ButtonList          as UI
 import qualified LambdaHeights.Types.KeyEvents           as Events
+import           LambdaHeights.Types.ScoreState
 import qualified LambdaHeights.Types.Screen              as Screen
 import qualified LambdaHeights.Types.Timer               as Timer
+import qualified SDL
+import qualified SDL.Font                                as SDLF
 
 -- Refresh the menu.
 
@@ -50,7 +46,7 @@ defaultConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-render :: Graphics -> RenderConfig -> Timer.LoopTimer -> State -> IO ()
+render :: RenderContext -> RenderConfig -> Timer.LoopTimer -> State -> IO ()
 render (window, renderer) config _ state = do
   SDL.rendererDrawColor renderer SDL.$= backgroundColor config
   SDL.clear renderer

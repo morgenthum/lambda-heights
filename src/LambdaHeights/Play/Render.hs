@@ -1,4 +1,4 @@
-module LambdaHeights.Ingame.Render
+module LambdaHeights.Play.Render
   ( RenderConfig(..)
   , defaultConfig
   , deleteConfig
@@ -10,28 +10,22 @@ module LambdaHeights.Ingame.Render
   )
 where
 
-import           Data.Word
-
-import           Foreign.C.Types
-
-import           LambdaHeights.Types
-import           LambdaHeights.Graphics
-
 import qualified Data.Vector.Storable                    as V
-
-import qualified SDL
-import qualified SDL.Font                                as SDLF
-import qualified SDL.Primitive                           as SDLP
-
+import           Data.Word
+import           Foreign.C.Types
+import           LambdaHeights.Graphics
 import qualified LambdaHeights.Render                    as Render
 import qualified LambdaHeights.Scale                     as Scale
-
-import qualified LambdaHeights.Types.IngameState         as State
+import           LambdaHeights.Types
+import qualified LambdaHeights.Types.PlayState           as State
 import qualified LambdaHeights.Types.Layer               as Layer
 import qualified LambdaHeights.Types.Player              as Player
 import qualified LambdaHeights.Types.Screen              as Screen
 import qualified LambdaHeights.Types.Shape               as Shape
 import qualified LambdaHeights.Types.Timer               as Timer
+import qualified SDL
+import qualified SDL.Font                                as SDLF
+import qualified SDL.Primitive                           as SDLP
 
 data RenderConfig = RenderConfig {
   font :: SDLF.Font,
@@ -71,15 +65,15 @@ clear renderer color = do
 present :: SDL.Renderer -> IO ()
 present = SDL.present
 
-renderDefault :: Graphics -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
+renderDefault :: RenderContext -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
 renderDefault (window, renderer) config =
   render (clear renderer $ bgColor config) (present renderer) (window, renderer) config
 
-renderPause :: Graphics -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
+renderPause :: RenderContext -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
 renderPause (window, renderer) config =
   render (clear renderer $ bgColor config) (return ()) (window, renderer) config
 
-render :: IO () -> IO () -> Graphics -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
+render :: IO () -> IO () -> RenderContext -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
 render pre post (window, renderer) config timer state = do
   pre
   windowSize <- SDL.get $ SDL.windowSize window

@@ -1,7 +1,6 @@
-module LambdaHeights.Types.IngameState where
+module LambdaHeights.Types.PlayState where
 
 import           Data.Word
-
 import qualified LambdaHeights.Types.Layer               as Layer
 import qualified LambdaHeights.Types.Player              as Player
 import qualified LambdaHeights.Types.Screen              as Screen

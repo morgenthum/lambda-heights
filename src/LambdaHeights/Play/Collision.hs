@@ -1,4 +1,4 @@
-module LambdaHeights.Ingame.Collision where
+module LambdaHeights.Play.Collision where
 
 import           LambdaHeights.Types
 
@@ -10,7 +10,7 @@ data Rect = Rect {
 }
 
 inside :: Point -> Rect -> Bool
-point `inside` rect =
-  let (px, py)           = point
-      Rect (x, y) (w, h) = rect
+p `inside` r =
+  let (px, py)           = p
+      Rect (x, y) (w, h) = r
   in  px >= x && px <= x + w && py <= y && py >= y - h
