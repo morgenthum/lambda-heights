@@ -1,13 +1,13 @@
-module LambdaHeights.Graphics
+module LambdaHeights.RenderContext
   ( RenderContext
   , newContext
   , deleteContext
   )
 where
 
-import qualified Data.Text                               as T
+import qualified Data.Text as T
 import qualified SDL
-import qualified SDL.Font                                as SDLF
+import qualified SDL.Font  as SDLF
 
 type RenderContext = (SDL.Window, SDL.Renderer)
 

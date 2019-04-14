@@ -1,20 +1,35 @@
-module LambdaHeights.Menu where
+module LambdaHeights.Menu
+  (
+ -- * Input handling
+    keyInput
+  ,
+ -- * Updating
+    ToResult
+  , update
+  ,
+ -- * Rendering
+    RenderConfig(..)
+  , defaultConfig
+  , deleteConfig
+  , render
+  , renderNoClear
+  )
+where
 
 import           Data.Maybe
 import           Data.Word
-import           LambdaHeights.Graphics
-import qualified LambdaHeights.Render                    as Render
-import qualified LambdaHeights.Scale                     as Scale
-import qualified LambdaHeights.Types.Menu                as UI
-import qualified LambdaHeights.Types.MenuItem            as UI
+import qualified LambdaHeights.Render          as Render
+import           LambdaHeights.RenderContext
+import qualified LambdaHeights.Scale           as Scale
 import           LambdaHeights.Types.KeyEvents
-import qualified LambdaHeights.Types.Screen              as Screen
-import qualified LambdaHeights.Types.Timer               as Timer
+import qualified LambdaHeights.Types.Menu      as UI
+import qualified LambdaHeights.Types.MenuItem  as UI
+import qualified LambdaHeights.Types.Screen    as Screen
+import qualified LambdaHeights.Types.Timer     as Timer
 import qualified SDL
-import qualified SDL.Font                                as SDLF
+import qualified SDL.Font                      as SDLF
 
--- Input
-
+-- | Polls pending events and converts them to key events.
 keyInput :: IO [KeyEvent]
 keyInput = mapMaybe eventToKeyEvent <$> SDL.pollEvents
 
@@ -39,17 +54,16 @@ keyToKeyEvent _                 _           = Nothing
 
 type ToResult a = UI.MenuItem -> a
 
+-- | Applies key events to the current menu.
 update :: ToResult a -> Timer.LoopTimer -> [KeyEvent] -> UI.Menu -> Either a UI.Menu
 update toResult _ events menu =
   let list = UI.applyEvents menu events
   in  if UI.confirmed list then Left $ toResult $ UI.selectedItem list else Right list
 
--- Render the menu.
-
 data RenderConfig = RenderConfig {
-  font :: SDLF.Font,
-  backgroundColor :: SDL.V4 Word8,
-  textColor :: SDL.V4 Word8,
+  font              :: SDLF.Font,
+  backgroundColor   :: SDL.V4 Word8,
+  textColor         :: SDL.V4 Word8,
   selectedTextColor :: SDL.V4 Word8
 }
 
@@ -66,10 +80,16 @@ defaultConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
+-- | Renders the menu.
 render :: RenderContext -> RenderConfig -> Timer.LoopTimer -> UI.Menu -> IO ()
-render (window, renderer) config _ menu = do
+render (window, renderer) config timer menu = do
   SDL.rendererDrawColor renderer SDL.$= backgroundColor config
   SDL.clear renderer
+  renderNoClear (window, renderer) config timer menu
+
+-- | Renders the menu without clearing the screen.
+renderNoClear :: RenderContext -> RenderConfig -> Timer.LoopTimer -> UI.Menu -> IO ()
+renderNoClear (window, renderer) config _ menu = do
   let screen     = Screen.newScreen
   let selectedId = UI.selected menu
   windowSize <- SDL.get $ SDL.windowSize window

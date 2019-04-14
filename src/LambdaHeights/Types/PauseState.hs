@@ -1,11 +1,11 @@
 module LambdaHeights.Types.PauseState where
 
-import qualified LambdaHeights.Types.Menu                as Menu
+import qualified LambdaHeights.Types.Menu     as Menu
 import           LambdaHeights.Types.MenuItem
 
 data State a = State {
-  state :: a,
-  menu :: Menu.Menu,
+  state  :: a,
+  menu   :: Menu.Menu,
   reason :: Maybe ExitReason
 }
 

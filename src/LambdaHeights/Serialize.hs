@@ -4,8 +4,8 @@ import           Codec.Serialise
 import           Control.Concurrent.STM.TChan
 import           Control.Monad.Extra
 import           Control.Monad.STM
-import qualified Data.ByteString.Lazy                    as BS
-import qualified Data.ByteString.Lazy.Char8              as BS8
+import qualified Data.ByteString.Lazy         as BS
+import qualified Data.ByteString.Lazy.Char8   as BS8
 import           System.Directory
 
 type Source m a = m (Maybe a)

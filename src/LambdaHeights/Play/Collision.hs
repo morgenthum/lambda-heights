@@ -6,7 +6,7 @@ type Point = Position
 
 data Rect = Rect {
     position :: Position,
-    size :: Size
+    size     :: Size
 }
 
 inside :: Point -> Rect -> Bool

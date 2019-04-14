@@ -1,19 +1,19 @@
 module LambdaHeights.Types.PlayState where
 
 import           Data.Word
-import qualified LambdaHeights.Types.Layer               as Layer
-import qualified LambdaHeights.Types.Player              as Player
-import qualified LambdaHeights.Types.Screen              as Screen
+import qualified LambdaHeights.Types.Layer  as Layer
+import qualified LambdaHeights.Types.Player as Player
+import qualified LambdaHeights.Types.Screen as Screen
 
 data Result = Result {
   reason :: ExitReason,
-  state :: State
+  state  :: State
 }
 
 data ExitReason = Finished | Pause
 
 data State = State {
-  time :: Word32,
+  time   :: Word32,
   screen :: Screen.Screen,
   motion :: Motion,
   player :: Player.Player,
@@ -21,9 +21,9 @@ data State = State {
 }
 
 data Motion = Motion {
-  moveLeft :: Bool,
+  moveLeft  :: Bool,
   moveRight :: Bool,
-  jump :: Bool
+  jump      :: Bool
 }
 
 newState :: State

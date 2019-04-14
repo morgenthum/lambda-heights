@@ -1,10 +1,10 @@
 module LambdaHeights.Types.Screen where
 
 data Screen = Screen {
-  top :: Float,
-  left :: Float,
+  top    :: Float,
+  left   :: Float,
   bottom :: Float,
-  right :: Float
+  right  :: Float
 }
 
 newScreen :: Screen

@@ -1,12 +1,12 @@
 module LambdaHeights.Render where
 
-import qualified Data.Text                               as T
+import qualified Data.Text                    as T
 import           Foreign.C.Types
-import qualified LambdaHeights.Scale                     as Scale
-import qualified LambdaHeights.Types.MenuItem            as UI
-import qualified LambdaHeights.Types.Screen              as Screen
+import qualified LambdaHeights.Scale          as Scale
+import qualified LambdaHeights.Types.MenuItem as UI
+import qualified LambdaHeights.Types.Screen   as Screen
 import qualified SDL
-import qualified SDL.Font                                as SDLF
+import qualified SDL.Font                     as SDLF
 
 renderButton
   :: SDL.Renderer

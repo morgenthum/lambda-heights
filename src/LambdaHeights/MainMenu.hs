@@ -4,25 +4,25 @@ module LambdaHeights.MainMenu
   )
 where
 
-import           LambdaHeights.Graphics
-import qualified LambdaHeights.Menu                      as Menu
-import qualified LambdaHeights.Types.MenuItem            as MenuItem
-import qualified LambdaHeights.Types.GameState           as Game
+import qualified LambdaHeights.Menu                as Menu
+import           LambdaHeights.RenderContext
+import qualified LambdaHeights.Types.GameState     as Game
 import           LambdaHeights.Types.KeyEvents
-import qualified LambdaHeights.Types.MainMenuState       as MainMenu
-import qualified LambdaHeights.Types.Timer               as Timer
+import qualified LambdaHeights.Types.MainMenuState as MainMenu
+import qualified LambdaHeights.Types.MenuItem      as MenuItem
+import qualified LambdaHeights.Types.Timer         as Timer
 
 -- Update the menu.
 
 update :: Timer.LoopTimer -> [KeyEvent] -> MainMenu.State -> Either Game.State MainMenu.State
 update timer events state =
-  let updated = Menu.update stateByButton timer events $ MainMenu.menu state
+  let updated = Menu.update stateFromItem timer events $ MainMenu.menu state
   in  case updated of
         Left  result -> Left result
         Right menu   -> Right $ state { MainMenu.menu = menu }
 
-stateByButton :: MenuItem.MenuItem -> Game.State
-stateByButton button = case MenuItem.text button of
+stateFromItem :: MenuItem.MenuItem -> Game.State
+stateFromItem item = case MenuItem.text item of
   "play"   -> Game.Play
   "replay" -> Game.Replay
   "exit"   -> Game.Exit

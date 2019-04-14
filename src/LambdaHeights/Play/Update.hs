@@ -1,27 +1,30 @@
 module LambdaHeights.Play.Update
-  ( update
+  ( Updater
+  , update
   )
 where
 
 import           Data.Function
 import           Data.List
-import qualified LambdaHeights.Play.Collision            as Collision
-import qualified LambdaHeights.Play.Pattern              as Pattern
-import qualified LambdaHeights.Types.Events              as Events
-import qualified LambdaHeights.Types.PlayState           as State
-import qualified LambdaHeights.Types.Layer               as Layer
-import qualified LambdaHeights.Types.Player              as Player
-import qualified LambdaHeights.Types.Screen              as Screen
-import qualified LambdaHeights.Types.Timer               as Timer
+import qualified LambdaHeights.Play.Collision  as Collision
+import qualified LambdaHeights.Play.Pattern    as Pattern
+import qualified LambdaHeights.Types.Events    as Events
+import qualified LambdaHeights.Types.Layer     as Layer
+import qualified LambdaHeights.Types.Player    as Player
+import qualified LambdaHeights.Types.PlayState as State
+import qualified LambdaHeights.Types.Screen    as Screen
+import qualified LambdaHeights.Types.Timer     as Timer
 
 type Updater = Timer.LoopTimer -> Events.Events -> State.State -> Either State.Result State.State
 
--- Update th world state.
+-- Update the world state.
 -- 1. Applies occured events to the current world state.
 -- 2. Updates the current world state using the update factor.
 
 updateFactor :: Float
 updateFactor = 1 / 128
+
+-- | Applies occured events and updates the game world.
 
 update :: Updater
 update timer events state =

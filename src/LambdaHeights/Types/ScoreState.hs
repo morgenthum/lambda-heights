@@ -1,13 +1,13 @@
 module LambdaHeights.Types.ScoreState where
 
-import qualified LambdaHeights.Types.Menu                as Menu
+import qualified LambdaHeights.Types.Menu     as Menu
 import           LambdaHeights.Types.MenuItem
 
 type Score = Int
 
 data State = State {
   score :: Score,
-  menu :: Menu.Menu
+  menu  :: Menu.Menu
 }
 
 newState :: Int -> State

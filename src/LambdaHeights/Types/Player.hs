@@ -9,11 +9,11 @@ type Acceleration = (Float, Float)
 data MotionType = Ground | Air
 
 data Player = Player {
-  score :: Score,
-  position :: Position,
-  velocity :: Velocity,
+  score        :: Score,
+  position     :: Position,
+  velocity     :: Velocity,
   acceleration :: Acceleration,
-  motionType :: MotionType
+  motionType   :: MotionType
 }
 
 newPlayer :: Player

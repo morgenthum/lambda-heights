@@ -10,9 +10,9 @@ module LambdaHeights.Loop
   )
 where
 
-import qualified Control.Monad.Fail                      as M
-import qualified Control.Monad.State                     as M
-import qualified LambdaHeights.Types.Timer               as Timer
+import qualified Control.Monad.Fail        as M
+import qualified Control.Monad.State       as M
+import qualified LambdaHeights.Types.Timer as Timer
 import qualified SDL
 
 type LoopState m s r = M.StateT (Timer.TimedState s r) m ()
@@ -27,7 +27,7 @@ noOutput _ _ _ = return ()
 
 startLoop :: (M.MonadFail m, M.MonadIO m) => Timer.LoopTimer -> s -> LoopState m s r -> m r
 startLoop timer state loop = do
-  Left result <- Timer.menu <$> M.execStateT loop (Timer.TimedState timer $ Right state)
+  Left result <- Timer.state <$> M.execStateT loop (Timer.TimedState timer $ Right state)
   return result
 
 timedLoop
@@ -37,7 +37,7 @@ timedLoop input update output render = do
   updateFrameCounter
   updateCycle input update output
   timedState <- M.get
-  case Timer.menu timedState of
+  case Timer.state timedState of
     Left  _     -> return ()
     Right state -> do
       M.lift $ render (Timer.timer timedState) state
@@ -80,9 +80,9 @@ updateFrameCounter = do
   let counter        = Timer.counter timer
 
   let elapsedMillis  = Timer.current timer - Timer.countStart counter
-  let elapsedSeconds = realToFrac elapsedMillis / 1000 :: Double
+  let elapsedSeconds = realToFrac elapsedMillis / 1000 :: Float
   let frames         = Timer.frames counter
-  let fps = round (realToFrac frames / realToFrac elapsedSeconds :: Double)
+  let fps = round (realToFrac frames / realToFrac elapsedSeconds :: Float)
 
   M.when (elapsedSeconds >= 0.25 && frames > 10) $ M.put $ timedState
     { Timer.timer = timer
@@ -96,7 +96,7 @@ updateFrameCounter = do
 updateCycle :: (M.Monad m) => Input m e -> Update s r e -> Output m s r e -> LoopState m s r
 updateCycle input update output = do
   timedState <- M.get
-  case Timer.menu timedState of
+  case Timer.state timedState of
     Left  _     -> return ()
     Right state -> do
       let timer = Timer.timer timedState
@@ -107,6 +107,6 @@ updateCycle input update output = do
         let lag  = Timer.lag timer
         let rate = Timer.rate timer
         M.put $ timedState { Timer.timer = timer { Timer.lag = lag - rate }
-                           , Timer.menu  = eitherState
+                           , Timer.state = eitherState
                            }
         updateCycle input update output

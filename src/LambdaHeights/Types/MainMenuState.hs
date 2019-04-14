@@ -1,6 +1,6 @@
 module LambdaHeights.Types.MainMenuState where
 
-import qualified LambdaHeights.Types.Menu                as Menu
+import qualified LambdaHeights.Types.Menu     as Menu
 import           LambdaHeights.Types.MenuItem
 
 newtype State = State {

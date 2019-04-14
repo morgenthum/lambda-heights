@@ -1,12 +1,12 @@
 module LambdaHeights.Replay where
 
 import           Data.Time
-import           LambdaHeights.Graphics
-import qualified LambdaHeights.Play                      as Ingame
-import qualified LambdaHeights.Types.Events              as Events
-import qualified LambdaHeights.Types.PlayState           as Ingame
-import qualified LambdaHeights.Types.ReplayState         as Replay
-import qualified LambdaHeights.Types.Timer               as Timer
+import qualified LambdaHeights.Play              as Ingame
+import           LambdaHeights.RenderContext
+import qualified LambdaHeights.Types.Events      as Events
+import qualified LambdaHeights.Types.PlayState   as Ingame
+import qualified LambdaHeights.Types.ReplayState as Replay
+import qualified LambdaHeights.Types.Timer       as Timer
 
 -- Only the control events are relevant, because we have
 -- no player control if we are replaying a game.

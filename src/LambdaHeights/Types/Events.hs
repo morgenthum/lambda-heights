@@ -7,7 +7,7 @@ import           GHC.Generics
 
 data Events = Events {
   controlEvents :: [ControlEvent],
-  playerEvents :: [PlayerEvent]
+  playerEvents  :: [PlayerEvent]
 }
 
 data ControlEvent = Paused

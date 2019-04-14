@@ -5,21 +5,21 @@ import qualified SDL
 
 data FrameCounter = FrameCounter {
   countStart :: Word32,
-  frames :: Word32,
-  fps :: Word32
+  frames     :: Word32,
+  fps        :: Word32
 }
 
 data LoopTimer = LoopTimer {
   counter :: FrameCounter,
   current :: Word32,
   elapsed :: Word32,
-  rate :: Word32,
-  lag :: Word32
+  rate    :: Word32,
+  lag     :: Word32
 }
 
 data TimedState s r = TimedState {
   timer :: LoopTimer,
-  menu :: Either r s
+  state :: Either r s
 }
 
 newTimer :: Word32 -> IO LoopTimer

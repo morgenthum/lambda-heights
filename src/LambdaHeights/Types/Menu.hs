@@ -10,12 +10,12 @@ module LambdaHeights.Types.Menu
   )
 where
 
-import           LambdaHeights.Types.MenuItem
 import           LambdaHeights.Types.KeyEvents
+import           LambdaHeights.Types.MenuItem
 
 data Menu = Menu {
-  items :: [MenuItem],
-  selected :: Int,
+  items     :: [MenuItem],
+  selected  :: Int,
   confirmed :: Bool
 }
 

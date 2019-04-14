@@ -3,9 +3,9 @@ module LambdaHeights.Play.Pattern where
 import           LambdaHeights.Types
 
 data PatternEntry = PatternEntry {
-  entryId :: Int,
+  entryId     :: Int,
   description :: (Size, Float),
-  distance :: Float
+  distance    :: Float
 }
 
 repeatPattern :: Int -> Int -> [PatternEntry] -> [PatternEntry]

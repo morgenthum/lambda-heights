@@ -3,9 +3,9 @@ module LambdaHeights.Types.Layer where
 import           LambdaHeights.Types
 
 data Layer = Layer {
-  layerId :: Int,
-  entryId :: Int,
-  size :: Size,
+  layerId  :: Int,
+  entryId  :: Int,
+  size     :: Size,
   position :: Position
 }
 

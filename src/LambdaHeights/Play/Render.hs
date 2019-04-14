@@ -10,30 +10,30 @@ module LambdaHeights.Play.Render
   )
 where
 
-import qualified Data.Vector.Storable                    as V
+import qualified Data.Vector.Storable          as V
 import           Data.Word
 import           Foreign.C.Types
-import           LambdaHeights.Graphics
-import qualified LambdaHeights.Render                    as Render
-import qualified LambdaHeights.Scale                     as Scale
+import qualified LambdaHeights.Render          as Render
+import           LambdaHeights.RenderContext
+import qualified LambdaHeights.Scale           as Scale
 import           LambdaHeights.Types
-import qualified LambdaHeights.Types.PlayState           as State
-import qualified LambdaHeights.Types.Layer               as Layer
-import qualified LambdaHeights.Types.Player              as Player
-import qualified LambdaHeights.Types.Screen              as Screen
-import qualified LambdaHeights.Types.Shape               as Shape
-import qualified LambdaHeights.Types.Timer               as Timer
+import qualified LambdaHeights.Types.Layer     as Layer
+import qualified LambdaHeights.Types.Player    as Player
+import qualified LambdaHeights.Types.PlayState as State
+import qualified LambdaHeights.Types.Screen    as Screen
+import qualified LambdaHeights.Types.Shape     as Shape
+import qualified LambdaHeights.Types.Timer     as Timer
 import qualified SDL
-import qualified SDL.Font                                as SDLF
-import qualified SDL.Primitive                           as SDLP
+import qualified SDL.Font                      as SDLF
+import qualified SDL.Primitive                 as SDLP
 
 data RenderConfig = RenderConfig {
-  font :: SDLF.Font,
-  headlineColor :: SDL.V4 Word8,
-  bgColor :: SDL.V4 Word8,
-  playerColor :: SDL.V4 Word8,
+  font              :: SDLF.Font,
+  headlineColor     :: SDL.V4 Word8,
+  bgColor           :: SDL.V4 Word8,
+  playerColor       :: SDL.V4 Word8,
   playerShadowColor :: SDL.V4 Word8,
-  textColor :: SDL.V4 Word8
+  textColor         :: SDL.V4 Word8
 }
 
 defaultConfig :: IO RenderConfig

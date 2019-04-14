@@ -6,24 +6,24 @@ where
 import           Control.Concurrent.Async
 import           Control.Concurrent.STM.TChan
 import           Control.Monad
-import           LambdaHeights.Graphics
 import           LambdaHeights.Loop
-import qualified LambdaHeights.MainMenu                  as MainMenu
-import qualified LambdaHeights.Menu                      as Menu
-import qualified LambdaHeights.Pause                     as Pause
-import qualified LambdaHeights.Play                      as Play
-import qualified LambdaHeights.Replay                    as Replay
+import qualified LambdaHeights.MainMenu            as MainMenu
+import qualified LambdaHeights.Menu                as Menu
+import qualified LambdaHeights.Pause               as Pause
+import qualified LambdaHeights.Play                as Play
+import           LambdaHeights.RenderContext
+import qualified LambdaHeights.Replay              as Replay
+import qualified LambdaHeights.Score               as Score
 import           LambdaHeights.Serialize
-import qualified LambdaHeights.Score                     as Score
-import qualified LambdaHeights.Types.Events              as Events
-import qualified LambdaHeights.Types.GameState           as Game
-import qualified LambdaHeights.Types.PlayState           as Play
-import qualified LambdaHeights.Types.MainMenuState       as Menu
-import qualified LambdaHeights.Types.PauseState          as Pause
-import qualified LambdaHeights.Types.Player              as Play
-import qualified LambdaHeights.Types.ReplayState         as Replay
-import qualified LambdaHeights.Types.ScoreState          as Score
-import qualified LambdaHeights.Types.Timer               as Timer
+import qualified LambdaHeights.Types.Events        as Events
+import qualified LambdaHeights.Types.GameState     as Game
+import qualified LambdaHeights.Types.MainMenuState as Menu
+import qualified LambdaHeights.Types.PauseState    as Pause
+import qualified LambdaHeights.Types.Player        as Play
+import qualified LambdaHeights.Types.PlayState     as Play
+import qualified LambdaHeights.Types.ReplayState   as Replay
+import qualified LambdaHeights.Types.ScoreState    as Score
+import qualified LambdaHeights.Types.Timer         as Timer
 import           System.Directory
 
 type PlayLoopState = LoopState IO Play.State Play.Result

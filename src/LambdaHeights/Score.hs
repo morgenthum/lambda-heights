@@ -1,10 +1,10 @@
 module LambdaHeights.Score where
 
-import           LambdaHeights.Graphics
-import qualified LambdaHeights.Menu                      as Menu
-import qualified LambdaHeights.Types.KeyEvents           as Events
-import qualified LambdaHeights.Types.ScoreState          as Score
-import qualified LambdaHeights.Types.Timer               as Timer
+import qualified LambdaHeights.Menu             as Menu
+import           LambdaHeights.RenderContext
+import qualified LambdaHeights.Types.KeyEvents  as Events
+import qualified LambdaHeights.Types.ScoreState as Score
+import qualified LambdaHeights.Types.Timer      as Timer
 
 -- Refresh the menu.
 
