@@ -1,16 +1,14 @@
 module LambdaHeights.Types.ScoreState where
 
-import           LambdaHeights.Types.Button
-import           LambdaHeights.Types.ButtonList
-import           LambdaHeights.Types.Screen
+import qualified LambdaHeights.Types.Menu                as Menu
+import           LambdaHeights.Types.MenuItem
 
 type Score = Int
 
 data State = State {
   score :: Score,
-  buttonList :: ButtonList
+  menu :: Menu.Menu
 }
 
 newState :: Int -> State
-newState s =
-  State {score = s, buttonList = newButtonList newScreen [Button 0 "continue" (500, 450)]}
+newState s = State {score = s, menu = Menu.newMenu [MenuItem 0 ("score: " ++ show s) (500, 500)]}

@@ -19,7 +19,7 @@ data LoopTimer = LoopTimer {
 
 data TimedState s r = TimedState {
   timer :: LoopTimer,
-  state :: Either r s
+  menu :: Either r s
 }
 
 newTimer :: Word32 -> IO LoopTimer

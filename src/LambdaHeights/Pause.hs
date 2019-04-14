@@ -4,8 +4,8 @@ import           Data.Word
 import           LambdaHeights.Graphics
 import qualified LambdaHeights.Render                    as Render
 import qualified LambdaHeights.Scale                     as Scale
-import qualified LambdaHeights.Types.Button              as UI
-import qualified LambdaHeights.Types.ButtonList          as UI
+import qualified LambdaHeights.Types.Menu                as UI
+import qualified LambdaHeights.Types.MenuItem            as UI
 import qualified LambdaHeights.Types.KeyEvents           as Events
 import qualified LambdaHeights.Types.PauseState          as Pause
 import qualified LambdaHeights.Types.Screen              as Screen
@@ -21,11 +21,11 @@ update
   -> Pause.State a
   -> Either Pause.ExitReason (Pause.State a)
 update _ events state =
-  let list     = UI.ensureValidIndex $ UI.applyEvents (Pause.buttonList state) events
-      newState = state { Pause.buttonList = list }
-  in  if UI.action list then Left $ stateByButton $ UI.selectedButton list else Right newState
+  let list     = UI.applyEvents (Pause.menu state) events
+      newState = state { Pause.menu = list }
+  in  if UI.confirmed list then Left $ stateByButton $ UI.selectedItem list else Right newState
 
-stateByButton :: UI.Button -> Pause.ExitReason
+stateByButton :: UI.MenuItem -> Pause.ExitReason
 stateByButton button = case UI.text button of
   "exit" -> Pause.Exit
   _      -> Pause.Resume
@@ -61,7 +61,7 @@ render
 render (window, renderer) pauseConfig proxyRenderer timer s = do
   proxyRenderer timer $ Pause.state s
   renderOverlay (window, renderer) pauseConfig
-  renderButtons (window, renderer) pauseConfig $ Pause.buttonList s
+  renderButtons (window, renderer) pauseConfig $ Pause.menu s
   SDL.present renderer
 
 renderOverlay :: RenderContext -> RenderConfig -> IO ()
@@ -70,15 +70,21 @@ renderOverlay (window, renderer) config = do
   SDL.rendererDrawColor renderer SDL.$= overlayColor config
   SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P $ SDL.V2 0 0) windowSize
 
-renderButtons :: RenderContext -> RenderConfig -> UI.ButtonList -> IO ()
-renderButtons (window, renderer) config list = do
-  let view       = UI.screen list
-  let selectedId = UI.selected list
+renderButtons :: RenderContext -> RenderConfig -> UI.Menu -> IO ()
+renderButtons (window, renderer) config menu = do
+  let screen     = Screen.newScreen
+  let selectedId = UI.selected menu
   windowSize <- SDL.get $ SDL.windowSize window
-  mapM_ (renderButton renderer config windowSize view selectedId) $ UI.buttons list
+  mapM_ (renderButton renderer config windowSize screen selectedId) $ UI.items menu
 
 renderButton
-  :: SDL.Renderer -> RenderConfig -> Scale.WindowSize -> Screen.Screen -> Int -> UI.Button -> IO ()
+  :: SDL.Renderer
+  -> RenderConfig
+  -> Scale.WindowSize
+  -> Screen.Screen
+  -> Int
+  -> UI.MenuItem
+  -> IO ()
 renderButton renderer config windowSize screen selectedId button = do
   let color = if selectedId == UI.id button then selectedTextColor config else textColor config
   Render.renderButton renderer windowSize screen (font config) color button

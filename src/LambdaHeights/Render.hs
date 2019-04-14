@@ -3,7 +3,7 @@ module LambdaHeights.Render where
 import qualified Data.Text                               as T
 import           Foreign.C.Types
 import qualified LambdaHeights.Scale                     as Scale
-import qualified LambdaHeights.Types.Button              as UI
+import qualified LambdaHeights.Types.MenuItem            as UI
 import qualified LambdaHeights.Types.Screen              as Screen
 import qualified SDL
 import qualified SDL.Font                                as SDLF
@@ -14,7 +14,7 @@ renderButton
   -> Screen.Screen
   -> SDLF.Font
   -> SDLF.Color
-  -> UI.Button
+  -> UI.MenuItem
   -> IO ()
 renderButton renderer windowSize screen font color button = do
   let position = Scale.toWindowPosition screen windowSize (UI.position button)

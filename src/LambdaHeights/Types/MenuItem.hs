@@ -1,8 +1,8 @@
-module LambdaHeights.Types.Button where
+module LambdaHeights.Types.MenuItem where
 
 import           LambdaHeights.Types
 
-data Button = Button {
+data MenuItem = MenuItem {
   id :: Int,
   text :: String,
   position :: Position

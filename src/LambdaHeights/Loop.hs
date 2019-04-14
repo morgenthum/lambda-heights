@@ -27,7 +27,7 @@ noOutput _ _ _ = return ()
 
 startLoop :: (M.MonadFail m, M.MonadIO m) => Timer.LoopTimer -> s -> LoopState m s r -> m r
 startLoop timer state loop = do
-  Left result <- Timer.state <$> M.execStateT loop (Timer.TimedState timer $ Right state)
+  Left result <- Timer.menu <$> M.execStateT loop (Timer.TimedState timer $ Right state)
   return result
 
 timedLoop
@@ -37,7 +37,7 @@ timedLoop input update output render = do
   updateFrameCounter
   updateCycle input update output
   timedState <- M.get
-  case Timer.state timedState of
+  case Timer.menu timedState of
     Left  _     -> return ()
     Right state -> do
       M.lift $ render (Timer.timer timedState) state
@@ -96,7 +96,7 @@ updateFrameCounter = do
 updateCycle :: (M.Monad m) => Input m e -> Update s r e -> Output m s r e -> LoopState m s r
 updateCycle input update output = do
   timedState <- M.get
-  case Timer.state timedState of
+  case Timer.menu timedState of
     Left  _     -> return ()
     Right state -> do
       let timer = Timer.timer timedState
@@ -107,6 +107,6 @@ updateCycle input update output = do
         let lag  = Timer.lag timer
         let rate = Timer.rate timer
         M.put $ timedState { Timer.timer = timer { Timer.lag = lag - rate }
-                           , Timer.state = eitherState
+                           , Timer.menu  = eitherState
                            }
         updateCycle input update output

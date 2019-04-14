@@ -1,22 +1,13 @@
-module LambdaHeights.Menu
-  ( keyInput
-  , update
-  , defaultConfig
-  , deleteConfig
-  , render
-  )
-where
+module LambdaHeights.Menu where
 
 import           Data.Maybe
 import           Data.Word
 import           LambdaHeights.Graphics
 import qualified LambdaHeights.Render                    as Render
 import qualified LambdaHeights.Scale                     as Scale
-import qualified LambdaHeights.Types.Button              as UI
-import qualified LambdaHeights.Types.ButtonList          as UI
-import qualified LambdaHeights.Types.GameState           as Game
+import qualified LambdaHeights.Types.Menu                as UI
+import qualified LambdaHeights.Types.MenuItem            as UI
 import           LambdaHeights.Types.KeyEvents
-import qualified LambdaHeights.Types.MenuState           as Menu
 import qualified LambdaHeights.Types.Screen              as Screen
 import qualified LambdaHeights.Types.Timer               as Timer
 import qualified SDL
@@ -46,20 +37,12 @@ keyToKeyEvent _                 _           = Nothing
 
 -- Update the menu.
 
-update :: Timer.LoopTimer -> [KeyEvent] -> Menu.State -> Either Game.State Menu.State
-update _ events state =
-  let list = UI.ensureValidIndex $ UI.applyEvents (Menu.buttonList state) events
-  in  if UI.action list
-        then Left $ stateByButton $ UI.selectedButton list
-        else Right $ state { Menu.buttonList = list }
+type ToResult a = UI.MenuItem -> a
 
-stateByButton :: UI.Button -> Game.State
-stateByButton button = case UI.text button of
-  "play"   -> Game.Play
-  "replay" -> Game.Replay
-  "exit"   -> Game.Exit
-  _        -> Game.Menu
-
+update :: ToResult a -> Timer.LoopTimer -> [KeyEvent] -> UI.Menu -> Either a UI.Menu
+update toResult _ events menu =
+  let list = UI.applyEvents menu events
+  in  if UI.confirmed list then Left $ toResult $ UI.selectedItem list else Right list
 
 -- Render the menu.
 
@@ -83,19 +66,24 @@ defaultConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-render :: RenderContext -> RenderConfig -> Timer.LoopTimer -> Menu.State -> IO ()
-render (window, renderer) config _ state = do
+render :: RenderContext -> RenderConfig -> Timer.LoopTimer -> UI.Menu -> IO ()
+render (window, renderer) config _ menu = do
   SDL.rendererDrawColor renderer SDL.$= backgroundColor config
   SDL.clear renderer
-  let list       = Menu.buttonList state
-  let view       = UI.screen list
-  let selectedId = UI.selected list
+  let screen     = Screen.newScreen
+  let selectedId = UI.selected menu
   windowSize <- SDL.get $ SDL.windowSize window
-  mapM_ (renderButton renderer config windowSize view selectedId) $ UI.buttons list
+  mapM_ (renderButton renderer config windowSize screen selectedId) $ UI.items menu
   SDL.present renderer
 
 renderButton
-  :: SDL.Renderer -> RenderConfig -> Scale.WindowSize -> Screen.Screen -> Int -> UI.Button -> IO ()
+  :: SDL.Renderer
+  -> RenderConfig
+  -> Scale.WindowSize
+  -> Screen.Screen
+  -> Int
+  -> UI.MenuItem
+  -> IO ()
 renderButton renderer config windowSize screen selectedId button = do
   let color = if selectedId == UI.id button then selectedTextColor config else textColor config
   Render.renderButton renderer windowSize screen (font config) color button

@@ -8,6 +8,7 @@ import           Control.Concurrent.STM.TChan
 import           Control.Monad
 import           LambdaHeights.Graphics
 import           LambdaHeights.Loop
+import qualified LambdaHeights.MainMenu                  as MainMenu
 import qualified LambdaHeights.Menu                      as Menu
 import qualified LambdaHeights.Pause                     as Pause
 import qualified LambdaHeights.Play                      as Play
@@ -17,7 +18,7 @@ import qualified LambdaHeights.Score                     as Score
 import qualified LambdaHeights.Types.Events              as Events
 import qualified LambdaHeights.Types.GameState           as Game
 import qualified LambdaHeights.Types.PlayState           as Play
-import qualified LambdaHeights.Types.MenuState           as Menu
+import qualified LambdaHeights.Types.MainMenuState       as Menu
 import qualified LambdaHeights.Types.PauseState          as Pause
 import qualified LambdaHeights.Types.Player              as Play
 import qualified LambdaHeights.Types.ReplayState         as Replay
@@ -51,7 +52,7 @@ startMenu ctx = do
   timer  <- defaultTimer
   config <- Menu.defaultConfig
 
-  let loop = timedLoop Menu.keyInput Menu.update noOutput (Menu.render ctx config)
+  let loop = timedLoop Menu.keyInput MainMenu.update noOutput (MainMenu.render ctx config)
   state <- startLoop timer Menu.newState loop
 
   Menu.deleteConfig config
@@ -96,19 +97,18 @@ startGameLoop replayFilePath channel gameState playLoop pauseLoop = do
     Play.Pause    -> do
       reason <- startLoop timer (Pause.newState $ Play.state result) pauseLoop
       case reason of
-        Pause.Resume ->
-          startGameLoop replayFilePath channel (Play.state result) playLoop pauseLoop
-        Pause.Exit -> return score
+        Pause.Resume -> startGameLoop replayFilePath channel (Play.state result) playLoop pauseLoop
+        Pause.Exit   -> return score
 
 showScore :: RenderContext -> Score.Score -> IO Game.State
 showScore ctx score = do
   timer  <- defaultTimer
-  config <- Score.defaultConfig
+  config <- Menu.defaultConfig
 
   let loop = timedLoop Menu.keyInput Score.update noOutput $ Score.render ctx config
   _ <- startLoop timer (Score.newState score) loop
 
-  Score.deleteConfig config
+  Menu.deleteConfig config
   return Game.Menu
 
 startReplay :: FilePath -> RenderContext -> IO Game.State
