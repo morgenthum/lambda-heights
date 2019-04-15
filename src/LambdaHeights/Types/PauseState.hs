@@ -1,11 +1,12 @@
 module LambdaHeights.Types.PauseState where
 
-import qualified LambdaHeights.Types.Menu     as Menu
-import           LambdaHeights.Types.MenuItem
+import           LambdaHeights.Types.Label
+import qualified LambdaHeights.Types.MenuState as Menu
+import           Linear.V2
 
 data State a = State {
   state  :: a,
-  menu   :: Menu.Menu,
+  menu   :: Menu.State,
   reason :: Maybe ExitReason
 }
 
@@ -14,6 +15,7 @@ data ExitReason = Exit | Resume
 newState :: a -> State a
 newState s = State
   { state  = s
-  , menu   = Menu.newMenu [MenuItem 0 "resume" (500, 550), MenuItem 1 "exit" (500, 450)]
+  , menu   = Menu.newMenu
+    [Label 0 "resume" (V2 500 550) AlignCenter, Label 1 "exit" (V2 500 450) AlignCenter]
   , reason = Nothing
   }

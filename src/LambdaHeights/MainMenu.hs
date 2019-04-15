@@ -8,8 +8,8 @@ import qualified LambdaHeights.Menu                as Menu
 import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Types.GameState     as Game
 import           LambdaHeights.Types.KeyEvents
+import qualified LambdaHeights.Types.Label         as Label
 import qualified LambdaHeights.Types.MainMenuState as MainMenu
-import qualified LambdaHeights.Types.MenuItem      as MenuItem
 import qualified LambdaHeights.Types.Timer         as Timer
 
 -- Update the menu.
@@ -21,8 +21,8 @@ update timer events state =
         Left  result -> Left result
         Right menu   -> Right $ state { MainMenu.menu = menu }
 
-stateFromItem :: MenuItem.MenuItem -> Game.State
-stateFromItem item = case MenuItem.text item of
+stateFromItem :: Label.Label -> Game.State
+stateFromItem item = case Label.text item of
   "play"   -> Game.Play
   "replay" -> Game.Replay
   "exit"   -> Game.Exit

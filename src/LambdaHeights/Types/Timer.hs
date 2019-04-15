@@ -4,9 +4,9 @@ import           Data.Word
 import qualified SDL
 
 data FrameCounter = FrameCounter {
-  countStart :: Word32,
-  frames     :: Word32,
-  fps        :: Word32
+  start  :: Word32,
+  frames :: Word32,
+  fps    :: Word32
 }
 
 data LoopTimer = LoopTimer {

@@ -79,16 +79,16 @@ updateFrameCounter = do
   let timer          = Timer.timer timedState
   let counter        = Timer.counter timer
 
-  let elapsedMillis  = Timer.current timer - Timer.countStart counter
+  let elapsedMillis  = Timer.current timer - Timer.start counter
   let elapsedSeconds = realToFrac elapsedMillis / 1000 :: Float
   let frames         = Timer.frames counter
-  let fps = round (realToFrac frames / realToFrac elapsedSeconds :: Float)
+  let fps = round (realToFrac frames / elapsedSeconds :: Float)
 
   M.when (elapsedSeconds >= 0.25 && frames > 10) $ M.put $ timedState
     { Timer.timer = timer
-                      { Timer.counter = counter { Timer.countStart = Timer.current timer
-                                                , Timer.frames     = 0
-                                                , Timer.fps        = fps
+                      { Timer.counter = counter { Timer.start  = Timer.current timer
+                                                , Timer.frames = 0
+                                                , Timer.fps    = fps
                                                 }
                       }
     }

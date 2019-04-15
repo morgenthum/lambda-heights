@@ -1,14 +1,16 @@
 module LambdaHeights.Types.ScoreState where
 
-import qualified LambdaHeights.Types.Menu     as Menu
-import           LambdaHeights.Types.MenuItem
+import           LambdaHeights.Types.Label
+import qualified LambdaHeights.Types.MenuState as Menu
+import           Linear.V2
 
 type Score = Int
 
 data State = State {
   score :: Score,
-  menu  :: Menu.Menu
+  menu  :: Menu.State
 }
 
 newState :: Int -> State
-newState s = State {score = s, menu = Menu.newMenu [MenuItem 0 ("score: " ++ show s) (500, 500)]}
+newState s =
+  State {score = s, menu = Menu.newMenu [Label 0 ("score: " ++ show s) (V2 500 500) AlignCenter]}

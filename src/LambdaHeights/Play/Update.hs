@@ -14,6 +14,7 @@ import qualified LambdaHeights.Types.Player    as Player
 import qualified LambdaHeights.Types.PlayState as State
 import qualified LambdaHeights.Types.Screen    as Screen
 import qualified LambdaHeights.Types.Timer     as Timer
+import           Linear.V2
 
 type Updater = Timer.LoopTimer -> Events.Events -> State.State -> Either State.Result State.State
 
@@ -28,27 +29,27 @@ updateFactor = 1 / 128
 
 update :: Updater
 update timer events state =
-  let playerEvents = Events.playerEvents events
-      time         = State.time state
-      screen       = State.screen state
-      layers       = State.layers state
-      player       = State.player state
-      motion       = updateMotion playerEvents $ State.motion state
-      state'       = state { State.time   = time + Timer.rate timer
-                           , State.screen = updateScreen player screen
-                           , State.motion = resetMotion motion
-                           , State.player = updatePlayer screen motion layers player
-                           , State.layers = updateLayers screen layers
-                           }
+  let time   = State.duration state
+      screen = State.screen state
+      layers = State.layers state
+      player = State.player state
+      motion = updateMotion (Events.player events) $ State.motion state
+      state' = state { State.duration = time + Timer.rate timer
+                     , State.screen   = updateScreen player screen
+                     , State.motion   = resetMotion motion
+                     , State.player   = updatePlayer screen motion layers player
+                     , State.layers   = updateLayers screen layers
+                     }
   in  updatedResult events state'
 
 updatedResult :: Events.Events -> State.State -> Either State.Result State.State
 updatedResult events state =
-  let paused = elem Events.Paused $ Events.controlEvents events
-  in  if dead (State.screen state) (State.player state)
-        then Left $ State.Result State.Finished state
-        else if paused then Left $ State.Result State.Pause state else Right state
-
+  let paused = elem Events.Paused $ Events.control events
+      died   = dead (State.screen state) (State.player state)
+      go | died      = Left $ State.Result State.Finished state
+         | paused    = Left $ State.Result State.Paused state
+         | otherwise = Right state
+  in  go
 
 -- Updating the screen involves two steps:
 -- 1. Move the screen upwards over time.
@@ -60,12 +61,12 @@ updateScreen player = scrollScreenToPlayer player . scrollScreenOverTime
 scrollScreenOverTime :: Screen.Screen -> Screen.Screen
 scrollScreenOverTime screen =
   let height = Screen.bottom screen
-      factor = min 500 (100 + height / 100)
+      factor = min 500 (100 + height / 200)
   in  if height == 0 then screen else scrollScreen (updateFactor * factor) screen
 
 scrollScreenToPlayer :: Player.Player -> Screen.Screen -> Screen.Screen
 scrollScreenToPlayer player screen =
-  let (_, y)   = Player.position player
+  let V2 _ y   = Player.position player
       distance = Screen.top screen - y
   in  if distance < 250 then scrollScreen (250 - distance) screen else screen
 
@@ -133,11 +134,11 @@ updateAcc motion player =
 calcJumpAcc :: State.Motion -> Player.Velocity -> Player.Acceleration -> Player.Acceleration
 calcJumpAcc motion vel acc =
   let jump         = State.jump motion
-      (accX, _   ) = acc
-      (velX, velY) = vel
+      V2 accX _    = acc
+      V2 velX velY = vel
       velLength    = sqrt $ (velX ** 2) + (velY ** 2)
-      go | jump && velLength >= 750 = (accX, 320000)
-         | jump                     = (accX, 160000)
+      go | jump && velLength >= 750 = V2 accX 320000
+         | jump                     = V2 accX 160000
          | otherwise                = acc
   in  go
 
@@ -149,9 +150,9 @@ calcGroundAcc motion =
   let left  = State.moveLeft motion
       right = State.moveRight motion
       acc   = 8000
-      go | left && not right = (-acc, gravity)
-         | right && not left = (acc, gravity)
-         | otherwise         = (0, gravity)
+      go | left && not right = V2 (-acc) gravity
+         | right && not left = V2 acc gravity
+         | otherwise         = V2 0 gravity
   in  go
 
 calcAirAcc :: State.Motion -> Player.Acceleration
@@ -159,9 +160,9 @@ calcAirAcc motion =
   let left  = State.moveLeft motion
       right = State.moveRight motion
       acc   = 4000
-      go | left && not right = (-acc, gravity)
-         | right && not left = (acc, gravity)
-         | otherwise         = (0, gravity)
+      go | left && not right = V2 (-acc) gravity
+         | right && not left = V2 acc gravity
+         | otherwise         = V2 0 gravity
   in  go
 
 updateVel :: Player.Player -> Player.Player
@@ -171,8 +172,8 @@ updateVel player =
   in  player { Player.velocity = applyWithFactor updateFactor vel acc }
 
 decelerate :: Player.MotionType -> Player.Velocity -> Player.Velocity
-decelerate Player.Ground (x, y) = (x * 0.925, y)
-decelerate Player.Air    (x, y) = (x * 0.99, y)
+decelerate Player.Ground (V2 x y) = V2 (x * 0.925) y
+decelerate Player.Air    (V2 x y) = V2 (x * 0.99) y
 
 updatePos :: Player.Player -> Player.Player
 updatePos player =
@@ -180,8 +181,8 @@ updatePos player =
       vel = Player.velocity player
   in  player { Player.position = applyWithFactor updateFactor pos vel }
 
-applyWithFactor :: Fractional a => a -> (a, a) -> (a, a) -> (a, a)
-applyWithFactor factor (x, y) (x', y') = (x + x' * factor, y + y' * factor)
+applyWithFactor :: Fractional a => a -> V2 a -> V2 a -> V2 a
+applyWithFactor factor (V2 x y) (V2 x' y') = V2 (x + x' * factor) (y + y' * factor)
 
 
 -- Correct the position and velocity if it is colliding with a layer
@@ -189,14 +190,14 @@ applyWithFactor factor (x, y) (x', y') = (x + x' * factor, y + y' * factor)
 
 bounceFrom :: Player.Player -> Screen.Screen -> Player.Player
 player `bounceFrom` screen =
-  let (posX, posY) = Player.position player
-      (velX, velY) = Player.velocity player
+  let V2 posX posY = Player.position player
+      V2 velX velY = Player.velocity player
       minX         = Screen.left screen
       maxX         = Screen.right screen
       outLeft      = posX < minX && velX < 0
       outRight     = posX > maxX && velX > 0
-      go | outLeft   = player { Player.position = (minX, posY), Player.velocity = (-velX, velY) }
-         | outRight  = player { Player.position = (maxX, posY), Player.velocity = (-velX, velY) }
+      go | outLeft   = player { Player.position = V2 minX posY, Player.velocity = V2 (-velX) velY }
+         | outRight  = player { Player.position = V2 maxX posY, Player.velocity = V2 (-velX) velY }
          | otherwise = player
   in  go
 
@@ -209,16 +210,16 @@ player `collideWith` layers = if falling player
 
 onto :: Player.Player -> Layer.Layer -> Player.Player
 player `onto` layer =
-  let (posX, _) = Player.position player in player { Player.position = (posX, Layer.posY layer) }
+  let V2 posX _ = Player.position player in player { Player.position = V2 posX (Layer.posY layer) }
 
 settle :: Player.Player -> Player.Player
-settle player = let (velX, _) = Player.velocity player in player { Player.velocity = (velX, 0) }
+settle player = let V2 velX _ = Player.velocity player in player { Player.velocity = V2 velX 0 }
 
 dead :: Screen.Screen -> Player.Player -> Bool
-dead screen player = let (_, y) = Player.position player in y < Screen.bottom screen
+dead screen player = let V2 _ y = Player.position player in y < Screen.bottom screen
 
 falling :: Player.Player -> Bool
-falling player = let (_, y) = Player.velocity player in y < 0
+falling player = let V2 _ y = Player.velocity player in y < 0
 
 inside :: Player.Player -> Layer.Layer -> Bool
 player `inside` layer =
@@ -231,8 +232,8 @@ onTop :: Player.Player -> Layer.Layer -> Bool
 player `onTop` layer =
   let playerPos = Player.position player
       layerPos  = Layer.position layer
-      (w, _)    = Layer.size layer
-  in  playerPos `Collision.inside` Collision.Rect layerPos (w, 20)
+      V2 w _    = Layer.size layer
+  in  playerPos `Collision.inside` Collision.Rect layerPos (V2 w 20)
 
 
 -- Drop passed and generate new layers.
@@ -263,10 +264,10 @@ nextLayerByPattern (p : ps) layer =
 
 deriveFrom :: Layer.Layer -> Pattern.PatternEntry -> Layer.Layer
 layer `deriveFrom` entry =
-  let Pattern.PatternEntry entryId ((w, h), x) d = entry
+  let Pattern.PatternEntry entryId (V2 w h, x) d = entry
       layerId = Layer.layerId layer + 1
-      (_, y)  = Layer.position layer
-  in  Layer.Layer layerId entryId (w, h) (x, y + d)
+      V2 _ y  = Layer.position layer
+  in  Layer.Layer layerId entryId (V2 w h) $ V2 x (y + d)
 
 generateLayer
   :: (Layer.Layer -> Layer.Layer)

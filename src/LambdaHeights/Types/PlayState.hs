@@ -10,14 +10,14 @@ data Result = Result {
   state  :: State
 }
 
-data ExitReason = Finished | Pause
+data ExitReason = Finished | Paused
 
 data State = State {
-  time   :: Word32,
-  screen :: Screen.Screen,
-  motion :: Motion,
-  player :: Player.Player,
-  layers :: [Layer.Layer]
+  duration :: Word32,
+  screen   :: Screen.Screen,
+  motion   :: Motion,
+  player   :: Player.Player,
+  layers   :: [Layer.Layer]
 }
 
 data Motion = Motion {
@@ -28,11 +28,11 @@ data Motion = Motion {
 
 newState :: State
 newState = State
-  { time   = 0
-  , screen = Screen.newScreen
-  , motion = newMotion
-  , player = Player.newPlayer
-  , layers = []
+  { duration = 0
+  , screen   = Screen.newScreen
+  , motion   = newMotion
+  , player   = Player.newPlayer
+  , layers   = []
   }
 
 newMotion :: Motion

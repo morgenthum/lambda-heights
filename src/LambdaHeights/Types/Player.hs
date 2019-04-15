@@ -1,10 +1,11 @@
 module LambdaHeights.Types.Player where
 
 import           LambdaHeights.Types
+import           Linear.V2
 
 type Score = Int
-type Velocity = (Float, Float)
-type Acceleration = (Float, Float)
+type Velocity = V2 Float
+type Acceleration = V2 Float
 
 data MotionType = Ground | Air
 
@@ -19,8 +20,8 @@ data Player = Player {
 newPlayer :: Player
 newPlayer = Player
   { score        = 0
-  , position     = (500, 50)
-  , velocity     = (0, 0)
-  , acceleration = (0, 0)
+  , position     = V2 500 50
+  , velocity     = V2 0 0
+  , acceleration = V2 0 0
   , motionType   = Ground
   }

@@ -1,34 +1,35 @@
 module LambdaHeights.Render where
 
-import qualified Data.Text                    as T
+import qualified Data.Text                   as T
 import           Foreign.C.Types
-import qualified LambdaHeights.Scale          as Scale
-import qualified LambdaHeights.Types.MenuItem as UI
-import qualified LambdaHeights.Types.Screen   as Screen
+import qualified LambdaHeights.Scale         as Scale
+import qualified LambdaHeights.Types.Label   as Label
+import qualified LambdaHeights.Types.Screen  as Screen
+import           Linear.V2
 import qualified SDL
-import qualified SDL.Font                     as SDLF
+import qualified SDL.Font                    as SDLF
 
-renderButton
+renderLabel
   :: SDL.Renderer
   -> Scale.WindowSize
   -> Screen.Screen
   -> SDLF.Font
   -> SDLF.Color
-  -> UI.MenuItem
+  -> Label.Label
   -> IO ()
-renderButton renderer windowSize screen font color button = do
-  let position = Scale.toWindowPosition screen windowSize (UI.position button)
-  renderCenteredText renderer font position color $ UI.text button
+renderLabel renderer windowSize screen font color button = do
+  let text     = Label.text button
+  let (V2 x y) = Scale.toWindowPosition screen windowSize (Label.position button)
+  case Label.alignment button of
+    Label.AlignLeft   -> renderText renderer font (V2 x y) color text
+    Label.AlignCenter -> do
+      (w, h) <- SDLF.size font $ T.pack text
+      let deltaX   = round (realToFrac w / 2 :: Float)
+      let deltaY   = round (realToFrac h / 2 :: Float)
+      let position = V2 (x - deltaX) (y - deltaY)
+      renderText renderer font position color text
 
-renderCenteredText :: SDL.Renderer -> SDLF.Font -> SDL.V2 CInt -> SDLF.Color -> String -> IO ()
-renderCenteredText renderer font (SDL.V2 x y) color text = do
-  (w, h) <- SDLF.size font $ T.pack text
-  let deltaX   = round (realToFrac w / 2 :: Float)
-  let deltaY   = round (realToFrac h / 2 :: Float)
-  let position = SDL.V2 (x - deltaX) (y - deltaY)
-  renderText renderer font position color text
-
-renderText :: SDL.Renderer -> SDLF.Font -> SDL.V2 CInt -> SDLF.Color -> String -> IO ()
+renderText :: SDL.Renderer -> SDLF.Font -> V2 CInt -> SDLF.Color -> String -> IO ()
 renderText renderer font position color text = do
   surface <- SDLF.blended font color (T.pack text)
   texture <- SDL.createTextureFromSurface renderer surface
@@ -36,5 +37,5 @@ renderText renderer font position color text = do
   textureInfo <- SDL.queryTexture texture
   let w = SDL.textureWidth textureInfo
   let h = SDL.textureHeight textureInfo
-  SDL.copy renderer texture Nothing (Just $ SDL.Rectangle (SDL.P position) (SDL.V2 w h))
+  SDL.copy renderer texture Nothing (Just $ SDL.Rectangle (SDL.P position) (V2 w h))
   SDL.destroyTexture texture

@@ -4,7 +4,7 @@ import           Data.Word
 import qualified LambdaHeights.Menu             as Menu
 import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Types.KeyEvents  as Events
-import qualified LambdaHeights.Types.MenuItem   as UI
+import qualified LambdaHeights.Types.Label      as Label
 import qualified LambdaHeights.Types.PauseState as Pause
 import qualified LambdaHeights.Types.Timer      as Timer
 import qualified SDL
@@ -22,8 +22,8 @@ update timer events state =
         Left  result -> Left result
         Right menu   -> Right $ state { Pause.menu = menu }
 
-stateFromItem :: UI.MenuItem -> Pause.ExitReason
-stateFromItem item = case UI.text item of
+stateFromItem :: Label.Label -> Pause.ExitReason
+stateFromItem item = case Label.text item of
   "exit" -> Pause.Exit
   _      -> Pause.Resume
 

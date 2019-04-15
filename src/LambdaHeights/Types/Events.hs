@@ -6,8 +6,8 @@ import           Codec.Serialise
 import           GHC.Generics
 
 data Events = Events {
-  controlEvents :: [ControlEvent],
-  playerEvents  :: [PlayerEvent]
+  control :: [ControlEvent],
+  player  :: [PlayerEvent]
 }
 
 data ControlEvent = Paused

@@ -2,13 +2,11 @@ module LambdaHeights.Menu
   (
  -- * Input handling
     keyInput
-  ,
  -- * Updating
-    ToResult
+  , ToResult
   , update
-  ,
  -- * Rendering
-    RenderConfig(..)
+  , RenderConfig(..)
   , defaultConfig
   , deleteConfig
   , render
@@ -22,8 +20,8 @@ import qualified LambdaHeights.Render          as Render
 import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Scale           as Scale
 import           LambdaHeights.Types.KeyEvents
-import qualified LambdaHeights.Types.Menu      as UI
-import qualified LambdaHeights.Types.MenuItem  as UI
+import qualified LambdaHeights.Types.Label     as UI
+import qualified LambdaHeights.Types.MenuState as UI
 import qualified LambdaHeights.Types.Screen    as Screen
 import qualified LambdaHeights.Types.Timer     as Timer
 import qualified SDL
@@ -52,10 +50,10 @@ keyToKeyEvent _                 _           = Nothing
 
 -- Update the menu.
 
-type ToResult a = UI.MenuItem -> a
+type ToResult a = UI.Label -> a
 
 -- | Applies key events to the current menu.
-update :: ToResult a -> Timer.LoopTimer -> [KeyEvent] -> UI.Menu -> Either a UI.Menu
+update :: ToResult a -> Timer.LoopTimer -> [KeyEvent] -> UI.State -> Either a UI.State
 update toResult _ events menu =
   let list = UI.applyEvents menu events
   in  if UI.confirmed list then Left $ toResult $ UI.selectedItem list else Right list
@@ -81,29 +79,23 @@ deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
 -- | Renders the menu.
-render :: RenderContext -> RenderConfig -> Timer.LoopTimer -> UI.Menu -> IO ()
+render :: RenderContext -> RenderConfig -> Timer.LoopTimer -> UI.State -> IO ()
 render (window, renderer) config timer menu = do
   SDL.rendererDrawColor renderer SDL.$= backgroundColor config
   SDL.clear renderer
   renderNoClear (window, renderer) config timer menu
 
 -- | Renders the menu without clearing the screen.
-renderNoClear :: RenderContext -> RenderConfig -> Timer.LoopTimer -> UI.Menu -> IO ()
+renderNoClear :: RenderContext -> RenderConfig -> Timer.LoopTimer -> UI.State -> IO ()
 renderNoClear (window, renderer) config _ menu = do
   let screen     = Screen.newScreen
   let selectedId = UI.selected menu
   windowSize <- SDL.get $ SDL.windowSize window
-  mapM_ (renderButton renderer config windowSize screen selectedId) $ UI.items menu
+  mapM_ (renderLabel renderer config windowSize screen selectedId) $ UI.labels menu
   SDL.present renderer
 
-renderButton
-  :: SDL.Renderer
-  -> RenderConfig
-  -> Scale.WindowSize
-  -> Screen.Screen
-  -> Int
-  -> UI.MenuItem
-  -> IO ()
-renderButton renderer config windowSize screen selectedId button = do
+renderLabel
+  :: SDL.Renderer -> RenderConfig -> Scale.WindowSize -> Screen.Screen -> Int -> UI.Label -> IO ()
+renderLabel renderer config windowSize screen selectedId button = do
   let color = if selectedId == UI.id button then selectedTextColor config else textColor config
-  Render.renderButton renderer windowSize screen (font config) color button
+  Render.renderLabel renderer windowSize screen (font config) color button

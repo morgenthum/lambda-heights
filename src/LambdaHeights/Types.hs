@@ -1,4 +1,6 @@
 module LambdaHeights.Types where
 
-type Position = (Float, Float)
-type Size = (Float, Float)
+import           Linear.V2
+
+type Position = V2 Float
+type Size = V2 Float

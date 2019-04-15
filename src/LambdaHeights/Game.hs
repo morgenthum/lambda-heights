@@ -5,7 +5,7 @@ where
 
 import           Control.Concurrent.Async
 import           Control.Concurrent.STM.TChan
-import           Control.Monad
+import           Data.Time
 import           LambdaHeights.Loop
 import qualified LambdaHeights.MainMenu            as MainMenu
 import qualified LambdaHeights.Menu                as Menu
@@ -24,7 +24,6 @@ import qualified LambdaHeights.Types.PlayState     as Play
 import qualified LambdaHeights.Types.ReplayState   as Replay
 import qualified LambdaHeights.Types.ScoreState    as Score
 import qualified LambdaHeights.Types.Timer         as Timer
-import           System.Directory
 
 type PlayLoopState = LoopState IO Play.State Play.Result
 type PauseLoopState = LoopState IO (Pause.State Play.State) Pause.ExitReason
@@ -60,23 +59,24 @@ startMenu ctx = do
 
 startGame :: RenderContext -> IO Game.State
 startGame ctx = do
-  channel        <- newTChanIO
-  ingameConfig   <- Play.defaultConfig
-  pauseConfig    <- Pause.defaultConfig
+  time        <- getCurrentTime
+  channel     <- newTChanIO
+  playConfig  <- Play.defaultConfig
+  pauseConfig <- Pause.defaultConfig
 
-  replayFilePath <- Replay.fileName
-  safeDeleteFile replayFilePath
 
-  let ingameRenderer = Play.renderDefault ctx ingameConfig
-  let pauseRenderer  = Pause.render ctx pauseConfig $ Play.renderPause ctx ingameConfig
+  let playRenderer  = Play.renderDefault ctx playConfig
+  let pauseRenderer = Pause.render ctx pauseConfig $ Play.renderPause ctx playConfig
 
-  let gameLoop = timedLoop Play.keyInput Play.update (Play.output channel) ingameRenderer
-  let pauseLoop      = timedLoop Menu.keyInput Pause.update noOutput pauseRenderer
+  let replayFile    = Replay.newFileName time
+  let gameLoop =
+        timedLoop Play.keyInput Play.update (Play.output time replayFile channel) playRenderer
+  let pauseLoop = timedLoop Menu.keyInput Pause.update noOutput pauseRenderer
 
-  state <- startGameLoop replayFilePath channel Play.newState gameLoop pauseLoop >>= showScore ctx
+  state <- startGameLoop replayFile channel Play.newState gameLoop pauseLoop >>= showScore ctx
 
   Pause.deleteConfig pauseConfig
-  Play.deleteConfig ingameConfig
+  Play.deleteConfig playConfig
   return state
 
 startGameLoop
@@ -94,7 +94,7 @@ startGameLoop replayFilePath channel gameState playLoop pauseLoop = do
   let score = Play.score . Play.player . Play.state $ result
   case Play.reason result of
     Play.Finished -> return score
-    Play.Pause    -> do
+    Play.Paused   -> do
       reason <- startLoop timer (Pause.newState $ Play.state result) pauseLoop
       case reason of
         Pause.Resume -> startGameLoop replayFilePath channel (Play.state result) playLoop pauseLoop
@@ -126,8 +126,3 @@ startReplay replayFilePath ctx = do
 
       Play.deleteConfig config
       return Game.Menu
-
-safeDeleteFile :: FilePath -> IO ()
-safeDeleteFile filePath = do
-  exist <- doesFileExist filePath
-  when exist $ removeFile filePath
