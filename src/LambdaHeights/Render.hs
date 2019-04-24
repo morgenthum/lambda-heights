@@ -1,13 +1,14 @@
 module LambdaHeights.Render where
 
-import qualified Data.Text                   as T
+import qualified Data.Text                  as T
 import           Foreign.C.Types
-import qualified LambdaHeights.Scale         as Scale
-import qualified LambdaHeights.Types.Label   as Label
-import qualified LambdaHeights.Types.Screen  as Screen
+import qualified LambdaHeights.Scale        as Scale
+import qualified LambdaHeights.Types.Label  as Label
+import qualified LambdaHeights.Types.Screen as Screen
 import           Linear.V2
 import qualified SDL
-import qualified SDL.Font                    as SDLF
+import qualified SDL.Font                   as SDLF
+import           SDL.GUI.TextRenderer
 
 renderLabel
   :: SDL.Renderer
@@ -28,14 +29,3 @@ renderLabel renderer windowSize screen font color button = do
       let deltaY   = round (realToFrac h / 2 :: Float)
       let position = V2 (x - deltaX) (y - deltaY)
       renderText renderer font position color text
-
-renderText :: SDL.Renderer -> SDLF.Font -> V2 CInt -> SDLF.Color -> String -> IO ()
-renderText renderer font position color text = do
-  surface <- SDLF.blended font color (T.pack text)
-  texture <- SDL.createTextureFromSurface renderer surface
-  SDL.freeSurface surface
-  textureInfo <- SDL.queryTexture texture
-  let w = SDL.textureWidth textureInfo
-  let h = SDL.textureHeight textureInfo
-  SDL.copy renderer texture Nothing (Just $ SDL.Rectangle (SDL.P position) (V2 w h))
-  SDL.destroyTexture texture

@@ -4,6 +4,7 @@
 out/**
 releases/**
 *.replay
+*.replay.desc
 .DS_Store
 lambda-heights.exe
 lambda-heights.iml
