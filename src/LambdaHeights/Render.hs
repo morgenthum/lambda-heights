@@ -1,14 +1,13 @@
 module LambdaHeights.Render where
 
 import qualified Data.Text                  as T
-import           Foreign.C.Types
+import           GUI.TextRenderer
 import qualified LambdaHeights.Scale        as Scale
 import qualified LambdaHeights.Types.Label  as Label
 import qualified LambdaHeights.Types.Screen as Screen
 import           Linear.V2
 import qualified SDL
 import qualified SDL.Font                   as SDLF
-import           SDL.GUI.TextRenderer
 
 renderLabel
   :: SDL.Renderer

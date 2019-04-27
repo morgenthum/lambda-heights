@@ -1,4 +1,4 @@
-module SDL.GUI.TextRenderer where
+module GUI.TextRenderer where
 
 import qualified Data.Text       as T
 import           Foreign.C.Types

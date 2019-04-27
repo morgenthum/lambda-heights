@@ -1,0 +1,55 @@
+module GUI.Basics where
+
+import           Control.Monad
+import           Data.Matrix
+import           GUI.Table.Render
+import           GUI.Table.RenderSDL
+import           GUI.Table.Types
+import           LambdaHeights.RenderContext
+import           Linear.V2
+import           Linear.V4
+import qualified SDL
+import qualified SDL.Font                    as SDLF
+
+testContent :: [[String]]
+testContent =
+  [ ["header1", "header2", "header3"]
+  , ["value11", "value12", "value13"]
+  , ["value21", "value22", "value23"]
+  , ["value31", "value32", "value33"]
+  ]
+
+newTable :: [[String]] -> Table
+newTable xs = Table {content = fromLists xs, selected = V2 2 1}
+
+headerStyle :: SDLF.Font -> CellStyle
+headerStyle f = CellStyle f (V4 0 255 0 255) (V4 0 0 0 255)
+
+selectedStyle :: SDLF.Font -> CellStyle
+selectedStyle f = CellStyle f (V4 60 60 60 255) (V4 255 255 255 255)
+
+defaultStyle :: SDLF.Font -> CellStyle
+defaultStyle f = CellStyle f (V4 255 255 255 255) (V4 0 0 0 255)
+
+newRenderer :: SDL.Renderer -> SDLF.Font -> Table -> IO ()
+newRenderer renderer font table = do
+  fontSizes <- loadFontSizes font $ content table
+  let styles = (headerStyle font, selectedStyle font, defaultStyle font)
+  renderWith (styleCellsWith $ styleSimple styles)
+             (alignWidths $ sizeCellsWith $ fontSize (V2 20 20) fontSizes)
+             (locateCellsWith $ gaps (V2 5 5))
+             (renderSimpleCell renderer)
+             table
+
+start :: IO ()
+start = do
+  (window, renderer) <- newContext "SDL.GUI"
+  font      <- SDLF.load "HighSchoolUSASans.ttf" 12
+  let table  = newTable testContent
+  let render = newRenderer renderer font
+  _ <- forever $ do
+    SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 255
+    SDL.clear renderer
+    render table
+    SDL.present renderer
+  deleteContext (window, renderer)
