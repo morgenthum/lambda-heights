@@ -1,7 +1,7 @@
 module LambdaHeights.Render where
 
 import qualified Data.Text                  as T
-import           GUI.TextRenderer
+import           SDL.GUI.Basics
 import qualified LambdaHeights.Scale        as Scale
 import qualified LambdaHeights.Types.Label  as Label
 import qualified LambdaHeights.Types.Screen as Screen

@@ -1,7 +1,7 @@
 module Main where
 
 import LambdaHeights.Game
-import qualified GUI.Basics as B
+import qualified SDL.GUI.Table.Example as E
 
 main :: IO ()
-main = B.start
+main = E.start

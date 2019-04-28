@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 57f87df1b2d18bfa09064321d7df90e6c9ceb1e14dfaf67bdf5508650519b263
+-- hash: cf3d2f6705adffe8cf742cbbf025bd459600a72ec3dc8a777c31267bc3b6533d
 
 name:           lambda-heights
 version:        0.1.0.0
@@ -27,11 +27,6 @@ source-repository head
 
 library
   exposed-modules:
-      GUI.Basics
-      GUI.Table.Render
-      GUI.Table.RenderSDL
-      GUI.Table.Types
-      GUI.TextRenderer
       LambdaHeights.Game
       LambdaHeights.Loop
       LambdaHeights.MainMenu
@@ -61,10 +56,18 @@ library
       LambdaHeights.Types.PauseState
       LambdaHeights.Types.Player
       LambdaHeights.Types.PlayState
+      LambdaHeights.Types.ReplayMenuState
       LambdaHeights.Types.ReplayState
       LambdaHeights.Types.ScoreState
       LambdaHeights.Types.Screen
       LambdaHeights.Types.Timer
+      SDL.GUI.Basics
+      SDL.GUI.Events.Select
+      SDL.GUI.Events.Types
+      SDL.GUI.Table.Combinators
+      SDL.GUI.Table.Events
+      SDL.GUI.Table.Example
+      SDL.GUI.Table.Types
   other-modules:
       Paths_lambda_heights
   hs-source-dirs:
@@ -74,7 +77,6 @@ library
       async >=2.2.1
     , base >=4.7 && <5
     , bytestring >=0.10.8.2
-    , containers >=0.6.0.1
     , directory >=1.3.3.0
     , extra >=1.6.14
     , linear >=1.20.8
@@ -103,7 +105,6 @@ executable lambda-heights-exe
       async >=2.2.1
     , base >=4.7 && <5
     , bytestring >=0.10.8.2
-    , containers >=0.6.0.1
     , directory >=1.3.3.0
     , extra >=1.6.14
     , lambda-heights
@@ -134,7 +135,6 @@ test-suite lambda-heights-test
       async >=2.2.1
     , base >=4.7 && <5
     , bytestring >=0.10.8.2
-    , containers >=0.6.0.1
     , directory >=1.3.3.0
     , extra >=1.6.14
     , lambda-heights

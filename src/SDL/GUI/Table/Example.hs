@@ -1,10 +1,9 @@
-module GUI.Basics where
+module SDL.GUI.Table.Example where
 
 import           Control.Monad
 import           Data.Matrix
-import           GUI.Table.Render
-import           GUI.Table.RenderSDL
-import           GUI.Table.Types
+import           SDL.GUI.Table.Combinators
+import           SDL.GUI.Table.Types
 import           LambdaHeights.RenderContext
 import           Linear.V2
 import           Linear.V4
@@ -13,7 +12,7 @@ import qualified SDL.Font                    as SDLF
 
 testContent :: [[String]]
 testContent =
-  [ ["header1", "header2", "header3"]
+  [ ["header1", "headerheader2", "header3"]
   , ["value11", "value12", "value13"]
   , ["value21", "value22", "value23"]
   , ["value31", "value32", "value33"]
@@ -35,16 +34,16 @@ newRenderer :: SDL.Renderer -> SDLF.Font -> Table -> IO ()
 newRenderer renderer font table = do
   fontSizes <- loadFontSizes font $ content table
   let styles = (headerStyle font, selectedStyle font, defaultStyle font)
-  renderWith (styleCellsWith $ styleSimple styles)
-             (alignWidths $ sizeCellsWith $ fontSize (V2 20 20) fontSizes)
-             (locateCellsWith $ gaps (V2 5 5))
+  renderWith (styleCellsWith $ styleTableSimple styles)
+             (alignWidths $ sizeCellsWith $ extend (V2 20 20) $ fontSize fontSizes)
+             (locateCellsWith $ indentSelected 10 $ addGaps (V2 5 5) grid)
              (renderSimpleCell renderer)
              table
 
 start :: IO ()
 start = do
   (window, renderer) <- newContext "SDL.GUI"
-  font      <- SDLF.load "HighSchoolUSASans.ttf" 12
+  font               <- SDLF.load "retro_gaming.ttf" 11
   let table  = newTable testContent
   let render = newRenderer renderer font
   _ <- forever $ do
