@@ -34,7 +34,7 @@ newRenderer :: SDL.Renderer -> SDLF.Font -> Table -> IO ()
 newRenderer renderer font table = do
   fontSizes <- loadFontSizes font $ content table
   let styles = (headerStyle font, selectedStyle font, defaultStyle font)
-  renderWith (styleCellsWith $ styleTableSimple styles)
+  renderWith (styleCellsWith $ colorsHeadSelectedBody styles)
              (alignWidths $ sizeCellsWith $ extend (V2 20 20) $ fontSize fontSizes)
              (locateCellsWith $ indentSelected 10 $ addGaps (V2 5 5) grid)
              (renderSimpleCell renderer)
