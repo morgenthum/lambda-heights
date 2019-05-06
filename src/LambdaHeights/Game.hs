@@ -64,7 +64,6 @@ startGame ctx = do
   playConfig  <- Play.defaultConfig
   pauseConfig <- Pause.defaultConfig
 
-
   let playRenderer  = Play.renderDefault ctx playConfig
   let pauseRenderer = Pause.render ctx pauseConfig $ Play.renderPause ctx playConfig
 

@@ -1,10 +1,10 @@
 module SDL.GUI.Table.Types where
 
-import Data.Word
 import           Data.Matrix
+import           Data.Word
 import           Linear.V2
-import Linear.V4
-import qualified SDL.Font as SDLF
+import           Linear.V4
+import qualified SDL.Font    as SDLF
 
 type Color = V4 Word8
 type DataMatrix = Matrix String
@@ -21,6 +21,4 @@ data CellStyle = CellStyle {
 }
 
 tableSize :: Table -> (Int, Int)
-tableSize table =
-  let m = content table
-  in  (nrows m, ncols m)
+tableSize table = let m = content table in (nrows m, ncols m)

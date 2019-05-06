@@ -13,7 +13,6 @@ where
 import qualified Data.Vector.Storable          as V
 import           Data.Word
 import           Foreign.C.Types
-import qualified SDL.GUI.Basics              as SDLG
 import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Scale           as Scale
 import           LambdaHeights.Types
@@ -25,6 +24,7 @@ import qualified LambdaHeights.Types.Timer     as Timer
 import           Linear.V2
 import qualified SDL
 import qualified SDL.Font                      as SDLF
+import qualified SDL.GUI.Basics                as SDLG
 import qualified SDL.Primitive                 as SDLP
 
 data RenderConfig = RenderConfig {

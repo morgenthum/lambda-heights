@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cf3d2f6705adffe8cf742cbbf025bd459600a72ec3dc8a777c31267bc3b6533d
+-- hash: 2ddae14b775293ef49a883d23167441b4bebc496036edacf9225ad7573b9c5bf
 
 name:           lambda-heights
 version:        0.1.0.0
@@ -62,12 +62,10 @@ library
       LambdaHeights.Types.Screen
       LambdaHeights.Types.Timer
       SDL.GUI.Basics
-      SDL.GUI.Events.Select
-      SDL.GUI.Events.Types
-      SDL.GUI.Table.Combinators
-      SDL.GUI.Table.Events
       SDL.GUI.Table.Example
+      SDL.GUI.Table.RenderCombinators
       SDL.GUI.Table.Types
+      SDL.GUI.Table.UpdateCombinators
   other-modules:
       Paths_lambda_heights
   hs-source-dirs:

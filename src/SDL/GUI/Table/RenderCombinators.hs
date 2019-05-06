@@ -1,13 +1,13 @@
-module SDL.GUI.Table.Combinators where
+module SDL.GUI.Table.RenderCombinators where
 
 import           Data.Matrix
-import qualified Data.Vector     as V
-import qualified Data.Text as T
-import qualified SDL
-import qualified SDL.Font as SDLF
-import           SDL.GUI.Table.Types
-import SDL.GUI.Basics
+import qualified Data.Text           as T
+import qualified Data.Vector         as V
 import           Linear.V2
+import qualified SDL
+import qualified SDL.Font            as SDLF
+import           SDL.GUI.Basics
+import           SDL.GUI.Table.Types
 
 type Position = V2 Int
 type Size = V2 Int
@@ -19,6 +19,7 @@ type StyleMatrix a = Matrix a
 type StyleCells a = Table -> IO (StyleMatrix a)
 type SizeCells a = Table -> StyleMatrix a -> IO SizeMatrix
 type LocateCells a = Table -> SizeMatrix -> IO PositionMatrix
+type LocateText = SizeMatrix -> PositionMatrix -> Position -> Position
 type RenderCell a = Table -> StyleMatrix a -> SizeMatrix -> PositionMatrix -> Position -> IO ()
 type RenderTable = Table -> IO ()
 
@@ -46,11 +47,11 @@ styleCellsWith generator table = do
   let (rCount, cCount) = tableSize table
   return $ matrix rCount cCount $ generator table
 
-colorsSelectedBody :: (CellStyle, CellStyle) -> StyleGenerator CellStyle
+colorsSelectedBody :: (a, a) -> StyleGenerator a
 colorsSelectedBody (selectedStyle, defaultStyle) table (r, _) =
   let V2 sr _ = selected table in if sr == r then selectedStyle else defaultStyle
 
-colorsHeadSelectedBody :: (CellStyle, CellStyle, CellStyle) -> StyleGenerator CellStyle
+colorsHeadSelectedBody :: (a, a, a) -> StyleGenerator a
 colorsHeadSelectedBody (headStyle, _, _) _ (1, _) = headStyle
 colorsHeadSelectedBody (_, selectedStyle, defaultStyle) table (r, c) =
   colorsSelectedBody (selectedStyle, defaultStyle) table (r, c)
@@ -111,22 +112,42 @@ addGaps (V2 rGap cGap) parent table sizes (r, c) =
 
 indentSelected :: Int -> PositionGenerator a -> PositionGenerator a
 indentSelected i parent table sizes (r, c) =
-  let V2 x y = parent table sizes (r, c)
+  let V2 x  y = parent table sizes (r, c)
       V2 sr _ = selected table
-  in  if sr == r then V2 (x+i) y else V2 x y
+  in  if sr == r then V2 (x + i) y else V2 x y
 
   -- RenderCell
 
-renderSimpleCell :: SDL.Renderer -> RenderCell CellStyle
-renderSimpleCell renderer table styles sizes positions (V2 r c) = do
-  let text   = getElem r c $ content table
-  let style  = getElem r c styles
-  let size   = convertV2 $ getElem r c sizes
-  let V2 x y = convertV2 $ getElem r c positions
+renderSimpleCell :: SDL.Renderer -> LocateText -> RenderCell CellStyle
+renderSimpleCell renderer locateText table styles sizes positions (V2 r c) = do
+  let text     = getElem r c $ content table
+  let style    = getElem r c styles
+  let V2 w h   = convertV2 $ getElem r c sizes
+  let V2 x y   = convertV2 $ getElem r c positions
+  let V2 tx ty = locateText sizes positions (V2 r c)
   SDL.rendererDrawColor renderer SDL.$= cellBg style
-  SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P $ V2 x y) size
-  renderText renderer (cellFont style) (convertV2 $ V2 (x + 10) (y + 10)) (cellFg style) text
+  SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P $ V2 x y) (V2 w h)
+  renderText renderer (cellFont style) (convertV2 $ V2 tx ty) (cellFg style) text
   return ()
+
+locateTextWithIndent :: V2 Int -> LocateText
+locateTextWithIndent (V2 ix iy) _ positions (V2 r c) =
+  let V2 x y = convertV2 $ getElem r c positions in V2 (x + ix) (y + iy)
+
+locateTextCentered :: SizeMatrix -> LocateText
+locateTextCentered fontSizes sizes positions (V2 r c) =
+  let V2 fw fh = convertV2 $ getElem r c fontSizes
+      V2 w  h  = convertV2 $ getElem r c sizes
+      V2 x  y  = convertV2 $ getElem r c positions
+      x'       = x + round (realToFrac w / 2 :: Float) - round (realToFrac fw / 2 :: Float)
+      y'       = y + round (realToFrac h / 2 :: Float) - round (realToFrac fh / 2 :: Float)
+  in  V2 x' y'
 
 convertV2 :: (Integral a, Integral b) => V2 a -> V2 b
 convertV2 (V2 x y) = V2 (fromIntegral x) (fromIntegral y)
+
+
+
+
+
+
