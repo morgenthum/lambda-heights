@@ -25,26 +25,48 @@ type RenderTable = Table -> IO ()
 
 type StyleGenerator a = Table -> (Int, Int) -> a
 type SizeGenerator a = Table -> (Int, Int) -> Size
-type PositionGenerator a = Table -> SizeMatrix -> (Int, Int) -> Position
+type LocationGenerator a = Table -> SizeMatrix -> (Int, Int) -> Position
 
-cellPositions :: Table -> (V2 Int, [Position])
+cellPositions :: Table -> [Position]
 cellPositions table =
-  let (rCount, cCount) = tableSize table
-  in  (V2 rCount cCount, [ V2 r c | r <- [1 .. rCount], c <- [1 .. cCount] ])
+  let (rCount, cCount) = tableDimension table
+  in  [ V2 r c | r <- [1 .. rCount], c <- [1 .. cCount] ]
+
+applyGenerators
+  :: StyleCells a
+  -> SizeCells a
+  -> LocateCells a
+  -> Table
+  -> IO (StyleMatrix a, SizeMatrix, PositionMatrix)
+applyGenerators styleCells sizeCells locateCells table = do
+  styles    <- styleCells table
+  sizes     <- sizeCells table styles
+  locations <- locateCells table sizes
+  return (styles, sizes, locations)
+
+tableSize :: PositionMatrix -> SizeMatrix -> V2 Int
+tableSize positions sizes =
+  let maxPositions = mapPos (\(r, c) pos -> pos + getElem r c sizes) positions
+      minList      = toList positions
+      maxList      = toList maxPositions
+      getX (V2 x _) = x
+      getY (V2 _ y) = y
+      minX = minimum $ map getX minList
+      maxX = maximum $ map getX maxList
+      minY = minimum $ map getY minList
+      maxY = maximum $ map getY maxList
+  in  V2 (maxX - minX) (maxY - minY)
 
 renderWith :: StyleCells a -> SizeCells a -> LocateCells a -> RenderCell a -> RenderTable
 renderWith styleCells sizeCells locateCells renderCell table = do
-  styles    <- styleCells table
-  sizes     <- sizeCells table styles
-  positions <- locateCells table sizes
-  let (_, ps) = cellPositions table
-  mapM_ (renderCell table styles sizes positions) ps
+  (styles, sizes, locations) <- applyGenerators styleCells sizeCells locateCells table
+  mapM_ (renderCell table styles sizes locations) $ cellPositions table
 
 -- StyleCells
 
 styleCellsWith :: StyleGenerator a -> StyleCells a
 styleCellsWith generator table = do
-  let (rCount, cCount) = tableSize table
+  let (rCount, cCount) = tableDimension table
   return $ matrix rCount cCount $ generator table
 
 colorsSelectedBody :: (a, a) -> StyleGenerator a
@@ -60,7 +82,7 @@ colorsHeadSelectedBody (_, selectedStyle, defaultStyle) table (r, c) =
 
 sizeCellsWith :: SizeGenerator a -> SizeCells a
 sizeCellsWith generator table _ = do
-  let (rCount, cCount) = tableSize table
+  let (rCount, cCount) = tableDimension table
   return $ matrix rCount cCount $ generator table
 
 alignWidths :: SizeCells a -> SizeCells a
@@ -77,11 +99,11 @@ maxColumnWidth c sizes =
 fixedSize :: Size -> SizeGenerator a
 fixedSize size _ _ = size
 
-fontSize :: SizeMatrix -> SizeGenerator a
-fontSize fontSizes _ (r, c) = getElem r c fontSizes
+sizeFromFontSize :: SizeMatrix -> SizeGenerator a
+sizeFromFontSize fontSizes _ (r, c) = getElem r c fontSizes
 
-extend :: Size -> SizeGenerator a -> SizeGenerator a
-extend size parent table (r, c) = size + parent table (r, c)
+extendSize :: Size -> SizeGenerator a -> SizeGenerator a
+extendSize size parent table (r, c) = size + parent table (r, c)
 
 loadFontSizes :: SDLF.Font -> DataMatrix -> IO SizeMatrix
 loadFontSizes font m = do
@@ -90,12 +112,12 @@ loadFontSizes font m = do
 
 -- LocateCells
 
-locateCellsWith :: PositionGenerator a -> LocateCells a
+locateCellsWith :: LocationGenerator a -> LocateCells a
 locateCellsWith generator table sizes = do
-  let (V2 rCount cCount, _) = cellPositions table
+  let (rCount, cCount) = tableDimension table
   return $ matrix rCount cCount $ generator table sizes
 
-grid :: PositionGenerator a
+grid :: LocationGenerator a
 grid _ sizes (r, c) =
   let cs = [1 .. c - 1]
       rs = [1 .. r - 1]
@@ -103,32 +125,34 @@ grid _ sizes (r, c) =
       hs = map ((\(V2 _ h) -> h) . (\r' -> getElem r' c sizes)) rs
   in  V2 (sum ws) (sum hs)
 
-addGaps :: Size -> PositionGenerator a -> PositionGenerator a
-addGaps (V2 rGap cGap) parent table sizes (r, c) =
+addGaps :: Size -> LocationGenerator a -> LocationGenerator a
+addGaps (V2 xGap yGap) parent table sizes (r, c) =
   let V2 x y = parent table sizes (r, c)
-      x'     = x + cGap * (c - 1)
-      y'     = y + rGap * (r - 1)
+      x'     = x + xGap * (c - 1)
+      y'     = y + yGap * (r - 1)
   in  V2 x' y'
 
-indentSelected :: Int -> PositionGenerator a -> PositionGenerator a
+indentSelected :: Int -> LocationGenerator a -> LocationGenerator a
 indentSelected i parent table sizes (r, c) =
   let V2 x  y = parent table sizes (r, c)
       V2 sr _ = selected table
   in  if sr == r then V2 (x + i) y else V2 x y
 
+move :: V2 Int -> LocationGenerator a -> LocationGenerator a
+move pos parent table sizes loc = parent table sizes loc + pos
+
   -- RenderCell
 
-renderSimpleCell :: SDL.Renderer -> LocateText -> RenderCell CellStyle
-renderSimpleCell renderer locateText table styles sizes positions (V2 r c) = do
-  let text     = getElem r c $ content table
-  let style    = getElem r c styles
-  let V2 w h   = convertV2 $ getElem r c sizes
-  let V2 x y   = convertV2 $ getElem r c positions
-  let V2 tx ty = locateText sizes positions (V2 r c)
+renderSimpleCell :: SDL.Renderer -> V2 Int -> LocateText -> RenderCell CellStyle
+renderSimpleCell renderer pos locateText table styles sizes positions (V2 r c) = do
+  let text    = getElem r c $ content table
+  let style   = getElem r c styles
+  let size    = convertV2 $ getElem r c sizes
+  let cellPos = getElem r c positions
+  let textPos = locateText sizes positions (V2 r c)
   SDL.rendererDrawColor renderer SDL.$= cellBg style
-  SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P $ V2 x y) (V2 w h)
-  renderText renderer (cellFont style) (convertV2 $ V2 tx ty) (cellFg style) text
-  return ()
+  SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P $ convertV2 $ pos + cellPos) size
+  renderText renderer (cellFont style) (convertV2 $ pos + textPos) (cellFg style) text
 
 locateTextWithIndent :: V2 Int -> LocateText
 locateTextWithIndent (V2 ix iy) _ positions (V2 r c) =
@@ -136,8 +160,8 @@ locateTextWithIndent (V2 ix iy) _ positions (V2 r c) =
 
 locateTextCentered :: SizeMatrix -> LocateText
 locateTextCentered fontSizes sizes positions (V2 r c) =
-  let V2 fw fh = convertV2 $ getElem r c fontSizes
-      V2 w  h  = convertV2 $ getElem r c sizes
+  let V2 fw fh = convertV2 $ getElem r c fontSizes :: V2 Int
+      V2 w  h  = convertV2 $ getElem r c sizes :: V2 Int
       V2 x  y  = convertV2 $ getElem r c positions
       x'       = x + round (realToFrac w / 2 :: Float) - round (realToFrac fw / 2 :: Float)
       y'       = y + round (realToFrac h / 2 :: Float) - round (realToFrac fh / 2 :: Float)

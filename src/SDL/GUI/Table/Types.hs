@@ -20,5 +20,5 @@ data CellStyle = CellStyle {
   cellFg   :: Color
 }
 
-tableSize :: Table -> (Int, Int)
-tableSize table = let m = content table in (nrows m, ncols m)
+tableDimension :: Table -> (Int, Int)
+tableDimension table = let m = content table in (nrows m, ncols m)

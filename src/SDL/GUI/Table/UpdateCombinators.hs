@@ -45,7 +45,7 @@ limitNotFirst parent table =
 
 limitAll :: LimitSelection
 limitAll table =
-  let (rm, cm) = tableSize table
+  let (rm, cm) = tableDimension table
       V2 r c   = selected table
       r' | r < 1     = 1
          | r > rm    = rm
