@@ -5,10 +5,14 @@ import           LambdaHeights.RenderContext
 import           Linear.V2
 import           Linear.V4
 import qualified SDL
-import qualified SDL.Font                        as SDLF
-import           SDL.GUI.Table.RenderCombinators
+import qualified SDL.Font                    as SDLF
+import qualified SDL.GUI.Table.CellLocators  as Locate
+import           SDL.GUI.Table.CellRenderer
+import qualified SDL.GUI.Table.CellSizers    as Size
+import qualified SDL.GUI.Table.CellStyler    as Style
+import           SDL.GUI.Table.TableRenderer
+import qualified SDL.GUI.Table.TableUpdater  as Update
 import           SDL.GUI.Table.Types
-import           SDL.GUI.Table.UpdateCombinators
 
 testContent :: [[String]]
 testContent =
@@ -23,27 +27,20 @@ testContent =
 newTable :: [[String]] -> Table
 newTable xs = Table {content = fromLists xs, selected = V2 1 1}
 
-headerStyle :: SDLF.Font -> CellStyle
-headerStyle f = CellStyle f (V4 0 255 0 255) (V4 0 0 0 30)
-
 selectedStyle :: SDLF.Font -> CellStyle
 selectedStyle f = CellStyle f (V4 60 60 60 255) (V4 255 255 255 30)
 
-defaultStyle :: SDLF.Font -> CellStyle
-defaultStyle f = CellStyle f (V4 255 255 255 255) (V4 0 0 0 30)
+bodyStyle :: SDLF.Font -> CellStyle
+bodyStyle f = CellStyle f (V4 255 255 255 255) (V4 0 0 0 30)
 
-renderExampleTable :: SDL.Window -> SDL.Renderer -> SDLF.Font -> RenderTable
-renderExampleTable window renderer font table = do
-  V2 wW wH <- SDL.get $ SDL.windowSize window
-  let widthMid  = round $ realToFrac wW / 2
-  let heightMid = round $ realToFrac wH / 2
-  fontSizes <- loadFontSizes font $ content table
-  let styleCells = styleCellsWith $ colorsSelectedBody (selectedStyle font, defaultStyle font)
-  let sizeCells = alignWidths $ sizeCellsWith $ extendSize (V2 20 20) $ sizeFromFontSize fontSizes
-  let locateCells = locateCellsWith $ indentSelected 5 grid
+renderTableBuilder :: SDL.Window -> SDL.Renderer -> SDLF.Font -> RenderTable
+renderTableBuilder window renderer font table = do
+  fontSizes <- Size.loadFontSizes font $ content table
+  let styleCells  = Style.with $ Style.selectedAndBody (selectedStyle font) (bodyStyle font)
+  let sizeCells = Size.alignWidths $ Size.with $ Size.extend (V2 20 20) $ Size.deriveFrom fontSizes
+  let locateCells = Locate.with $ Locate.indentSelected 5 Locate.grid
   (_, sizes, positions) <- applyGenerators styleCells sizeCells locateCells table
-  let V2 w h     = tableSize positions sizes
-  let tablePos = V2 (widthMid - round (realToFrac w / 2)) (heightMid - round (realToFrac h / 2))
+  tablePos              <- calcTablePos window sizes positions
   let renderCell = renderSimpleCell renderer tablePos $ locateTextCentered fontSizes
   renderWith styleCells sizeCells locateCells renderCell table
 
@@ -52,8 +49,8 @@ start = do
   (window, renderer) <- newContext "SDL.GUI"
   font               <- SDLF.load "retro_gaming.ttf" 11
   let table  = newTable testContent
-  let render = renderExampleTable window renderer font
-  let update = updateWith convertToSelectEvent $ applySelectEvent limitAll
+  let render = renderTableBuilder window renderer font
+  let update = Update.with Update.toSelectEvent $ Update.applySelectEvent Update.limitAll
   loop renderer render update table
   deleteContext (window, renderer)
 

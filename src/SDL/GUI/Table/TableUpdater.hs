@@ -1,4 +1,4 @@
-module SDL.GUI.Table.UpdateCombinators where
+module SDL.GUI.Table.TableUpdater where
 
 import           Data.Maybe
 import           Linear.V2
@@ -7,16 +7,11 @@ import           SDL.GUI.Table.Types
 
 data SelectEvent = SelectLeft | SelectUp | SelectRight | SelectDown
 
-type ConvertEvent e = SDL.Event -> Maybe e
-type ApplyEvent e = Table -> e -> Table
-type LimitSelection = Table -> Table
-type UpdateTable = [SDL.Event] -> Table -> Table
+with :: ConvertEvent e -> ApplyEvent e -> UpdateTable
+with convert apply events table = foldl apply table $ mapMaybe convert events
 
-updateWith :: ConvertEvent e -> ApplyEvent e -> UpdateTable
-updateWith convert apply events table = foldl apply table $ mapMaybe convert events
-
-convertToSelectEvent :: SDL.Event -> Maybe SelectEvent
-convertToSelectEvent event = case SDL.eventPayload event of
+toSelectEvent :: ConvertEvent SelectEvent
+toSelectEvent event = case SDL.eventPayload event of
   SDL.KeyboardEvent keyEvent ->
     let code   = SDL.keysymKeycode (SDL.keyboardEventKeysym keyEvent)
         motion = SDL.keyboardEventKeyMotion keyEvent
@@ -28,7 +23,7 @@ convertToSelectEvent event = case SDL.eventPayload event of
     in  fromKey code motion
   _ -> Nothing
 
-applySelectEvent :: LimitSelection -> Table -> SelectEvent -> Table
+applySelectEvent :: LimitSelection -> ApplyEvent SelectEvent
 applySelectEvent limit table event =
   let V2 r c = selected table
   in  limit $ case event of
