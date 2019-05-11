@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 640076701fa1c7dc713e7b75128a929ef27672786080a2c72b2fee0a3d81d7f6
+-- hash: f02835572b610333860ee333e6073b1e6372a4bdb734f303d53e339f255c8f0e
 
 name:           lambda-heights
 version:        0.1.0.0
@@ -28,6 +28,16 @@ source-repository head
 library
   exposed-modules:
       LambdaHeights.Game
+      LambdaHeights.GUI.Basics
+      LambdaHeights.GUI.Table.CellLocators
+      LambdaHeights.GUI.Table.CellRenderer
+      LambdaHeights.GUI.Table.CellSizers
+      LambdaHeights.GUI.Table.CellStyler
+      LambdaHeights.GUI.Table.Example
+      LambdaHeights.GUI.Table.TableRenderer
+      LambdaHeights.GUI.Table.TableUpdater
+      LambdaHeights.GUI.Table.TextLocators
+      LambdaHeights.GUI.Table.Types
       LambdaHeights.Loop
       LambdaHeights.MainMenu
       LambdaHeights.Menu
@@ -44,7 +54,6 @@ library
       LambdaHeights.Replay
       LambdaHeights.Scale
       LambdaHeights.Score
-      LambdaHeights.SDLMenu
       LambdaHeights.Serialize
       LambdaHeights.Types
       LambdaHeights.Types.Events
@@ -62,15 +71,6 @@ library
       LambdaHeights.Types.ScoreState
       LambdaHeights.Types.Screen
       LambdaHeights.Types.Timer
-      SDL.GUI.Basics
-      SDL.GUI.Table.CellLocators
-      SDL.GUI.Table.CellRenderer
-      SDL.GUI.Table.CellSizers
-      SDL.GUI.Table.CellStyler
-      SDL.GUI.Table.Example
-      SDL.GUI.Table.TableRenderer
-      SDL.GUI.Table.TableUpdater
-      SDL.GUI.Table.Types
   other-modules:
       Paths_lambda_heights
   hs-source-dirs:

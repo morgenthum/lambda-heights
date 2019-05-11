@@ -1,9 +1,13 @@
-module SDL.GUI.Table.TableUpdater where
+module LambdaHeights.GUI.Table.TableUpdater where
 
 import           Data.Maybe
+import           LambdaHeights.GUI.Table.Types
 import           Linear.V2
 import qualified SDL
-import           SDL.GUI.Table.Types
+
+type ConvertEvent e = SDL.Event -> Maybe e
+type ApplyEvent e = Table -> e -> Table
+type LimitSelection = Table -> Table
 
 data SelectEvent = SelectLeft | SelectUp | SelectRight | SelectDown
 
@@ -40,8 +44,8 @@ limitNotFirst parent table =
 
 limitAll :: LimitSelection
 limitAll table =
-  let (rm, cm) = tableDimension table
-      V2 r c   = selected table
+  let V2 rm cm = tableDimension table
+      V2 r  c  = selected table
       r' | r < 1     = 1
          | r > rm    = rm
          | otherwise = r

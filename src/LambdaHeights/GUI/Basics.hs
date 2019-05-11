@@ -1,4 +1,4 @@
-module SDL.GUI.Basics where
+module LambdaHeights.GUI.Basics where
 
 import qualified Data.Text       as T
 import           Foreign.C.Types

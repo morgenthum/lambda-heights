@@ -1,14 +1,14 @@
-module SDL.GUI.Table.CellStyler where
+module LambdaHeights.GUI.Table.CellStyler where
 
 import           Data.Matrix
 import           Data.Maybe
+import           LambdaHeights.GUI.Table.Types
 import           Linear.V2
-import           SDL.GUI.Table.Types
 
-with :: StyleGenerator a -> StyleCells a
-with generator table = do
-  let (rCount, cCount) = tableDimension table
-  return $ matrix rCount cCount $ generator table
+type StyleGenerator a = Table -> (Int, Int) -> a
+
+with :: StyleGenerator a -> CellStyler a
+with generator table = let V2 r c = tableDimension table in matrix r c $ generator table
 
 prefer :: StyleGenerator (Maybe a) -> StyleGenerator a -> StyleGenerator a
 prefer x y table pos = fromMaybe (y table pos) (x table pos)

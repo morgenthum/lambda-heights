@@ -1,8 +1,8 @@
 module LambdaHeights.Types.ReplayMenuState where
 
 import           Data.Matrix
+import           LambdaHeights.GUI.Table.Types
 import           Linear.V2
-import           SDL.GUI.Table.Types
 
 data State = State {
   table  :: Table,
