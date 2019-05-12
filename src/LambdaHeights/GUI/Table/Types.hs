@@ -9,16 +9,18 @@ import qualified SDL.Font    as SDLF
 
 type Color = V4 Word8
 
-type Location = V2 Int
+type Position = V2 Int
 type Size = V2 Int
+
+type Location = V2 Int
 
 type CellStyler a = Table -> Matrix a
 type CellSizer a = Table -> Matrix a -> Matrix Size
-type CellLocator = Table -> Matrix Size -> Matrix Location
-type TextLocator = Table -> Matrix Size -> Matrix Location -> Matrix Location
+type CellPositioner = Table -> Matrix Size -> Matrix Position
+type TextPositioner = Table -> Matrix Size -> Matrix Position -> Matrix Position
 
-type RenderTable a = Table -> TableView a -> IO ()
-type RenderCell a = Table -> TableView a -> Location -> IO ()
+type TableRenderer a = Table -> TableView a -> IO ()
+type CellRenderer a = Table -> TableView a -> Position -> IO ()
 
 type UpdateTable = [SDL.Event] -> Table -> Table
 
@@ -30,15 +32,15 @@ data Table = Table {
 data TableView a = TableView {
   styles        :: Matrix a,
   sizes         :: Matrix Size,
-  locations     :: Matrix Location,
-  textLocations :: Matrix Location
+  positions     :: Matrix Position,
+  textPositions :: Matrix Position
 }
 
 data TableViewGenerators a = TableViewGenerators {
-  styleCells  :: CellStyler a,
-  sizeCells   :: CellSizer a,
-  locateCells :: CellLocator,
-  locateText  :: TextLocator
+  styleCells    :: CellStyler a,
+  sizeCells     :: CellSizer a,
+  positionCells :: CellPositioner,
+  positionTexts :: TextPositioner
 }
 
 data CellStyle = CellStyle {
@@ -52,7 +54,7 @@ tableDimension table = let m = content table in V2 (nrows m) (ncols m)
 
 tableSize :: TableView a -> V2 Int
 tableSize view =
-  let locations'   = locations view
+  let locations'   = positions view
       sizes'       = sizes view
       maxPositions = mapPos (\(r, c) pos -> pos + getElem r c sizes') locations'
       minList      = toList locations'
@@ -65,7 +67,10 @@ tableSize view =
       maxY = maximum $ map getY maxList
   in  V2 (maxX - minX) (maxY - minY)
 
-cellLocations :: Table -> [Location]
+cellLocations :: Table -> [Position]
 cellLocations table =
   let V2 rCount cCount = tableDimension table
   in  [ V2 r c | r <- [1 .. rCount], c <- [1 .. cCount] ]
+
+selectedValue :: Table -> String
+selectedValue table = let V2 r c = selected table in getElem r c $ content table

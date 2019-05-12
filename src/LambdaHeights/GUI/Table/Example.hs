@@ -34,26 +34,27 @@ bodyStyle f = CellStyle f (V4 255 255 255 255) (V4 0 0 0 30)
 newTable :: [[String]] -> Table
 newTable xs = Table {content = fromLists xs, selected = V2 1 1}
 
-newGenerators :: SDLF.Font -> Matrix Size -> TableViewGenerators CellStyle
-newGenerators font fontSizes = TableViewGenerators
-  { styleCells  = Style.with $ Style.selectedAndBody (selectedStyle font) (bodyStyle font)
-  , sizeCells   = Size.alignWidths $ Size.with $ Size.extend (V2 20 20) $ Size.copy fontSizes
-  , locateCells = Locate.with $ Locate.indentSelected 5 Locate.grid
-  , locateText  = TextLocate.with $ TextLocate.center fontSizes
-  }
+newGenerators :: SDLF.Font -> Table -> IO (TableViewGenerators CellStyle)
+newGenerators font table = do
+  fontSizes <- Size.loadFontSizes font $ content table
+  return $ TableViewGenerators
+    { styleCells    = Style.with $ Style.selectedAndBody (selectedStyle font) (bodyStyle font)
+    , sizeCells     = Size.alignWidths $ Size.with $ Size.extend (V2 20 20) $ Size.copy fontSizes
+    , positionCells = Locate.with $ Locate.indentSelected 5 Locate.grid
+    , positionTexts = TextLocate.with $ TextLocate.center fontSizes
+    }
 
-buildTableRenderer :: RenderContext -> RenderTable CellStyle
+buildTableRenderer :: RenderContext -> TableRenderer CellStyle
 buildTableRenderer (window, renderer) table view = do
-  tablePos <- calcTablePos window view
-  renderTable (renderSimpleCell renderer tablePos) table view
+  tablePos <- calcTablePos window $ tableSize view
+  renderTable (renderRectCell renderer tablePos) table view
 
 start :: IO ()
 start = do
   (window, renderer) <- newContext "SDL.GUI"
   font               <- SDLF.load "retro_gaming.ttf" 11
   let table = newTable testContent
-  fontSizes <- Size.loadFontSizes font $ content table
-  let generators = newGenerators font fontSizes
+  generators <- newGenerators font table
   let update = Update.with Update.toSelectEvent $ Update.applySelectEvent Update.limitAll
   loop (window, renderer) update table generators
   deleteContext (window, renderer)

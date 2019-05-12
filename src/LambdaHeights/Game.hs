@@ -17,7 +17,7 @@ import qualified LambdaHeights.Score               as Score
 import           LambdaHeights.Serialize
 import qualified LambdaHeights.Types.Events        as Events
 import qualified LambdaHeights.Types.GameState     as Game
-import qualified LambdaHeights.Types.MainMenuState as Menu
+import qualified LambdaHeights.Types.MainMenuState as MainMenu
 import qualified LambdaHeights.Types.PauseState    as Pause
 import qualified LambdaHeights.Types.Player        as Play
 import qualified LambdaHeights.Types.PlayState     as Play
@@ -48,11 +48,12 @@ startState ctx Game.Replay = startReplay defaultReplayFilePath ctx >>= startStat
 
 startMenu :: RenderContext -> IO Game.State
 startMenu ctx = do
+  let state = MainMenu.newState
   timer  <- defaultTimer
-  config <- Menu.defaultConfig
+  config <- Menu.defaultConfig $ MainMenu.menu state
 
   let loop = timedLoop Menu.keyInput MainMenu.update noOutput (MainMenu.render ctx config)
-  state <- startLoop timer Menu.newState loop
+  state <- startLoop timer state loop
 
   Menu.deleteConfig config
   return state
@@ -62,7 +63,7 @@ startGame ctx = do
   time        <- getCurrentTime
   channel     <- newTChanIO
   playConfig  <- Play.defaultConfig
-  pauseConfig <- Pause.defaultConfig
+  pauseConfig <- Pause.defaultConfig $ Pause.menu $ Pause.newState ()
 
   let playRenderer  = Play.renderDefault ctx playConfig
   let pauseRenderer = Pause.render ctx pauseConfig $ Play.renderPause ctx playConfig
@@ -102,7 +103,7 @@ startGameLoop replayFilePath channel gameState playLoop pauseLoop = do
 showScore :: RenderContext -> Score.Score -> IO Game.State
 showScore ctx score = do
   timer  <- defaultTimer
-  config <- Menu.defaultConfig
+  config <- Menu.defaultConfig $ Pause.menu $ Pause.newState ()
 
   let loop = timedLoop Menu.keyInput Score.update noOutput $ Score.render ctx config
   _ <- startLoop timer (Score.newState score) loop

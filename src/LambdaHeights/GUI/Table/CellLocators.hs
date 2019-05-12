@@ -4,9 +4,9 @@ import           Data.Matrix
 import           LambdaHeights.GUI.Table.Types
 import           Linear.V2
 
-type LocationGen a = Table -> Matrix Size -> (Int, Int) -> Location
+type LocationGen a = Table -> Matrix Size -> (Int, Int) -> Position
 
-with :: LocationGen a -> CellLocator
+with :: LocationGen a -> CellPositioner
 with g table sizes = let V2 r c = tableDimension table in matrix r c $ g table sizes
 
 grid :: LocationGen a

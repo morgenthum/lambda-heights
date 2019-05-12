@@ -4,4 +4,4 @@ import LambdaHeights.Game
 import qualified LambdaHeights.GUI.Table.Example as E
 
 main :: IO ()
-main = E.start
+main = start

@@ -1,22 +1,13 @@
 module LambdaHeights.GUI.Table.TextLocators where
 
 import           Data.Matrix
-import qualified LambdaHeights.GUI.Table.CellLocators  as Locate
-import           LambdaHeights.GUI.Table.CellRenderer
-import qualified LambdaHeights.GUI.Table.CellSizers    as Size
-import qualified LambdaHeights.GUI.Table.CellStyler    as Style
-import           LambdaHeights.GUI.Table.TableRenderer
-import qualified LambdaHeights.GUI.Table.TableUpdater  as Update
 import           LambdaHeights.GUI.Table.Types
-import           LambdaHeights.RenderContext
 import           Linear.V2
-import           Linear.V4
-import qualified SDL
-import qualified SDL.Font                              as SDLF
+import           Linear.V2.Utils
 
-type TextLocationGen a = Matrix Size -> Matrix Location -> (Int, Int) -> Location
+type TextLocationGen a = Matrix Size -> Matrix Position -> (Int, Int) -> Position
 
-with :: TextLocationGen a -> TextLocator
+with :: TextLocationGen a -> TextPositioner
 with g table sizes locations = let V2 r c = tableDimension table in matrix r c $ g sizes locations
 
 indent :: V2 Int -> TextLocationGen a
