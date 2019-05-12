@@ -1,6 +1,6 @@
 module LambdaHeights.Play.Render
   ( RenderConfig(..)
-  , defaultConfig
+  , createConfig
   , deleteConfig
   , renderDefault
   , renderPause
@@ -36,8 +36,8 @@ data RenderConfig = RenderConfig {
   textColor         :: SDL.V4 Word8
 }
 
-defaultConfig :: IO RenderConfig
-defaultConfig = do
+createConfig :: IO RenderConfig
+createConfig = do
   loadedFont <- SDLF.load "retro_gaming.ttf" 11
   return $ RenderConfig
     { font              = loadedFont

@@ -12,23 +12,16 @@ import qualified LambdaHeights.Types.Timer         as Timer
 import           Linear.V4
 import qualified SDL
 
--- Update the menu.
-
 update :: Timer.LoopTimer -> [SDL.Event] -> MainMenu.State -> Either Game.State MainMenu.State
 update timer events state =
   let updated = Menu.update stateFromItem timer events $ MainMenu.menu state
+      stateFromItem "play"   = Game.Play
+      stateFromItem "replay" = Game.Replay
+      stateFromItem "exit"   = Game.Exit
+      stateFromItem _        = Game.Menu
   in  case updated of
         Left  result -> Left result
         Right menu   -> Right $ state { MainMenu.menu = menu }
-
-stateFromItem :: String -> Game.State
-stateFromItem "play"   = Game.Play
-stateFromItem "replay" = Game.Replay
-stateFromItem "exit"   = Game.Exit
-stateFromItem _        = Game.Menu
-
-
--- Render the menu.
 
 render :: RenderContext -> Menu.RenderConfig -> Timer.LoopTimer -> MainMenu.State -> IO ()
 render (window, renderer) config timer state = do

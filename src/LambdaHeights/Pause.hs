@@ -8,22 +8,14 @@ import qualified LambdaHeights.Types.PauseState as Pause
 import qualified LambdaHeights.Types.Timer      as Timer
 import qualified SDL
 
--- Update the menu.
-
 update :: Timer.LoopTimer -> [SDL.Event] -> Pause.State a -> Either Pause.ExitReason (Pause.State a)
 update timer events state =
   let updated = Menu.update stateFromItem timer events $ Pause.menu state
+      stateFromItem "exit" = Pause.Exit
+      stateFromItem _      = Pause.Resume
   in  case updated of
         Left  result -> Left result
         Right menu   -> Right $ state { Pause.menu = menu }
-
-stateFromItem :: String -> Pause.ExitReason
-stateFromItem "exit" = Pause.Exit
-stateFromItem _      = Pause.Resume
-
-
--- Render the 'real' state using the proxy-renderer
--- and render the pause overlay on top.
 
 type ProxyRenderer a = Timer.LoopTimer -> a -> IO ()
 
@@ -34,7 +26,7 @@ data RenderConfig = RenderConfig {
 
 defaultConfig :: GUI.Table -> IO RenderConfig
 defaultConfig table = do
-  config <- Menu.defaultConfig table
+  config <- Menu.createConfig table
   return $ RenderConfig {menuConfig = config, overlayColor = SDL.V4 0 0 0 128}
 
 deleteConfig :: RenderConfig -> IO ()
@@ -43,7 +35,7 @@ deleteConfig config = Menu.deleteConfig $ menuConfig config
 render
   :: RenderContext -> RenderConfig -> ProxyRenderer a -> Timer.LoopTimer -> Pause.State a -> IO ()
 render (window, renderer) config proxyRenderer timer state = do
-  proxyRenderer timer $ Pause.state state
+  proxyRenderer timer $ Pause.menuState state
   renderOverlay (window, renderer) config
   Menu.render (window, renderer) (menuConfig config) timer $ Pause.menu state
   SDL.present renderer
