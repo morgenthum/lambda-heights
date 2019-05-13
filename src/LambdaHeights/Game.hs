@@ -7,32 +7,31 @@ import           Control.Concurrent.Async
 import           Control.Concurrent.STM.TChan
 import           Data.Time
 import           LambdaHeights.Loop
-import qualified LambdaHeights.MainMenu            as MainMenu
-import qualified LambdaHeights.Menu                as Menu
-import qualified LambdaHeights.Pause               as Pause
-import qualified LambdaHeights.Play                as Play
+import qualified LambdaHeights.MainMenu              as MainMenu
+import qualified LambdaHeights.Menu                  as Menu
+import qualified LambdaHeights.Pause                 as Pause
+import qualified LambdaHeights.Play                  as Play
 import           LambdaHeights.RenderContext
-import qualified LambdaHeights.Replay              as Replay
-import qualified LambdaHeights.Score               as Score
+import qualified LambdaHeights.Replay                as Replay
+import qualified LambdaHeights.ReplayMenu            as ReplayMenu
+import qualified LambdaHeights.Score                 as Score
 import           LambdaHeights.Serialize
-import qualified LambdaHeights.Types.Events        as Events
-import qualified LambdaHeights.Types.GameState     as Game
-import qualified LambdaHeights.Types.MainMenuState as MainMenu
-import qualified LambdaHeights.Types.PauseState    as Pause
-import qualified LambdaHeights.Types.Player        as Play
-import qualified LambdaHeights.Types.PlayState     as Play
-import qualified LambdaHeights.Types.ReplayState   as Replay
-import qualified LambdaHeights.Types.ScoreState    as Score
-import qualified LambdaHeights.Types.Timer         as Timer
+import qualified LambdaHeights.Types.Events          as Events
+import qualified LambdaHeights.Types.GameState       as Game
+import qualified LambdaHeights.Types.MainMenuState   as MainMenu
+import qualified LambdaHeights.Types.PauseState      as Pause
+import qualified LambdaHeights.Types.Player          as Play
+import qualified LambdaHeights.Types.PlayState       as Play
+import qualified LambdaHeights.Types.ReplayMenuState as ReplayMenu
+import qualified LambdaHeights.Types.ReplayState     as Replay
+import qualified LambdaHeights.Types.ScoreState      as Score
+import qualified LambdaHeights.Types.Timer           as Timer
 
 type PlayLoopState = LoopState IO Play.State Play.Result
 type PauseLoopState = LoopState IO (Pause.State Play.State) Pause.ExitReason
 
 defaultTimer :: IO Timer.LoopTimer
 defaultTimer = Timer.newTimer 7
-
-defaultReplayFilePath :: String
-defaultReplayFilePath = "replay.dat"
 
 start :: IO ()
 start = do
@@ -44,7 +43,8 @@ startState :: RenderContext -> Game.State -> IO Game.State
 startState _   Game.Exit   = return Game.Exit
 startState ctx Game.Menu   = startMenu ctx >>= startState ctx
 startState ctx Game.Play   = startGame ctx >>= startState ctx
-startState ctx Game.Replay = startReplay defaultReplayFilePath ctx >>= startState ctx
+--startState ctx Game.Replay = startReplay defaultReplayFilePath ctx >>= startState ctx
+startState ctx Game.Replay = startReplayMenu ctx >>= startState ctx
 
 startMenu :: RenderContext -> IO Game.State
 startMenu ctx = do
@@ -110,6 +110,19 @@ showScore ctx score = do
 
   Menu.deleteConfig config
   return Game.Menu
+
+startReplayMenu :: RenderContext -> IO Game.State
+startReplayMenu ctx = do
+  timer  <- defaultTimer
+  table  <- ReplayMenu.buildTable <$> ReplayMenu.loadReplayFiles
+  config <- ReplayMenu.createConfig table
+
+  let loop = timedLoop Menu.keyInput ReplayMenu.update noOutput $ ReplayMenu.render ctx config
+  x     <- startLoop timer (ReplayMenu.State table) loop
+  state <- if null x then return Game.Menu else startReplay x ctx
+
+  Menu.deleteConfig config
+  return state
 
 startReplay :: FilePath -> RenderContext -> IO Game.State
 startReplay replayFilePath ctx = do

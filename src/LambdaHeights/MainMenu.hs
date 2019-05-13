@@ -14,7 +14,7 @@ import qualified SDL
 
 update :: Timer.LoopTimer -> [SDL.Event] -> MainMenu.State -> Either Game.State MainMenu.State
 update timer events state =
-  let updated = Menu.update stateFromItem timer events $ MainMenu.menu state
+  let updated = Menu.updateDefault stateFromItem timer events $ MainMenu.menu state
       stateFromItem "play"   = Game.Play
       stateFromItem "replay" = Game.Replay
       stateFromItem "exit"   = Game.Exit

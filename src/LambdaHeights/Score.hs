@@ -9,7 +9,7 @@ import qualified SDL
 
 update :: Timer.LoopTimer -> [SDL.Event] -> Score.State -> Either () Score.State
 update timer events state =
-  let updated = Menu.update (const ()) timer events $ Score.menu state
+  let updated = Menu.updateDefault (const ()) timer events $ Score.menu state
   in  case updated of
         Left  _    -> Left ()
         Right menu -> Right $ state { Score.menu = menu }

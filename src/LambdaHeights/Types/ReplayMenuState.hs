@@ -4,10 +4,9 @@ import           Data.Matrix
 import           LambdaHeights.GUI.Table.Types
 import           Linear.V2
 
-data State = State {
-  table  :: Table,
-  action :: Bool
+newtype State = State {
+  table  :: Table
 }
 
 newState :: [[String]] -> State
-newState xs = State {table = Table (fromLists xs) (V2 1 1), action = False}
+newState xs = State {table = Table (fromLists xs) (V2 1 1)}

@@ -10,7 +10,7 @@ import qualified SDL
 
 update :: Timer.LoopTimer -> [SDL.Event] -> Pause.State a -> Either Pause.ExitReason (Pause.State a)
 update timer events state =
-  let updated = Menu.update stateFromItem timer events $ Pause.menu state
+  let updated = Menu.updateDefault stateFromItem timer events $ Pause.menu state
       stateFromItem "exit" = Pause.Exit
       stateFromItem _      = Pause.Resume
   in  case updated of

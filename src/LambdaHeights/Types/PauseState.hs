@@ -5,9 +5,9 @@ import           LambdaHeights.GUI.Table.Types
 import           Linear.V2
 
 data State a = State {
-  menuState  :: a,
-  menu   :: Table,
-  reason :: Maybe ExitReason
+  menuState :: a,
+  menu      :: Table,
+  reason    :: Maybe ExitReason
 }
 
 data ExitReason = Exit | Resume

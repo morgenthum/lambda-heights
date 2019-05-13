@@ -36,11 +36,15 @@ applySelectEvent limit table event =
         SelectRight -> table { selected = V2 r (c + 1) }
         SelectDown  -> table { selected = V2 (r + 1) c }
 
-limitNotFirst :: LimitSelection -> LimitSelection
-limitNotFirst parent table =
+limitNotFirstRow :: LimitSelection -> LimitSelection
+limitNotFirstRow parent table =
   let V2 r c = selected $ parent table
       r'     = if r < 2 then 2 else r
   in  table { selected = V2 r' c }
+
+limitFirstColumn :: LimitSelection -> LimitSelection
+limitFirstColumn parent table =
+  let V2 r _ = selected $ parent table in table { selected = V2 r 1 }
 
 limitAll :: LimitSelection
 limitAll table =

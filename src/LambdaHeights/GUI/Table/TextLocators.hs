@@ -11,7 +11,7 @@ with :: TextLocationGen a -> TextPositioner
 with g table sizes locations = let V2 r c = tableDimension table in matrix r c $ g sizes locations
 
 indent :: V2 Int -> TextLocationGen a
-indent (V2 ix iy) sizes locations (r, c) =
+indent (V2 ix iy) _ locations (r, c) =
   let V2 x y = convertV2 $ getElem r c locations in V2 (x + ix) (y + iy)
 
 center :: Matrix Size -> TextLocationGen a

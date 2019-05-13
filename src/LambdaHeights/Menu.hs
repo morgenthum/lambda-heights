@@ -25,23 +25,32 @@ data RenderConfig = RenderConfig {
 keyInput :: IO [SDL.Event]
 keyInput = SDL.pollEvents
 
-update :: ToResult a -> Timer.LoopTimer -> [SDL.Event] -> GUI.Table -> Either a GUI.Table
-update toResult _ events table =
-  let updater = Update.with Update.toSelectEvent $ Update.applySelectEvent Update.limitAll
-      table'  = updater events table
-  in  if hasConfirmed events then Left $ toResult $ GUI.selectedValue table' else Right table'
+updateDefault :: ToResult a -> Timer.LoopTimer -> [SDL.Event] -> GUI.Table -> Either a GUI.Table
+updateDefault = update $ Update.with Update.toSelectEvent $ Update.applySelectEvent Update.limitAll
 
-hasConfirmed :: [SDL.Event] -> Bool
-hasConfirmed events =
-  let eventToKeyEvent event = case SDL.eventPayload event of
-        SDL.KeyboardEvent keyEvent ->
-          let code   = SDL.keysymKeycode (SDL.keyboardEventKeysym keyEvent)
-              motion = SDL.keyboardEventKeyMotion keyEvent
-          in  keyToKeyEvent code motion
-        _ -> False
-      keyToKeyEvent SDL.KeycodeReturn SDL.Pressed = True
-      keyToKeyEvent _                 _           = False
-  in  not . null $ filter id $ map eventToKeyEvent events
+update
+  :: GUI.UpdateTable
+  -> ToResult a
+  -> Timer.LoopTimer
+  -> [SDL.Event]
+  -> GUI.Table
+  -> Either a GUI.Table
+update updater toResult _ events table =
+  let table' = updater events table
+  in  if pressedKey SDL.KeycodeReturn events
+        then Left $ toResult $ GUI.selectedValue table'
+        else if pressedKey SDL.KeycodeEscape events then Left $ toResult "" else Right table'
+
+pressedKey :: SDL.Keycode -> [SDL.Event] -> Bool
+pressedKey code = any (isKeycode code)
+
+isKeycode :: SDL.Keycode -> SDL.Event -> Bool
+isKeycode code event = case SDL.eventPayload event of
+  SDL.KeyboardEvent keyEvent ->
+    let actualCode = SDL.keysymKeycode (SDL.keyboardEventKeysym keyEvent)
+        motion     = SDL.keyboardEventKeyMotion keyEvent
+    in  code == actualCode && motion == SDL.Pressed
+  _ -> False
 
 render :: RenderContext -> RenderConfig -> Timer.LoopTimer -> GUI.Table -> IO ()
 render (window, renderer) config _ table = do
@@ -54,13 +63,14 @@ createConfig table = do
   f         <- SDLF.load "HighSchoolUSASans.ttf" 28
   fontSizes <- Size.loadFontSizes f $ GUI.content table
   let selectedStyle = GUI.CellStyle f (V4 30 30 30 255) (V4 0 191 255 255)
-  let bodyStyle = GUI.CellStyle f (V4 30 30 30 255) (V4 255 255 255 255)
+  let bodyStyle     = GUI.CellStyle f (V4 30 30 30 255) (V4 255 255 255 255)
   return $ RenderConfig
     { font       = f
     , generators = GUI.TableViewGenerators
-      { GUI.styleCells = Style.with $ Style.selectedAndBody selectedStyle bodyStyle
+      { GUI.styleCells    = Style.with $ Style.selectedAndBody selectedStyle bodyStyle
       , GUI.sizeCells = Size.alignWidths $ Size.with $ Size.extend (V2 20 20) $ Size.copy fontSizes
-      , GUI.positionCells = Locate.with $ Locate.indentSelected 10 $ Locate.addGaps (V2 0 20) Locate.grid
+      , GUI.positionCells = Locate.with $ Locate.indentSelected 10 $ Locate.addGaps (V2 20 20)
+                                                                                    Locate.grid
       , GUI.positionTexts = TextLocate.with $ TextLocate.center fontSizes
       }
     }
