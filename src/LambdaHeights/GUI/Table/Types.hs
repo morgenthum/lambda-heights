@@ -15,9 +15,9 @@ type Size = V2 Int
 type Location = V2 Int
 
 type CellStyler a = Table -> Matrix a
-type CellSizer a = Table -> Matrix a -> Matrix Size
-type CellPositioner = Table -> Matrix Size -> Matrix Position
-type TextPositioner = Table -> Matrix Size -> Matrix Position -> Matrix Position
+type CellSizer = Table -> Matrix Size
+type CellPositioner = Table -> Matrix Position
+type TextPositioner = Table -> Matrix Position
 
 type TableRenderer a = Table -> TableView a -> IO ()
 type CellRenderer a = Table -> TableView a -> Position -> IO ()
@@ -34,13 +34,6 @@ data TableView a = TableView {
   sizes         :: Matrix Size,
   positions     :: Matrix Position,
   textPositions :: Matrix Position
-}
-
-data TableViewGenerators a = TableViewGenerators {
-  styleCells    :: CellStyler a,
-  sizeCells     :: CellSizer a,
-  positionCells :: CellPositioner,
-  positionTexts :: TextPositioner
 }
 
 data CellStyle = CellStyle {

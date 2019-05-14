@@ -14,25 +14,25 @@ loadFontSizes font m = do
   sm <- mapM (SDLF.size font . T.pack) m
   return $ fmap (uncurry V2) sm
 
-alignWidths :: CellSizer a -> CellSizer a
-alignWidths parent table styles =
-  let sizes = parent table styles
-  in  mapPos (\(_, c) (V2 _ h) -> V2 (maxColumnWidth c sizes) h) sizes
+alignWidths :: CellSizer -> CellSizer
+alignWidths parent table =
+  let sm = parent table
+  in  mapPos (\(_, c) (V2 _ h) -> V2 (maxColumnWidth c sm) h) sm
 
-with :: SizeGen -> CellSizer a
-with generator table _ = let V2 r c = tableDimension table in matrix r c $ generator table
+with :: SizeGen -> CellSizer
+with generator table = let V2 r c = tableDimension table in matrix r c $ generator table
 
 fixedSize :: Size -> SizeGen
 fixedSize size _ _ = size
 
 copy :: Matrix Size -> SizeGen
-copy sizes _ (r, c) = getElem r c sizes
+copy sm _ (r, c) = getElem r c sm
 
 extend :: Size -> SizeGen -> SizeGen
 extend size parent table (r, c) = size + parent table (r, c)
 
 maxColumnWidth :: Int -> Matrix Size -> Int
-maxColumnWidth c sizes =
-  let cs = getCol c sizes
+maxColumnWidth c sm =
+  let cs = getCol c sm
       maxWidth w1 (V2 w2 _) = max w1 w2
   in  V.foldl maxWidth 0 cs

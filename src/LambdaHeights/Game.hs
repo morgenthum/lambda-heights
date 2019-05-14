@@ -115,7 +115,7 @@ startReplayMenu :: RenderContext -> IO Game.State
 startReplayMenu ctx = do
   timer  <- defaultTimer
   table  <- ReplayMenu.buildTable <$> ReplayMenu.loadReplayFiles
-  config <- ReplayMenu.createConfig table
+  config <- ReplayMenu.createConfig
 
   let loop = timedLoop Menu.keyInput ReplayMenu.update noOutput $ ReplayMenu.render ctx config
   x     <- startLoop timer (ReplayMenu.State table) loop

@@ -1,5 +1,6 @@
 module LambdaHeights.Menu where
 
+import Data.Matrix
 import qualified LambdaHeights.GUI.Table.CellLocators  as Locate
 import qualified LambdaHeights.GUI.Table.CellRenderer  as GUI
 import qualified LambdaHeights.GUI.Table.CellSizers    as Size
@@ -17,9 +18,8 @@ import qualified SDL.Font                              as SDLF
 
 type ToResult a = String -> a
 
-data RenderConfig = RenderConfig {
-  font       :: SDLF.Font,
-  generators :: GUI.TableViewGenerators GUI.CellStyle
+newtype RenderConfig = RenderConfig {
+  font :: SDLF.Font
 }
 
 keyInput :: IO [SDL.Event]
@@ -52,28 +52,40 @@ isKeycode code event = case SDL.eventPayload event of
     in  code == actualCode && motion == SDL.Pressed
   _ -> False
 
-render :: RenderContext -> RenderConfig -> Timer.LoopTimer -> GUI.Table -> IO ()
-render (window, renderer) config _ table = do
-  let view = GUI.generateView (generators config) table
+defaultView :: RenderConfig -> GUI.Table -> IO (GUI.TableView GUI.CellStyle)
+defaultView config table = do
+  fontSizes <- Size.loadFontSizes (font config) $ GUI.content table
+  let styles = newStyler (font config) table
+  let sizes = newSizer fontSizes table
+  let positions = newPositioner sizes table
+  let textPositions = newTextPositioner sizes positions fontSizes table
+  return $ GUI.TableView styles sizes positions textPositions
+
+render :: RenderContext -> Timer.LoopTimer -> GUI.Table -> GUI.TableView GUI.CellStyle -> IO ()
+render (window, renderer) _ table view = do
   tablePos <- GUI.calcTablePos window $ GUI.tableSize view
   GUI.renderTable (GUI.renderRectCell renderer tablePos) table view
 
-createConfig :: GUI.Table -> IO RenderConfig
-createConfig table = do
-  f         <- SDLF.load "HighSchoolUSASans.ttf" 28
-  fontSizes <- Size.loadFontSizes f $ GUI.content table
+newStyler :: SDLF.Font -> GUI.CellStyler GUI.CellStyle
+newStyler f =
   let selectedStyle = GUI.CellStyle f (V4 30 30 30 255) (V4 0 191 255 255)
-  let bodyStyle     = GUI.CellStyle f (V4 30 30 30 255) (V4 255 255 255 255)
-  return $ RenderConfig
-    { font       = f
-    , generators = GUI.TableViewGenerators
-      { GUI.styleCells    = Style.with $ Style.selectedAndBody selectedStyle bodyStyle
-      , GUI.sizeCells = Size.alignWidths $ Size.with $ Size.extend (V2 20 20) $ Size.copy fontSizes
-      , GUI.positionCells = Locate.with $ Locate.indentSelected 10 $ Locate.addGaps (V2 20 20)
-                                                                                    Locate.grid
-      , GUI.positionTexts = TextLocate.with $ TextLocate.center fontSizes
-      }
-    }
+      bodyStyle     = GUI.CellStyle f (V4 30 30 30 255) (V4 255 255 255 255)
+  in Style.with $ Style.selectedAndBody selectedStyle bodyStyle
+
+newSizer :: Matrix GUI.Size -> GUI.CellSizer
+newSizer fontSizes = Size.alignWidths $ Size.with $ Size.extend (V2 20 20) $ Size.copy fontSizes
+
+newPositioner :: Matrix GUI.Size -> GUI.CellPositioner
+newPositioner sm = Locate.with
+              $ Locate.indentSelected 10
+              $ Locate.addGaps (V2 20 20)
+              $ Locate.grid sm
+
+newTextPositioner :: Matrix GUI.Size -> Matrix GUI.Position -> Matrix GUI.Size -> GUI.TextPositioner
+newTextPositioner sm pm fontSizes = TextLocate.with $ TextLocate.center sm pm fontSizes
+
+createConfig :: GUI.Table -> IO RenderConfig
+createConfig table = RenderConfig <$> SDLF.load "HighSchoolUSASans.ttf" 28
 
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font

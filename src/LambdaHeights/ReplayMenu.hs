@@ -24,25 +24,27 @@ import qualified SDL
 import qualified SDL.Font                             as SDLF
 import           System.Directory
 
-createConfig :: GUI.Table -> IO Menu.RenderConfig
-createConfig table = do
-  f         <- SDLF.load "retro_gaming.ttf" 11
-  fontSizes <- Size.loadFontSizes f $ GUI.content table
+createConfig :: IO Menu.RenderConfig
+createConfig = Menu.RenderConfig <$> SDLF.load "retro_gaming.ttf" 11
+
+newStyler :: SDLF.Font -> GUI.CellStyler GUI.CellStyle
+newStyler f =
   let headStyle     = GUI.CellStyle f (V4 0 191 255 255) (V4 30 30 30 255)
-  let selectedStyle = GUI.CellStyle f (V4 30 30 30 255) (V4 0 191 255 255)
-  let bodyStyle     = GUI.CellStyle f (V4 30 30 30 255) (V4 255 255 255 255)
-  return $ Menu.RenderConfig
-    { Menu.font       = f
-    , Menu.generators = GUI.TableViewGenerators
-      { GUI.styleCells = Style.with $ Style.prefer (Style.header headStyle) $ Style.selectedAndBody
-        selectedStyle
-        bodyStyle
-      , GUI.sizeCells = Size.alignWidths $ Size.with $ Size.extend (V2 20 20) $ Size.copy fontSizes
-      , GUI.positionCells = Locate.with $ Locate.indentSelected 10 $ Locate.addGaps (V2 20 20)
-                                                                                    Locate.grid
-      , GUI.positionTexts = TextLocate.with $ TextLocate.center fontSizes
-      }
-    }
+      selectedStyle = GUI.CellStyle f (V4 30 30 30 255) (V4 0 191 255 255)
+      bodyStyle     = GUI.CellStyle f (V4 30 30 30 255) (V4 255 255 255 255)
+  in Style.with $ Style.prefer (Style.header headStyle) $ Style.selectedAndBody selectedStyle bodyStyle
+
+newSizer :: Matrix GUI.Size -> GUI.CellSizer
+newSizer fontSizes = Size.alignWidths $ Size.with $ Size.extend (V2 20 20) $ Size.copy fontSizes
+
+newPositioner :: Matrix GUI.Size -> GUI.CellPositioner
+newPositioner sm = Locate.with
+              $ Locate.indentSelected 10
+              $ Locate.addGaps (V2 20 20)
+              $ Locate.grid sm
+
+newTextPositioner :: Matrix GUI.Size -> Matrix GUI.Position -> Matrix GUI.Size -> GUI.TextPositioner
+newTextPositioner sm pm fontSizes = TextLocate.with $ TextLocate.center sm pm fontSizes
 
 loadReplayFiles :: IO [Replay.Description]
 loadReplayFiles = do
@@ -75,5 +77,16 @@ render :: RenderContext -> Menu.RenderConfig -> Timer.LoopTimer -> ReplayMenu.St
 render (window, renderer) config timer state = do
   SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 255
   SDL.clear renderer
-  Menu.render (window, renderer) config timer $ ReplayMenu.table state
+  let table = ReplayMenu.table state
+  view <- defaultView config table
+  Menu.render (window, renderer) timer table view
   SDL.present renderer
+
+defaultView :: Menu.RenderConfig -> GUI.Table -> IO (GUI.TableView GUI.CellStyle)
+defaultView config table = do
+  fontSizes <- Size.loadFontSizes (Menu.font config) $ GUI.content table
+  let styles = newStyler (Menu.font config) table
+  let sizes = newSizer fontSizes table
+  let positions = newPositioner sizes table
+  let textPositions = newTextPositioner sizes positions fontSizes table
+  return $ GUI.TableView styles sizes positions textPositions

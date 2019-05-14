@@ -18,5 +18,7 @@ render :: RenderContext -> Menu.RenderConfig -> Timer.LoopTimer -> Score.State -
 render (window, renderer) config timer state = do
   SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 255
   SDL.clear renderer
-  Menu.render (window, renderer) config timer $ Score.menu state
+  let table = Score.menu state
+  view <- Menu.defaultView config table
+  Menu.render (window, renderer) timer table view
   SDL.present renderer

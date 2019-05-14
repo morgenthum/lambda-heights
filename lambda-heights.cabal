@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4b4ea238a6519ffc20d5ef28b9efaab573ca00924786dc780fb64072769229e5
+-- hash: 1ab7573a68d4aaf99a25a60084faba468156b89e6ad495e9824f7049e4a0a6a9
 
 name:           lambda-heights
 version:        0.1.0.0
@@ -33,7 +33,6 @@ library
       LambdaHeights.GUI.Table.CellRenderer
       LambdaHeights.GUI.Table.CellSizers
       LambdaHeights.GUI.Table.CellStyler
-      LambdaHeights.GUI.Table.Example
       LambdaHeights.GUI.Table.TableRenderer
       LambdaHeights.GUI.Table.TableUpdater
       LambdaHeights.GUI.Table.TextLocators
