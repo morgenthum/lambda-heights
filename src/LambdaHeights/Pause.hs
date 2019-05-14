@@ -1,7 +1,6 @@
 module LambdaHeights.Pause where
 
 import           Data.Word
-import qualified LambdaHeights.GUI.Table.Types  as GUI
 import qualified LambdaHeights.Menu             as Menu
 import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Types.PauseState as Pause
@@ -24,9 +23,9 @@ data RenderConfig = RenderConfig {
   overlayColor :: SDL.V4 Word8
 }
 
-defaultConfig :: GUI.Table -> IO RenderConfig
-defaultConfig table = do
-  config <- Menu.createConfig table
+defaultConfig :: IO RenderConfig
+defaultConfig = do
+  config <- Menu.createConfig
   return $ RenderConfig {menuConfig = config, overlayColor = SDL.V4 0 0 0 128}
 
 deleteConfig :: RenderConfig -> IO ()

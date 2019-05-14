@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1ab7573a68d4aaf99a25a60084faba468156b89e6ad495e9824f7049e4a0a6a9
+-- hash: c3d682e7acdd580fd7a56fa258f552e2dcd29c053aaa73df4cef4cc9aff20d0d
 
 name:           lambda-heights
 version:        0.1.0.0
@@ -28,15 +28,6 @@ source-repository head
 library
   exposed-modules:
       LambdaHeights.Game
-      LambdaHeights.GUI.Basics
-      LambdaHeights.GUI.Table.CellLocators
-      LambdaHeights.GUI.Table.CellRenderer
-      LambdaHeights.GUI.Table.CellSizers
-      LambdaHeights.GUI.Table.CellStyler
-      LambdaHeights.GUI.Table.TableRenderer
-      LambdaHeights.GUI.Table.TableUpdater
-      LambdaHeights.GUI.Table.TextLocators
-      LambdaHeights.GUI.Table.Types
       LambdaHeights.Loop
       LambdaHeights.MainMenu
       LambdaHeights.Menu
@@ -48,12 +39,16 @@ library
       LambdaHeights.Play.Pattern
       LambdaHeights.Play.Render
       LambdaHeights.Play.Update
+      LambdaHeights.Render
       LambdaHeights.RenderContext
       LambdaHeights.Replay
       LambdaHeights.ReplayMenu
       LambdaHeights.Scale
       LambdaHeights.Score
       LambdaHeights.Serialize
+      LambdaHeights.Table.Combinators
+      LambdaHeights.Table.Render
+      LambdaHeights.Table.Update
       LambdaHeights.Types
       LambdaHeights.Types.Events
       LambdaHeights.Types.GameState
@@ -66,6 +61,7 @@ library
       LambdaHeights.Types.ReplayState
       LambdaHeights.Types.ScoreState
       LambdaHeights.Types.Screen
+      LambdaHeights.Types.Table
       LambdaHeights.Types.Timer
       Linear.V2.Utils
   other-modules:

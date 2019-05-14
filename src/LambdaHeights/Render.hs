@@ -1,4 +1,4 @@
-module LambdaHeights.GUI.Basics where
+module LambdaHeights.Render where
 
 import qualified Data.Text       as T
 import           Foreign.C.Types

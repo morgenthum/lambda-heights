@@ -1,7 +1,7 @@
-module LambdaHeights.GUI.Table.TableUpdater where
+module LambdaHeights.Table.Update where
 
 import           Data.Maybe
-import           LambdaHeights.GUI.Table.Types
+import           LambdaHeights.Types.Table
 import           Linear.V2
 import qualified SDL
 

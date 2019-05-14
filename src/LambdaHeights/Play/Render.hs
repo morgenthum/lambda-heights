@@ -13,7 +13,7 @@ where
 import qualified Data.Vector.Storable          as V
 import           Data.Word
 import           Foreign.C.Types
-import qualified LambdaHeights.GUI.Basics      as GUI
+import qualified LambdaHeights.Render          as Render
 import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Scale           as Scale
 import           LambdaHeights.Types
@@ -102,9 +102,9 @@ renderHudVelocity :: SDL.Renderer -> RenderConfig -> State.State -> IO ()
 renderHudVelocity renderer config state = do
   let textFont = font config
   let V2 x y   = Player.velocity . State.player $ state
-  GUI.renderText renderer textFont (V2 20 20) (headlineColor config) "VELOCITY"
-  GUI.renderText renderer textFont (V2 100 20) (textColor config) $ show (round x :: Int)
-  GUI.renderText renderer textFont (V2 150 20) (textColor config) $ show (round y :: Int)
+  Render.renderText renderer textFont (V2 20 20) (headlineColor config) "VELOCITY"
+  Render.renderText renderer textFont (V2 100 20) (textColor config) $ show (round x :: Int)
+  Render.renderText renderer textFont (V2 150 20) (textColor config) $ show (round y :: Int)
 
 renderHudTime :: SDL.Renderer -> RenderConfig -> State.State -> IO ()
 renderHudTime renderer config state = do
@@ -112,23 +112,23 @@ renderHudTime renderer config state = do
   let duration = State.duration state
   let seconds = round (realToFrac duration / 1000 :: Float) :: Integer
   let millis   = mod duration 1000
-  GUI.renderText renderer textFont (V2 20 40) (headlineColor config) "TIME"
-  GUI.renderText renderer textFont (V2 100 40) (textColor config) (show seconds)
-  GUI.renderText renderer textFont (V2 150 40) (textColor config) (show millis)
+  Render.renderText renderer textFont (V2 20 40) (headlineColor config) "TIME"
+  Render.renderText renderer textFont (V2 100 40) (textColor config) (show seconds)
+  Render.renderText renderer textFont (V2 150 40) (textColor config) (show millis)
 
 renderHudScore :: SDL.Renderer -> RenderConfig -> State.State -> IO ()
 renderHudScore renderer config state = do
   let textFont = font config
   let score    = Player.score . State.player $ state
-  GUI.renderText renderer textFont (V2 20 60) (headlineColor config) "SCORE"
-  GUI.renderText renderer textFont (V2 100 60) (textColor config) (show score)
+  Render.renderText renderer textFont (V2 20 60) (headlineColor config) "SCORE"
+  Render.renderText renderer textFont (V2 100 60) (textColor config) (show score)
 
 renderHudFPS :: SDL.Renderer -> RenderConfig -> Timer.LoopTimer -> IO ()
 renderHudFPS renderer config timer = do
   let textFont = font config
   let fps      = Timer.fps . Timer.counter $ timer
-  GUI.renderText renderer textFont (V2 250 20) (headlineColor config) "FPS"
-  GUI.renderText renderer textFont (V2 320 20) (textColor config) (show fps)
+  Render.renderText renderer textFont (V2 250 20) (headlineColor config) "FPS"
+  Render.renderText renderer textFont (V2 320 20) (textColor config) (show fps)
 
 renderPlayer :: SDL.Renderer -> RenderConfig -> V2 CInt -> Screen.Screen -> Player.Player -> IO ()
 renderPlayer renderer config windowSize screen player = do

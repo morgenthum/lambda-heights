@@ -1,13 +1,16 @@
-module LambdaHeights.GUI.Table.CellRenderer where
+module LambdaHeights.Table.Render where
 
 import           Data.Matrix
-import           LambdaHeights.GUI.Basics
-import           LambdaHeights.GUI.Table.Types
+import           LambdaHeights.Render
+import           LambdaHeights.Types.Table
 import           Linear.V2
 import           Linear.V2.Utils
 import qualified SDL
 
-renderRectCell :: SDL.Renderer -> Position -> CellRenderer CellStyle
+renderTable :: CellRenderer -> TableRenderer
+renderTable r table view = mapM_ (r table view) $ cellLocations table
+
+renderRectCell :: SDL.Renderer -> Position -> CellRenderer
 renderRectCell renderer pos table view (V2 r c) = do
   let text    = getElem r c $ content table
   let style   = getElem r c $ styles view

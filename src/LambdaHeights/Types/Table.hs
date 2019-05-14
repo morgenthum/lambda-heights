@@ -1,4 +1,4 @@
-module LambdaHeights.GUI.Table.Types where
+module LambdaHeights.Types.Table where
 
 import           Data.Matrix
 import           Data.Word
@@ -7,21 +7,16 @@ import           Linear.V4
 import qualified SDL
 import qualified SDL.Font    as SDLF
 
-type Color = V4 Word8
-
 type Position = V2 Int
 type Size = V2 Int
 
-type Location = V2 Int
-
-type CellStyler a = Table -> Matrix a
+type CellStyler = Table -> Matrix CellStyle
 type CellSizer = Table -> Matrix Size
 type CellPositioner = Table -> Matrix Position
 type TextPositioner = Table -> Matrix Position
 
-type TableRenderer a = Table -> TableView a -> IO ()
-type CellRenderer a = Table -> TableView a -> Position -> IO ()
-
+type TableRenderer = Table -> TableView -> IO ()
+type CellRenderer = Table -> TableView -> Position -> IO ()
 type UpdateTable = [SDL.Event] -> Table -> Table
 
 data Table = Table {
@@ -29,8 +24,8 @@ data Table = Table {
   selected :: V2 Int
 }
 
-data TableView a = TableView {
-  styles        :: Matrix a,
+data TableView = TableView {
+  styles        :: Matrix CellStyle,
   sizes         :: Matrix Size,
   positions     :: Matrix Position,
   textPositions :: Matrix Position
@@ -38,14 +33,17 @@ data TableView a = TableView {
 
 data CellStyle = CellStyle {
   cellFont :: SDLF.Font,
-  cellBg   :: Color,
-  cellFg   :: Color
+  cellBg   :: V4 Word8,
+  cellFg   :: V4 Word8
 }
+
+selectedValue :: Table -> String
+selectedValue table = let V2 r c = selected table in getElem r c $ content table
 
 tableDimension :: Table -> V2 Int
 tableDimension table = let m = content table in V2 (nrows m) (ncols m)
 
-tableSize :: TableView a -> V2 Int
+tableSize :: TableView -> V2 Int
 tableSize view =
   let locations'   = positions view
       sizes'       = sizes view
@@ -65,5 +63,8 @@ cellLocations table =
   let V2 rCount cCount = tableDimension table
   in  [ V2 r c | r <- [1 .. rCount], c <- [1 .. cCount] ]
 
-selectedValue :: Table -> String
-selectedValue table = let V2 r c = selected table in getElem r c $ content table
+calcTablePos :: SDL.Window -> Size -> IO Position
+calcTablePos window (V2 w h) = do
+  let half x = round (realToFrac x / 2 :: Float)
+  V2 wW wH <- SDL.get $ SDL.windowSize window
+  return $ V2 (half wW - half w) (half wH - half h)

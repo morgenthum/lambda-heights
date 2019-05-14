@@ -48,12 +48,11 @@ startState ctx Game.Replay = startReplayMenu ctx >>= startState ctx
 
 startMenu :: RenderContext -> IO Game.State
 startMenu ctx = do
-  let menuState = MainMenu.newState
   timer  <- defaultTimer
-  config <- Menu.createConfig $ MainMenu.menu menuState
+  config <- Menu.createConfig
 
   let loop = timedLoop Menu.keyInput MainMenu.update noOutput (MainMenu.render ctx config)
-  state <- startLoop timer menuState loop
+  state <- startLoop timer MainMenu.newState loop
 
   Menu.deleteConfig config
   return state
@@ -63,7 +62,7 @@ startGame ctx = do
   time        <- getCurrentTime
   channel     <- newTChanIO
   playConfig  <- Play.createConfig
-  pauseConfig <- Pause.defaultConfig $ Pause.menu $ Pause.newState ()
+  pauseConfig <- Pause.defaultConfig
 
   let playRenderer  = Play.renderDefault ctx playConfig
   let pauseRenderer = Pause.render ctx pauseConfig $ Play.renderPause ctx playConfig
@@ -103,7 +102,7 @@ startGameLoop replayFilePath channel gameState playLoop pauseLoop = do
 showScore :: RenderContext -> Score.Score -> IO Game.State
 showScore ctx score = do
   timer  <- defaultTimer
-  config <- Menu.createConfig $ Pause.menu $ Pause.newState ()
+  config <- Menu.createConfig
 
   let loop = timedLoop Menu.keyInput Score.update noOutput $ Score.render ctx config
   _ <- startLoop timer (Score.newState score) loop

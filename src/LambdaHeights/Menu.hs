@@ -1,20 +1,16 @@
 module LambdaHeights.Menu where
 
-import Data.Matrix
-import qualified LambdaHeights.GUI.Table.CellLocators  as Locate
-import qualified LambdaHeights.GUI.Table.CellRenderer  as GUI
-import qualified LambdaHeights.GUI.Table.CellSizers    as Size
-import qualified LambdaHeights.GUI.Table.CellStyler    as Style
-import qualified LambdaHeights.GUI.Table.TableRenderer as GUI
-import qualified LambdaHeights.GUI.Table.TableUpdater  as Update
-import qualified LambdaHeights.GUI.Table.TextLocators  as TextLocate
-import qualified LambdaHeights.GUI.Table.Types         as GUI
+import           Data.Matrix
 import           LambdaHeights.RenderContext
-import qualified LambdaHeights.Types.Timer             as Timer
+import qualified LambdaHeights.Table.Combinators as Table
+import qualified LambdaHeights.Table.Render      as GUI
+import qualified LambdaHeights.Table.Update      as Update
+import qualified LambdaHeights.Types.Table       as GUI
+import qualified LambdaHeights.Types.Timer       as Timer
 import           Linear.V2
 import           Linear.V4
 import qualified SDL
-import qualified SDL.Font                              as SDLF
+import qualified SDL.Font                        as SDLF
 
 type ToResult a = String -> a
 
@@ -52,40 +48,39 @@ isKeycode code event = case SDL.eventPayload event of
     in  code == actualCode && motion == SDL.Pressed
   _ -> False
 
-defaultView :: RenderConfig -> GUI.Table -> IO (GUI.TableView GUI.CellStyle)
+defaultView :: RenderConfig -> GUI.Table -> IO GUI.TableView
 defaultView config table = do
-  fontSizes <- Size.loadFontSizes (font config) $ GUI.content table
-  let styles = newStyler (font config) table
-  let sizes = newSizer fontSizes table
-  let positions = newPositioner sizes table
+  fontSizes <- Table.loadFontSizes (font config) $ GUI.content table
+  let styles        = newStyler (font config) table
+  let sizes         = newSizer fontSizes table
+  let positions     = newPositioner sizes table
   let textPositions = newTextPositioner sizes positions fontSizes table
   return $ GUI.TableView styles sizes positions textPositions
 
-render :: RenderContext -> Timer.LoopTimer -> GUI.Table -> GUI.TableView GUI.CellStyle -> IO ()
+render :: RenderContext -> Timer.LoopTimer -> GUI.Table -> GUI.TableView -> IO ()
 render (window, renderer) _ table view = do
   tablePos <- GUI.calcTablePos window $ GUI.tableSize view
   GUI.renderTable (GUI.renderRectCell renderer tablePos) table view
 
-newStyler :: SDLF.Font -> GUI.CellStyler GUI.CellStyle
+newStyler :: SDLF.Font -> GUI.CellStyler
 newStyler f =
   let selectedStyle = GUI.CellStyle f (V4 30 30 30 255) (V4 0 191 255 255)
       bodyStyle     = GUI.CellStyle f (V4 30 30 30 255) (V4 255 255 255 255)
-  in Style.with $ Style.selectedAndBody selectedStyle bodyStyle
+  in  Table.styleWith $ Table.selectedAndBody selectedStyle bodyStyle
 
 newSizer :: Matrix GUI.Size -> GUI.CellSizer
-newSizer fontSizes = Size.alignWidths $ Size.with $ Size.extend (V2 20 20) $ Size.copy fontSizes
+newSizer fontSizes =
+  Table.alignWidths $ Table.sizeWith $ Table.extend (V2 20 20) $ Table.copy fontSizes
 
 newPositioner :: Matrix GUI.Size -> GUI.CellPositioner
-newPositioner sm = Locate.with
-              $ Locate.indentSelected 10
-              $ Locate.addGaps (V2 20 20)
-              $ Locate.grid sm
+newPositioner sm =
+  Table.positionWith $ Table.indentSelected 10 $ Table.addGaps (V2 20 20) $ Table.grid sm
 
 newTextPositioner :: Matrix GUI.Size -> Matrix GUI.Position -> Matrix GUI.Size -> GUI.TextPositioner
-newTextPositioner sm pm fontSizes = TextLocate.with $ TextLocate.center sm pm fontSizes
+newTextPositioner sm pm fontSizes = Table.positionTextWith $ Table.centerText sm pm fontSizes
 
-createConfig :: GUI.Table -> IO RenderConfig
-createConfig table = RenderConfig <$> SDLF.load "HighSchoolUSASans.ttf" 28
+createConfig :: IO RenderConfig
+createConfig = RenderConfig <$> SDLF.load "HighSchoolUSASans.ttf" 28
 
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
