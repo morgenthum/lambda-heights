@@ -14,14 +14,16 @@ import qualified SDL
 
 update :: Timer.LoopTimer -> [SDL.Event] -> MainMenu.State -> Either Game.State MainMenu.State
 update timer events state =
-  let updated = Menu.updateDefault stateFromItem timer events $ MainMenu.menu state
-      stateFromItem "play"   = Game.Play
-      stateFromItem "replay" = Game.Replay
-      stateFromItem "exit"   = Game.Exit
-      stateFromItem _        = Game.Menu
+  let updated = Menu.updateDefault toState timer events $ MainMenu.menu state
   in  case updated of
         Left  result -> Left result
         Right menu   -> Right $ state { MainMenu.menu = menu }
+
+toState :: Maybe String -> Game.State
+toState (Just "play"  ) = Game.Play
+toState (Just "replay") = Game.Replay
+toState (Just "exit"  ) = Game.Exit
+toState _               = Game.Menu
 
 render :: RenderContext -> Menu.RenderConfig -> Timer.LoopTimer -> MainMenu.State -> IO ()
 render (window, renderer) config timer state = do

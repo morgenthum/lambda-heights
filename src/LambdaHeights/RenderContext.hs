@@ -1,6 +1,6 @@
 module LambdaHeights.RenderContext
   ( RenderContext
-  , newContext
+  , createContext
   , deleteContext
   )
 where
@@ -14,8 +14,8 @@ type RenderContext = (SDL.Window, SDL.Renderer)
 windowSettings :: SDL.WindowConfig
 windowSettings = SDL.defaultWindow { SDL.windowMode = SDL.FullscreenDesktop }
 
-newContext :: String -> IO RenderContext
-newContext windowTitle = do
+createContext :: String -> IO RenderContext
+createContext windowTitle = do
   SDL.initializeAll
   SDLF.initialize
   window   <- SDL.createWindow (T.pack windowTitle) windowSettings

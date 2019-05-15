@@ -8,24 +8,30 @@ import           LambdaHeights.Types.Table
 import           Linear.V2
 import qualified SDL.Font                  as SDLF
 
-type StyleGenerator a = Table -> (Int, Int) -> a
+type Selector = Table -> (Int, Int) -> Bool
+type StyleGen a = Table -> (Int, Int) -> a
 type SizeGen = Table -> (Int, Int) -> Size
-type LocationGen a = Table -> (Int, Int) -> Position
+type LocationGen = Table -> (Int, Int) -> Position
 type TextLocationGen = (Int, Int) -> Position
+
+-- Selectors
+
+selectedRow :: Selector
+selectedRow table (r, _) = let V2 sr _ = selected table in sr == r
 
 -- Style combinators
 
-styleWith :: StyleGenerator CellStyle -> CellStyler
-styleWith generator table = let V2 r c = tableDimension table in matrix r c $ generator table
+styleWith :: StyleGen CellStyle -> CellStyler
+styleWith g table = let V2 r c = tableDimension table in matrix r c $ g table
 
-prefer :: StyleGenerator (Maybe a) -> StyleGenerator a -> StyleGenerator a
-prefer x y table pos = fromMaybe (y table pos) (x table pos)
+prefer :: StyleGen (Maybe a) -> StyleGen a -> StyleGen a
+prefer preferred standard table pos = fromMaybe (standard table pos) (preferred table pos)
 
-header :: a -> StyleGenerator (Maybe a)
+header :: a -> StyleGen (Maybe a)
 header headStyle _ (1, _) = Just headStyle
 header _         _ _      = Nothing
 
-selectedAndBody :: a -> a -> StyleGenerator a
+selectedAndBody :: a -> a -> StyleGen a
 selectedAndBody selectedStyle bodyStyle table (r, _) =
   let V2 sr _ = selected table in if sr == r then selectedStyle else bodyStyle
 
@@ -60,10 +66,10 @@ maxColumnWidth c sm =
 
 -- Position combinators
 
-positionWith :: LocationGen a -> CellPositioner
+positionWith :: LocationGen -> CellPositioner
 positionWith g table = let V2 r c = tableDimension table in matrix r c $ g table
 
-grid :: Matrix Size -> LocationGen a
+grid :: Matrix Size -> LocationGen
 grid sm _ (r, c) =
   let cs = [1 .. c - 1]
       rs = [1 .. r - 1]
@@ -71,20 +77,18 @@ grid sm _ (r, c) =
       hs = map ((\(V2 _ h) -> h) . (\r' -> getElem r' c sm)) rs
   in  V2 (sum ws) (sum hs)
 
-addGaps :: Size -> LocationGen a -> LocationGen a
+addGaps :: Size -> LocationGen -> LocationGen
 addGaps (V2 xGap yGap) g table (r, c) =
   let V2 x y = g table (r, c)
       x'     = x + xGap * (c - 1)
       y'     = y + yGap * (r - 1)
   in  V2 x' y'
 
-indentSelected :: Int -> LocationGen a -> LocationGen a
-indentSelected i g table (r, c) =
-  let V2 x  y = g table (r, c)
-      V2 sr _ = selected table
-  in  if sr == r then V2 (x + i) y else V2 x y
+indent :: Selector -> V2 Int -> LocationGen -> LocationGen
+indent s (V2 ix iy) g table (r, c) =
+  let V2 x y = g table (r, c) in if s table (r, c) then V2 (x + ix) (y + iy) else V2 x y
 
-move :: V2 Int -> LocationGen a -> LocationGen a
+move :: V2 Int -> LocationGen -> LocationGen
 move pos g table loc = g table loc + pos
 
 -- Text position combinators

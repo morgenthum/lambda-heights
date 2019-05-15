@@ -7,15 +7,6 @@ import qualified LambdaHeights.Types.PauseState as Pause
 import qualified LambdaHeights.Types.Timer      as Timer
 import qualified SDL
 
-update :: Timer.LoopTimer -> [SDL.Event] -> Pause.State a -> Either Pause.ExitReason (Pause.State a)
-update timer events state =
-  let updated = Menu.updateDefault stateFromItem timer events $ Pause.menu state
-      stateFromItem "exit" = Pause.Exit
-      stateFromItem _      = Pause.Resume
-  in  case updated of
-        Left  result -> Left result
-        Right menu   -> Right $ state { Pause.menu = menu }
-
 type ProxyRenderer a = Timer.LoopTimer -> a -> IO ()
 
 data RenderConfig = RenderConfig {
@@ -23,13 +14,24 @@ data RenderConfig = RenderConfig {
   overlayColor :: SDL.V4 Word8
 }
 
-defaultConfig :: IO RenderConfig
-defaultConfig = do
+createConfig :: IO RenderConfig
+createConfig = do
   config <- Menu.createConfig
-  return $ RenderConfig {menuConfig = config, overlayColor = SDL.V4 0 0 0 128}
+  return $ RenderConfig config $ SDL.V4 0 0 0 128
 
 deleteConfig :: RenderConfig -> IO ()
-deleteConfig config = Menu.deleteConfig $ menuConfig config
+deleteConfig = Menu.deleteConfig . menuConfig
+
+update :: Timer.LoopTimer -> [SDL.Event] -> Pause.State a -> Either Pause.ExitReason (Pause.State a)
+update timer events state =
+  let updated = Menu.updateDefault toState timer events $ Pause.menu state
+  in  case updated of
+        Left  result -> Left result
+        Right menu   -> Right $ state { Pause.menu = menu }
+
+toState :: Maybe String -> Pause.ExitReason
+toState (Just "exit") = Pause.Exit
+toState _             = Pause.Resume
 
 render
   :: RenderContext -> RenderConfig -> ProxyRenderer a -> Timer.LoopTimer -> Pause.State a -> IO ()

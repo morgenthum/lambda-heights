@@ -6,8 +6,8 @@ import           Linear.V2
 import qualified SDL
 import qualified SDL.Font        as SDLF
 
-renderText :: SDL.Renderer -> SDLF.Font -> V2 CInt -> SDLF.Color -> String -> IO ()
-renderText renderer font position color text = do
+renderText :: SDL.Renderer -> SDLF.Font -> SDLF.Color -> V2 CInt -> String -> IO ()
+renderText renderer font color position text = do
   surface <- SDLF.blended font color (T.pack text)
   texture <- SDL.createTextureFromSurface renderer surface
   SDL.freeSurface surface

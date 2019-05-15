@@ -58,13 +58,3 @@ tableSize view =
       maxY = maximum $ map getY maxList
   in  V2 (maxX - minX) (maxY - minY)
 
-cellLocations :: Table -> [Position]
-cellLocations table =
-  let V2 rCount cCount = tableDimension table
-  in  [ V2 r c | r <- [1 .. rCount], c <- [1 .. cCount] ]
-
-calcTablePos :: SDL.Window -> Size -> IO Position
-calcTablePos window (V2 w h) = do
-  let half x = round (realToFrac x / 2 :: Float)
-  V2 wW wH <- SDL.get $ SDL.windowSize window
-  return $ V2 (half wW - half w) (half wH - half h)

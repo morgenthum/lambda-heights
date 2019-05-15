@@ -5,6 +5,7 @@ where
 
 import           Control.Concurrent.Async
 import           Control.Concurrent.STM.TChan
+import           Data.Maybe
 import           Data.Time
 import           LambdaHeights.Loop
 import qualified LambdaHeights.MainMenu              as MainMenu
@@ -35,7 +36,7 @@ defaultTimer = Timer.newTimer 7
 
 start :: IO ()
 start = do
-  ctx <- newContext "Lambda-Heights"
+  ctx <- createContext "Lambda-Heights"
   _   <- startState ctx Game.Menu
   deleteContext ctx
 
@@ -43,17 +44,14 @@ startState :: RenderContext -> Game.State -> IO Game.State
 startState _   Game.Exit   = return Game.Exit
 startState ctx Game.Menu   = startMenu ctx >>= startState ctx
 startState ctx Game.Play   = startGame ctx >>= startState ctx
---startState ctx Game.Replay = startReplay defaultReplayFilePath ctx >>= startState ctx
 startState ctx Game.Replay = startReplayMenu ctx >>= startState ctx
 
 startMenu :: RenderContext -> IO Game.State
 startMenu ctx = do
   timer  <- defaultTimer
   config <- Menu.createConfig
-
   let loop = timedLoop Menu.keyInput MainMenu.update noOutput (MainMenu.render ctx config)
   state <- startLoop timer MainMenu.newState loop
-
   Menu.deleteConfig config
   return state
 
@@ -62,18 +60,14 @@ startGame ctx = do
   time        <- getCurrentTime
   channel     <- newTChanIO
   playConfig  <- Play.createConfig
-  pauseConfig <- Pause.defaultConfig
-
+  pauseConfig <- Pause.createConfig
+  let replayFile    = Replay.newFileName time
+  let output        = Play.output time replayFile channel
   let playRenderer  = Play.renderDefault ctx playConfig
   let pauseRenderer = Pause.render ctx pauseConfig $ Play.renderPause ctx playConfig
-
-  let replayFile    = Replay.newFileName time
-  let gameLoop =
-        timedLoop Play.keyInput Play.update (Play.output time replayFile channel) playRenderer
+  let gameLoop = timedLoop Play.keyInput Play.update output playRenderer
   let pauseLoop = timedLoop Menu.keyInput Pause.update noOutput pauseRenderer
-
   state <- startGameLoop replayFile channel Play.newState gameLoop pauseLoop >>= showScore ctx
-
   Pause.deleteConfig pauseConfig
   Play.deleteConfig playConfig
   return state
@@ -103,10 +97,8 @@ showScore :: RenderContext -> Score.Score -> IO Game.State
 showScore ctx score = do
   timer  <- defaultTimer
   config <- Menu.createConfig
-
   let loop = timedLoop Menu.keyInput Score.update noOutput $ Score.render ctx config
   _ <- startLoop timer (Score.newState score) loop
-
   Menu.deleteConfig config
   return Game.Menu
 
@@ -115,11 +107,9 @@ startReplayMenu ctx = do
   timer  <- defaultTimer
   table  <- ReplayMenu.buildTable <$> ReplayMenu.loadReplayFiles
   config <- ReplayMenu.createConfig
-
   let loop = timedLoop Menu.keyInput ReplayMenu.update noOutput $ ReplayMenu.render ctx config
-  x     <- startLoop timer (ReplayMenu.State table) loop
-  state <- if null x then return Game.Menu else startReplay x ctx
-
+  filePath <- startLoop timer (ReplayMenu.State table) loop
+  state    <- if isNothing filePath then return Game.Menu else startReplay (fromJust filePath) ctx
   Menu.deleteConfig config
   return state
 
@@ -131,10 +121,8 @@ startReplay replayFilePath ctx = do
     Just events -> do
       timer  <- defaultTimer
       config <- Play.createConfig
-
       let loop = timedLoop Replay.input Replay.update noOutput $ Replay.render ctx config
       result <- startLoop timer (Replay.State Play.newState events) loop
       _      <- showScore ctx $ Play.score $ Play.player $ Replay.state result
-
       Play.deleteConfig config
       return Game.Menu
