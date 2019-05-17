@@ -31,8 +31,11 @@ import qualified LambdaHeights.Types.Timer           as Timer
 type PlayLoopState = LoopState IO Play.State Play.Result
 type PauseLoopState = LoopState IO (Pause.State Play.State) Pause.ExitReason
 
-defaultTimer :: IO Timer.LoopTimer
-defaultTimer = Timer.newTimer 7
+menuTimer :: IO Timer.LoopTimer
+menuTimer = Timer.newTimer 30
+
+playTimer :: IO Timer.LoopTimer
+playTimer = Timer.newTimer 7
 
 start :: IO ()
 start = do
@@ -48,7 +51,7 @@ startState ctx Game.Replay = startReplayMenu ctx >>= startState ctx
 
 startMenu :: RenderContext -> IO Game.State
 startMenu ctx = do
-  timer  <- defaultTimer
+  timer  <- menuTimer
   config <- Menu.createConfig
   let loop = timedLoop Menu.keyInput MainMenu.update noOutput (MainMenu.render ctx config)
   state <- startLoop timer MainMenu.newState loop
@@ -80,7 +83,7 @@ startGameLoop
   -> PauseLoopState
   -> IO Score.Score
 startGameLoop replayFilePath channel gameState playLoop pauseLoop = do
-  timer  <- defaultTimer
+  timer  <- playTimer
   handle <- async $ serialize (fromTChan channel) (toFile replayFilePath)
   result <- startLoop timer gameState playLoop
   wait handle
@@ -95,7 +98,7 @@ startGameLoop replayFilePath channel gameState playLoop pauseLoop = do
 
 showScore :: RenderContext -> Score.Score -> IO Game.State
 showScore ctx score = do
-  timer  <- defaultTimer
+  timer  <- menuTimer
   config <- Menu.createConfig
   let loop = timedLoop Menu.keyInput Score.update noOutput $ Score.render ctx config
   _ <- startLoop timer (Score.newState score) loop
@@ -104,7 +107,7 @@ showScore ctx score = do
 
 startReplayMenu :: RenderContext -> IO Game.State
 startReplayMenu ctx = do
-  timer  <- defaultTimer
+  timer  <- menuTimer
   table  <- ReplayMenu.buildTable <$> ReplayMenu.loadReplayFiles
   config <- ReplayMenu.createConfig
   let loop = timedLoop Menu.keyInput ReplayMenu.update noOutput $ ReplayMenu.render ctx config
@@ -119,7 +122,7 @@ startReplay replayFilePath ctx = do
   case replay of
     Nothing     -> return Game.Menu
     Just events -> do
-      timer  <- defaultTimer
+      timer  <- playTimer
       config <- Play.createConfig
       let loop = timedLoop Replay.input Replay.update noOutput $ Replay.render ctx config
       result <- startLoop timer (Replay.State Play.newState events) loop

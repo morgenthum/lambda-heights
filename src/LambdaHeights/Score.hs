@@ -20,5 +20,5 @@ render (window, renderer) config timer state = do
   SDL.clear renderer
   let table = Score.menu state
   view <- Menu.defaultView config table
-  Menu.render (window, renderer) timer table view
+  Menu.render (window, renderer) timer view
   SDL.present renderer

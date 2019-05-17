@@ -1,7 +1,7 @@
 module LambdaHeights.Types.ScoreState where
 
 import           Data.Matrix
-import           LambdaHeights.Types.Table
+import           Graphics.UI.Types.Table
 import           Linear.V2
 
 type Score = Int

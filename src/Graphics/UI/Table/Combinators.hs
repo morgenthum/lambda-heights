@@ -1,18 +1,35 @@
-module LambdaHeights.Table.Combinators where
+module Graphics.UI.Table.Combinators where
 
 import           Data.Matrix
 import           Data.Maybe
-import qualified Data.Text                 as T
-import qualified Data.Vector               as V
-import           LambdaHeights.Types.Table
+import qualified Data.Text               as T
+import qualified Data.Vector             as V
+import Graphics.UI.Types
+import           Graphics.UI.Types.Table
 import           Linear.V2
-import qualified SDL.Font                  as SDLF
+import qualified SDL.Font                as SDLF
 
 type Selector = Table -> (Int, Int) -> Bool
 type StyleGen a = Table -> (Int, Int) -> a
 type SizeGen = Table -> (Int, Int) -> Size
 type LocationGen = Table -> (Int, Int) -> Position
 type TextLocationGen = (Int, Int) -> Position
+
+merge
+  :: Table
+  -> Matrix CellStyle
+  -> Matrix Size
+  -> Matrix Position
+  -> Matrix Position
+  -> Matrix CellView
+merge table styles sizes positions textPositions =
+  let V2 rCount cCount = tableDimension table
+      f (r, c) = CellView (getElem r c $ content table)
+                          (getElem r c styles)
+                          (getElem r c sizes)
+                          (getElem r c positions)
+                          (getElem r c textPositions)
+  in  matrix rCount cCount f
 
 -- Selectors
 

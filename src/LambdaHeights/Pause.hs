@@ -40,7 +40,7 @@ render (window, renderer) config proxyRenderer timer state = do
   renderOverlay (window, renderer) config
   let table = Pause.menu state
   view <- Menu.defaultView (menuConfig config) table
-  Menu.render (window, renderer) timer table view
+  Menu.render (window, renderer) timer view
   SDL.present renderer
 
 renderOverlay :: RenderContext -> RenderConfig -> IO ()

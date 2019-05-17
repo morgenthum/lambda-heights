@@ -31,5 +31,5 @@ render (window, renderer) config timer state = do
   SDL.clear renderer
   let table = MainMenu.menu state
   view <- Menu.defaultView config table
-  Menu.render (window, renderer) timer table view
+  Menu.render (window, renderer) timer view
   SDL.present renderer

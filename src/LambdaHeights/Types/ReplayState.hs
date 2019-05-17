@@ -7,10 +7,10 @@ import           Data.Word
 import           Data.Yaml
 import           GHC.Generics
 import           LambdaHeights.Types.Events
-import qualified LambdaHeights.Types.PlayState as Ingame
+import qualified LambdaHeights.Types.PlayState as Play
 
 data State = State {
-  state  :: Ingame.State,
+  state  :: Play.State,
   events :: [[PlayerEvent]]
 }
 

@@ -8,12 +8,13 @@ import qualified LambdaHeights.Menu                  as Menu
 
 import qualified Data.Text                           as T
 import           Data.Yaml
+import           Graphics.UI.Table.Combinators
+import           Graphics.UI.Table.Update
+import qualified Graphics.UI.Types as T
+import qualified Graphics.UI.Types.Table             as T
 import           LambdaHeights.RenderContext
-import           LambdaHeights.Table.Combinators
-import           LambdaHeights.Table.Update
 import qualified LambdaHeights.Types.ReplayMenuState as ReplayMenu
 import qualified LambdaHeights.Types.ReplayState     as Replay
-import qualified LambdaHeights.Types.Table           as T
 import qualified LambdaHeights.Types.Timer           as Timer
 import           Linear.V2
 import           Linear.V4
@@ -55,7 +56,7 @@ render (window, renderer) config timer state = do
   SDL.clear renderer
   let table = ReplayMenu.table state
   view <- defaultView config table
-  Menu.render (window, renderer) timer table view
+  Menu.render (window, renderer) timer view
   SDL.present renderer
 
 defaultView :: Menu.RenderConfig -> T.Table -> IO T.TableView
@@ -65,7 +66,7 @@ defaultView config table = do
   let sizes         = newSizer fontSizes table
   let positions     = newPositioner sizes table
   let textPositions = newTextPositioner sizes positions fontSizes table
-  return $ T.TableView styles sizes positions textPositions
+  return $ T.TableView $ merge table styles sizes positions textPositions
 
 newStyler :: SDLF.Font -> T.CellStyler
 newStyler f =

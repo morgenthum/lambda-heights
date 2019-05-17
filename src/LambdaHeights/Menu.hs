@@ -1,16 +1,18 @@
 module LambdaHeights.Menu where
 
 import           Data.Matrix
+import           Graphics.UI.Table.Combinators
+import           Graphics.UI.Table.Render
+import           Graphics.UI.Table.Update
+import Graphics.UI.Classes
+import qualified Graphics.UI.Types as T
+import qualified Graphics.UI.Types.Table       as T
 import           LambdaHeights.RenderContext
-import           LambdaHeights.Table.Combinators
-import           LambdaHeights.Table.Render
-import           LambdaHeights.Table.Update
-import qualified LambdaHeights.Types.Table       as T
 import           LambdaHeights.Types.Timer
 import           Linear.V2
 import           Linear.V4
 import qualified SDL
-import qualified SDL.Font                        as SDLF
+import qualified SDL.Font                      as SDLF
 
 type ToResult a = Maybe String -> a
 
@@ -55,7 +57,7 @@ defaultView config table = do
   let sizes         = newSizer fontSizes table
   let positions     = newPositioner sizes table
   let textPositions = newTextPositioner sizes positions fontSizes table
-  return $ T.TableView styles sizes positions textPositions
+  return $ T.TableView $ merge table styles sizes positions textPositions
 
 newStyler :: SDLF.Font -> T.CellStyler
 newStyler f =
@@ -72,7 +74,7 @@ newPositioner sm = positionWith $ indent selectedRow (V2 10 0) $ addGaps (V2 20 
 newTextPositioner :: Matrix T.Size -> Matrix T.Position -> Matrix T.Size -> T.TextPositioner
 newTextPositioner sm pm fontSizes = positionTextWith $ centerText sm pm fontSizes
 
-render :: RenderContext -> LoopTimer -> T.Table -> T.TableView -> IO ()
-render (window, renderer) _ table view = do
-  pos <- calcCenterPosition window $ T.tableSize view
-  renderTable (renderRectCell renderer pos) table view
+render :: RenderContext -> LoopTimer -> T.TableView -> IO ()
+render (window, renderer) _ view = do
+  pos <- calcCenterPosition window $ calcSize view
+  renderTable (renderRectCell renderer pos) view
