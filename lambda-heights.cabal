@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8be22a01e8ba5318f3556501602eebdb1cc80287b941fcb2cfb421be12a78b98
+-- hash: 6aed3e25deb859f47a39be99b7d58d559be8eb266fedc853758e41bf6ee26058
 
 name:           lambda-heights
 version:        0.1.0.0
@@ -27,7 +27,6 @@ source-repository head
 
 library
   exposed-modules:
-      Graphics.UI.Classes
       Graphics.UI.Render
       Graphics.UI.Table.Combinators
       Graphics.UI.Table.Render

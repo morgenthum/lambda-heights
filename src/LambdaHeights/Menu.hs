@@ -4,8 +4,7 @@ import           Data.Matrix
 import           Graphics.UI.Table.Combinators
 import           Graphics.UI.Table.Render
 import           Graphics.UI.Table.Update
-import Graphics.UI.Classes
-import qualified Graphics.UI.Types as T
+import qualified Graphics.UI.Types             as T
 import qualified Graphics.UI.Types.Table       as T
 import           LambdaHeights.RenderContext
 import           LambdaHeights.Types.Timer
@@ -52,12 +51,13 @@ isKeycode code event = case SDL.eventPayload event of
 
 defaultView :: RenderConfig -> T.Table -> IO T.TableView
 defaultView config table = do
-  fontSizes <- loadFontSizes (font config) $ T.content table
-  let styles        = newStyler (font config) table
-  let sizes         = newSizer fontSizes table
-  let positions     = newPositioner sizes table
-  let textPositions = newTextPositioner sizes positions fontSizes table
-  return $ T.TableView $ merge table styles sizes positions textPositions
+  let table' = T.resolveLimit table
+  fontSizes <- loadFontSizes (font config) $ T.content table'
+  let styles        = newStyler (font config) table'
+  let sizes         = newSizer fontSizes table'
+  let positions     = newPositioner sizes table'
+  let textPositions = newTextPositioner sizes positions fontSizes table'
+  return $ merge table' styles sizes positions textPositions
 
 newStyler :: SDLF.Font -> T.CellStyler
 newStyler f =
@@ -76,5 +76,5 @@ newTextPositioner sm pm fontSizes = positionTextWith $ centerText sm pm fontSize
 
 render :: RenderContext -> LoopTimer -> T.TableView -> IO ()
 render (window, renderer) _ view = do
-  pos <- calcCenterPosition window $ calcSize view
+  pos <- calcCenterPosition window $ T.tableSize view
   renderTable (renderRectCell renderer pos) view

@@ -10,7 +10,7 @@ import qualified Data.Text                           as T
 import           Data.Yaml
 import           Graphics.UI.Table.Combinators
 import           Graphics.UI.Table.Update
-import qualified Graphics.UI.Types as T
+import qualified Graphics.UI.Types                   as T
 import qualified Graphics.UI.Types.Table             as T
 import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Types.ReplayMenuState as ReplayMenu
@@ -31,7 +31,11 @@ loadReplayFiles = do
   mapMaybeM decodeFile files
 
 buildTable :: [Replay.Description] -> T.Table
-buildTable xs = T.Table (fromLists $ tableHeader : ensureRows (map Replay.toList xs)) (V2 2 1)
+buildTable xs =
+  let content  = fromLists $ tableHeader : ensureRows (map Replay.toList xs)
+      selected = V2 2 1
+      limit    = Just $ T.Limit (V2 1 1) (V2 9 4)
+  in  T.Table content selected limit
 
 tableHeader :: [String]
 tableHeader = ["File name", "Time", "Duration (sec)", "Score"]
@@ -61,12 +65,13 @@ render (window, renderer) config timer state = do
 
 defaultView :: Menu.RenderConfig -> T.Table -> IO T.TableView
 defaultView config table = do
-  fontSizes <- loadFontSizes (Menu.font config) $ T.content table
-  let styles        = newStyler (Menu.font config) table
-  let sizes         = newSizer fontSizes table
-  let positions     = newPositioner sizes table
-  let textPositions = newTextPositioner sizes positions fontSizes table
-  return $ T.TableView $ merge table styles sizes positions textPositions
+  let table' = T.resolveLimit table
+  fontSizes <- loadFontSizes (Menu.font config) $ T.content table'
+  let styles        = newStyler (Menu.font config) table'
+  let sizes         = newSizer fontSizes table'
+  let positions     = newPositioner sizes table'
+  let textPositions = newTextPositioner sizes positions fontSizes table'
+  return $ merge table' styles sizes positions textPositions
 
 newStyler :: SDLF.Font -> T.CellStyler
 newStyler f =

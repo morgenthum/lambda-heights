@@ -1,14 +1,14 @@
 module Graphics.UI.Table.Render where
 
 import           Graphics.UI.Render
-import Graphics.UI.Types
+import           Graphics.UI.Types
 import           Graphics.UI.Types.Table
 import           Linear.V2
 import           Linear.V2.Utils
 import qualified SDL
 
 renderTable :: CellRenderer -> TableRenderer
-renderTable r (TableView m) = mapM_ r m
+renderTable = mapM_
 
 renderRectCell :: SDL.Renderer -> Position -> CellRenderer
 renderRectCell renderer tablePos cell = do

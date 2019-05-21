@@ -4,7 +4,7 @@ import           Data.Matrix
 import           Data.Maybe
 import qualified Data.Text               as T
 import qualified Data.Vector             as V
-import Graphics.UI.Types
+import           Graphics.UI.Types
 import           Graphics.UI.Types.Table
 import           Linear.V2
 import qualified SDL.Font                as SDLF

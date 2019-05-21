@@ -9,4 +9,4 @@ newtype State = State {
 }
 
 newState :: [[String]] -> State
-newState xs = State {table = Table (fromLists xs) (V2 1 1)}
+newState xs = State {table = Table (fromLists xs) (V2 1 1) Nothing}
