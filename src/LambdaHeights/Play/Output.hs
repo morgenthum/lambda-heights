@@ -29,7 +29,7 @@ output time fileName channel _ events resultState = do
 
 createDesc :: UTCTime -> FilePath -> State.Result -> Replay.Description
 createDesc time fileName result = Replay.Description
-  { Replay.fileName = fileName
+  { Replay.fileName = fileName ++ ".dat"
   , Replay.time     = time
   , Replay.duration = State.duration $ State.state result
   , Replay.score    = Player.score $ State.player $ State.state result

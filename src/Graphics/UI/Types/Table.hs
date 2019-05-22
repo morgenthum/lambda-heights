@@ -1,47 +1,32 @@
 module Graphics.UI.Types.Table where
 
 import           Data.Matrix
-import           Data.Word
 import           Graphics.UI.Types
 import           Linear.V2
-import           Linear.V4
 import qualified SDL
-import qualified SDL.Font          as SDLF
 
-type CellStyler = Table -> Matrix CellStyle
+type CellStyler a = Table -> Matrix a
 type CellSizer = Table -> Matrix Size
 type CellPositioner = Table -> Matrix Position
 type TextPositioner = Table -> Matrix Position
 
-type TableRenderer = TableView -> IO ()
-type CellRenderer = CellView -> IO ()
+type TableRenderer a = TableView a -> IO ()
+type CellRenderer a = CellView a -> IO ()
 type UpdateTable = [SDL.Event] -> Table -> Table
 
 data Table = Table {
   content  :: Matrix String,
-  selected :: V2 Int,
-  limit    :: Maybe Limit
+  selected :: V2 Int
 }
 
-data Limit = Limit {
-  from :: V2 Int,
-  to   :: V2 Int
-}
+type TableView a = Matrix (CellView a)
 
-type TableView = Matrix CellView
-
-data CellView = CellView {
+data CellView a = CellView {
   text         :: String,
-  style        :: CellStyle,
+  style        :: a,
   size         :: Size,
   position     :: Position,
   textPosition :: Position
-}
-
-data CellStyle = CellStyle {
-  cellFont :: SDLF.Font,
-  cellBg   :: V4 Word8,
-  cellFg   :: V4 Word8
 }
 
 selectedValue :: Table -> String
@@ -50,7 +35,7 @@ selectedValue table = let V2 r c = selected table in getElem r c $ content table
 tableDimension :: Table -> V2 Int
 tableDimension table = let m = content table in V2 (nrows m) (ncols m)
 
-tableSize :: TableView -> V2 Int
+tableSize :: TableView a -> V2 Int
 tableSize view =
   let minPositions = fmap position view
       sizes        = fmap size view
@@ -64,13 +49,3 @@ tableSize view =
       minY = minimum $ map getY minList
       maxY = maximum $ map getY maxList
   in  V2 (maxX - minX) (maxY - minY)
-
-resolveLimit :: Table -> Table
-resolveLimit table = case limit table of
-  Nothing -> table
-  Just l ->
-    let V2 fr fc  = from l
-        V2 tr tc  = to l
-        content'  = submatrix fr tr fc tc $ content table
-        selected' = let V2 sr sc = selected table in V2 (sr - fr + 1) (sc - fc + 1)
-    in  table { content = content', selected = selected', limit = Nothing }

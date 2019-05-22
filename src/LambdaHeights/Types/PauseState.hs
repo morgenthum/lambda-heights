@@ -13,8 +13,5 @@ data State a = State {
 data ExitReason = Exit | Resume
 
 newState :: a -> State a
-newState s = State
-  { menuState = s
-  , menu      = Table (fromLists [["resume"], ["exit"]]) (V2 1 1) Nothing
-  , reason    = Nothing
-  }
+newState s =
+  State {menuState = s, menu = Table (fromLists [["resume"], ["exit"]]) (V2 1 1), reason = Nothing}

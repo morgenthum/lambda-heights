@@ -12,4 +12,4 @@ data State = State {
 }
 
 newState :: Int -> State
-newState s = State {score = s, menu = Table (fromLists [["score: " ++ show s]]) (V2 1 1) Nothing}
+newState s = State {score = s, menu = Table (fromLists [["score: " ++ show s]]) (V2 1 1)}

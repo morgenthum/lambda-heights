@@ -3,6 +3,7 @@ module LambdaHeights.Pause where
 import           Data.Word
 import qualified LambdaHeights.Menu             as Menu
 import           LambdaHeights.RenderContext
+import qualified LambdaHeights.Table            as Table
 import qualified LambdaHeights.Types.PauseState as Pause
 import qualified LambdaHeights.Types.Timer      as Timer
 import qualified SDL
@@ -38,8 +39,7 @@ render
 render (window, renderer) config proxyRenderer timer state = do
   proxyRenderer timer $ Pause.menuState state
   renderOverlay (window, renderer) config
-  let table = Pause.menu state
-  view <- Menu.defaultView (menuConfig config) table
+  view <- Table.newMenuView (Menu.font $ menuConfig config) $ Pause.menu state
   Menu.render (window, renderer) timer view
   SDL.present renderer
 

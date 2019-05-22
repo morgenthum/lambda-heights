@@ -27,6 +27,7 @@ import qualified LambdaHeights.Types.ReplayMenuState as ReplayMenu
 import qualified LambdaHeights.Types.ReplayState     as Replay
 import qualified LambdaHeights.Types.ScoreState      as Score
 import qualified LambdaHeights.Types.Timer           as Timer
+import           System.Directory
 
 type PlayLoopState = LoopState IO Play.State Play.Result
 type PauseLoopState = LoopState IO (Pause.State Play.State) Pause.ExitReason
@@ -39,6 +40,7 @@ playTimer = Timer.newTimer 7
 
 start :: IO ()
 start = do
+  createDirectoryIfMissing True "replays"
   ctx <- createContext "Lambda-Heights"
   _   <- startState ctx Game.Menu
   deleteContext ctx
@@ -82,9 +84,9 @@ startGameLoop
   -> PlayLoopState
   -> PauseLoopState
   -> IO Score.Score
-startGameLoop replayFilePath channel gameState playLoop pauseLoop = do
+startGameLoop filePath channel gameState playLoop pauseLoop = do
   timer  <- playTimer
-  handle <- async $ serialize (fromTChan channel) (toFile replayFilePath)
+  handle <- async $ serialize (fromTChan channel) (toFile $ filePath ++ ".dat")
   result <- startLoop timer gameState playLoop
   wait handle
   let score = Play.score . Play.player . Play.state $ result
@@ -93,7 +95,7 @@ startGameLoop replayFilePath channel gameState playLoop pauseLoop = do
     Play.Paused   -> do
       reason <- startLoop timer (Pause.newState $ Play.state result) pauseLoop
       case reason of
-        Pause.Resume -> startGameLoop replayFilePath channel (Play.state result) playLoop pauseLoop
+        Pause.Resume -> startGameLoop filePath channel (Play.state result) playLoop pauseLoop
         Pause.Exit   -> return score
 
 showScore :: RenderContext -> Score.Score -> IO Game.State

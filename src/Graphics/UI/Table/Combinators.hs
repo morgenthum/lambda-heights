@@ -15,22 +15,6 @@ type SizeGen = Table -> (Int, Int) -> Size
 type LocationGen = Table -> (Int, Int) -> Position
 type TextLocationGen = (Int, Int) -> Position
 
-merge
-  :: Table
-  -> Matrix CellStyle
-  -> Matrix Size
-  -> Matrix Position
-  -> Matrix Position
-  -> Matrix CellView
-merge table styles sizes positions textPositions =
-  let V2 rCount cCount = tableDimension table
-      f (r, c) = CellView (getElem r c $ content table)
-                          (getElem r c styles)
-                          (getElem r c sizes)
-                          (getElem r c positions)
-                          (getElem r c textPositions)
-  in  matrix rCount cCount f
-
 -- Selectors
 
 selectedRow :: Selector
@@ -38,7 +22,7 @@ selectedRow table (r, _) = let V2 sr _ = selected table in sr == r
 
 -- Style combinators
 
-styleWith :: StyleGen CellStyle -> CellStyler
+styleWith :: StyleGen a -> CellStyler a
 styleWith g table = let V2 r c = tableDimension table in matrix r c $ g table
 
 prefer :: StyleGen (Maybe a) -> StyleGen a -> StyleGen a

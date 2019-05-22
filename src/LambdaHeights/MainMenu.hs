@@ -6,6 +6,7 @@ where
 
 import qualified LambdaHeights.Menu                as Menu
 import           LambdaHeights.RenderContext
+import qualified LambdaHeights.Table               as Table
 import qualified LambdaHeights.Types.GameState     as Game
 import qualified LambdaHeights.Types.MainMenuState as MainMenu
 import qualified LambdaHeights.Types.Timer         as Timer
@@ -29,7 +30,6 @@ render :: RenderContext -> Menu.RenderConfig -> Timer.LoopTimer -> MainMenu.Stat
 render (window, renderer) config timer state = do
   SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 255
   SDL.clear renderer
-  let table = MainMenu.menu state
-  view <- Menu.defaultView config table
+  view <- Table.newMenuView (Menu.font config) $ MainMenu.menu state
   Menu.render (window, renderer) timer view
   SDL.present renderer

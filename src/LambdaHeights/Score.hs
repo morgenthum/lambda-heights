@@ -2,6 +2,7 @@ module LambdaHeights.Score where
 
 import qualified LambdaHeights.Menu             as Menu
 import           LambdaHeights.RenderContext
+import qualified LambdaHeights.Table            as Table
 import qualified LambdaHeights.Types.ScoreState as Score
 import qualified LambdaHeights.Types.Timer      as Timer
 import           Linear.V4
@@ -18,7 +19,6 @@ render :: RenderContext -> Menu.RenderConfig -> Timer.LoopTimer -> Score.State -
 render (window, renderer) config timer state = do
   SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 255
   SDL.clear renderer
-  let table = Score.menu state
-  view <- Menu.defaultView config table
+  view <- Table.newMenuView (Menu.font config) $ Score.menu state
   Menu.render (window, renderer) timer view
   SDL.present renderer

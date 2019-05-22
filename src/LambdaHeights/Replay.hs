@@ -25,4 +25,4 @@ render :: RenderContext -> Play.RenderConfig -> Timer.LoopTimer -> Replay.State 
 render graphics config timer = Play.renderDefault graphics config timer . Replay.state
 
 newFileName :: UTCTime -> String
-newFileName = (++ ".replay") . formatTime defaultTimeLocale "%_Y%m%d%H%M%S"
+newFileName time = "replays/" ++ formatTime defaultTimeLocale "%_Y%m%d%H%M%S" time

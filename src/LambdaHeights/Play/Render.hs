@@ -110,7 +110,7 @@ renderHudTime :: SDL.Renderer -> RenderConfig -> State.State -> IO ()
 renderHudTime renderer config state = do
   let textFont = font config
   let duration = State.duration state
-  let seconds = round (realToFrac duration / 1000 :: Float) :: Integer
+  let seconds = truncate (realToFrac duration / 1000 :: Float) :: Integer
   let millis   = mod duration 1000
   Render.renderText renderer textFont (headlineColor config) (V2 20 40) "TIME"
   Render.renderText renderer textFont (textColor config) (V2 100 40) (show seconds)
