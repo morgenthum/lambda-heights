@@ -24,8 +24,8 @@ deleteConfig :: RenderConfig -> IO ()
 deleteConfig = Menu.deleteConfig . menuConfig
 
 update :: Timer.LoopTimer -> [SDL.Event] -> Pause.State a -> Either Pause.ExitReason (Pause.State a)
-update timer events state =
-  let updated = Menu.updateDefault toState timer events $ Pause.menu state
+update _ events state =
+  let updated = Menu.updateDefault toState events $ Pause.menu state
   in  case updated of
         Left  result -> Left result
         Right menu   -> Right $ state { Pause.menu = menu }
@@ -40,7 +40,7 @@ render (window, renderer) config proxyRenderer timer state = do
   proxyRenderer timer $ Pause.menuState state
   renderOverlay (window, renderer) config
   view <- Table.newMenuView (Menu.font $ menuConfig config) $ Pause.menu state
-  Menu.render (window, renderer) timer view
+  Menu.render (window, renderer) view
   SDL.present renderer
 
 renderOverlay :: RenderContext -> RenderConfig -> IO ()

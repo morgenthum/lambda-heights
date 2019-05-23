@@ -14,8 +14,8 @@ import           Linear.V4
 import qualified SDL
 
 update :: Timer.LoopTimer -> [SDL.Event] -> MainMenu.State -> Either Game.State MainMenu.State
-update timer events state =
-  let updated = Menu.updateDefault toState timer events $ MainMenu.menu state
+update _ events state =
+  let updated = Menu.updateDefault toState events $ MainMenu.menu state
   in  case updated of
         Left  result -> Left result
         Right menu   -> Right $ state { MainMenu.menu = menu }
@@ -27,9 +27,9 @@ toState (Just "exit"  ) = Game.Exit
 toState _               = Game.Menu
 
 render :: RenderContext -> Menu.RenderConfig -> Timer.LoopTimer -> MainMenu.State -> IO ()
-render (window, renderer) config timer state = do
+render (window, renderer) config _ state = do
   SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 255
   SDL.clear renderer
   view <- Table.newMenuView (Menu.font config) $ MainMenu.menu state
-  Menu.render (window, renderer) timer view
+  Menu.render (window, renderer) view
   SDL.present renderer

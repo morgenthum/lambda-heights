@@ -44,18 +44,18 @@ ensureRows xs = xs
 
 update
   :: Timer.LoopTimer -> [SDL.Event] -> ReplayMenu.State -> Either (Maybe String) ReplayMenu.State
-update timer events state =
+update _ events state =
   let updater =
         with toSelectEvent $ applySelectEvent $ limitNotFirstRow $ limitFirstColumn limitAll
-      updated = Menu.update updater id timer events $ ReplayMenu.table state
+      updated = Menu.update updater id events $ ReplayMenu.table state
   in  case updated of
         Left  result -> Left result
         Right menu   -> Right $ state { ReplayMenu.table = menu }
 
 render :: RenderContext -> Menu.RenderConfig -> Timer.LoopTimer -> ReplayMenu.State -> IO ()
-render (window, renderer) config timer state = do
+render (window, renderer) config _ state = do
   SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 255
   SDL.clear renderer
   view <- T.newTableView (Menu.font config) $ ReplayMenu.table state
-  Menu.render (window, renderer) timer view
+  Menu.render (window, renderer) view
   SDL.present renderer

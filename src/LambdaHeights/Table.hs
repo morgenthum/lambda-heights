@@ -48,8 +48,8 @@ renderRectCell renderer cell = do
   let text'   = text cell
   let style'  = style cell
   let size'   = convertV2 $ size cell
-  let cellPos = position cell
+  let pos = position cell
   let textPos = textPosition cell
   SDL.rendererDrawColor renderer SDL.$= cellBackground style'
-  SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P $ convertV2 cellPos) size'
+  SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P $ convertV2 pos) size'
   renderText renderer (cellFont style') (cellForeground style') (convertV2 textPos) text'

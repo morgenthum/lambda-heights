@@ -25,11 +25,11 @@ deleteConfig = SDLF.free . font
 keyInput :: IO [SDL.Event]
 keyInput = SDL.pollEvents
 
-updateDefault :: ToResult a -> LoopTimer -> [SDL.Event] -> T.Table -> Either a T.Table
+updateDefault :: ToResult a -> [SDL.Event] -> T.Table -> Either a T.Table
 updateDefault = update $ with toSelectEvent $ applySelectEvent limitAll
 
-update :: T.UpdateTable -> ToResult a -> LoopTimer -> [SDL.Event] -> T.Table -> Either a T.Table
-update updater toResult _ events table =
+update :: T.UpdateTable -> ToResult a -> [SDL.Event] -> T.Table -> Either a T.Table
+update updater toResult events table =
   let table' = updater events table
   in  if pressedKey SDL.KeycodeReturn events
         then Left $ toResult $ Just $ T.selectedValue table'
@@ -46,8 +46,8 @@ isKeycode code event = case SDL.eventPayload event of
     in  code == actualCode && motion == SDL.Pressed
   _ -> False
 
-render :: RenderContext -> LoopTimer -> T.TableView T.CellStyle -> IO ()
-render (window, renderer) _ view = do
+render :: RenderContext -> T.TableView T.CellStyle -> IO ()
+render (window, renderer) view = do
   pos <- calcCenterPosition window $ T.tableSize view
   let view' = fmap (translate pos) view
   renderTable (T.renderRectCell renderer) view'
