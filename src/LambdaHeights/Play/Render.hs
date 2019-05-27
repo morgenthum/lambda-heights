@@ -51,13 +51,10 @@ createConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-data Shape = Shape {
-  polygonXs :: [Float],
-  polygonYs :: [Float]
-}
+data Shape = Shape [Float] [Float]
 
 shapeSize :: Shape -> Size
-shapeSize shape = V2 (maximum $ polygonXs shape) (maximum $ polygonYs shape)
+shapeSize (Shape xs ys) = V2 (maximum xs) (maximum ys)
 
 playerShape :: Shape
 playerShape = Shape [0, 10, 40, 30, 20, 10, 0, 15] [80, 80, 0, 0, 25, 0, 0, 40]
@@ -148,16 +145,16 @@ renderPlayerShadow renderer config windowSize screen player = do
   let a = round $ if abs velX > 10000 then 255 else abs velX / 10000 * 255
   renderShape renderer windowSize screen (SDL.V4 r g b a) shape
 
-renderShape :: SDL.Renderer -> Scale.WindowSize -> Screen.Screen -> SDLP.Color -> Shape -> IO ()
-renderShape renderer (V2 w h) screen color shape = do
+renderShape :: SDL.Renderer -> V2 CInt -> Screen.Screen -> SDLP.Color -> Shape -> IO ()
+renderShape renderer (V2 w h) screen color (Shape xs ys) = do
   let toVector   = foldl V.snoc V.empty
   let transformX = fromIntegral . Scale.translate screen w
   let transformY = fromIntegral . Scale.translateFlipped screen h
-  let xs         = toVector . map transformX $ polygonXs shape
-  let ys         = toVector . map transformY $ polygonYs shape
-  SDLP.fillPolygon renderer xs ys color
+  let xs'        = toVector . map transformX $ xs
+  let ys'        = toVector . map transformY $ ys
+  SDLP.fillPolygon renderer xs' ys' color
 
-renderLayer :: SDL.Renderer -> Scale.WindowSize -> Screen.Screen -> Layer.Layer -> IO ()
+renderLayer :: SDL.Renderer -> V2 CInt -> Screen.Screen -> Layer.Layer -> IO ()
 renderLayer renderer windowSize screen layer = do
   let size     = Scale.toWindowSize screen windowSize (Layer.size layer)
   let position = Scale.toWindowPosition screen windowSize (Layer.position layer)
@@ -168,11 +165,7 @@ flipByVel :: Player.Velocity -> Shape -> Shape
 flipByVel (V2 velX _) shape = if velX >= 0 then shape else flipShape shape
 
 flipShape :: Shape -> Shape
-flipShape shape =
-  let V2 w _ = shapeSize shape
-      xs     = map (\x -> w - x) $ polygonXs shape
-      ys     = polygonYs shape
-  in  Shape xs ys
+flipShape (Shape xs ys) = let V2 w _ = shapeSize (Shape xs ys) in Shape (map (\x -> w - x) xs) ys
 
 centerBottom :: Position -> Shape -> Shape
 centerBottom (V2 posX posY) (Shape xs ys) =

@@ -30,15 +30,15 @@ data CellView a = CellView {
 }
 
 selectedValue :: Table -> String
-selectedValue table = let V2 r c = selected table in getElem r c $ content table
+selectedValue t = let V2 r c = selected t in getElem r c $ content t
 
 tableDimension :: Table -> V2 Int
-tableDimension table = let m = content table in V2 (nrows m) (ncols m)
+tableDimension t = let m = content t in V2 (nrows m) (ncols m)
 
 tableSize :: TableView a -> V2 Int
-tableSize view =
-  let minPositions = fmap position view
-      sizes        = fmap size view
+tableSize v =
+  let minPositions = fmap position v
+      sizes        = fmap size v
       maxPositions = mapPos (\(r, c) pos -> pos + getElem r c sizes) minPositions
       minList      = toList minPositions
       maxList      = toList maxPositions

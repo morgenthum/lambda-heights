@@ -1,10 +1,8 @@
 module Graphics.UI.Table.Render where
 
-import           Graphics.UI.Render
 import           Graphics.UI.Types
 import           Graphics.UI.Types.Table
 import           Linear.V2
-import           Linear.V2.Utils
 import qualified SDL
 
 renderTable :: CellRenderer a -> TableRenderer a

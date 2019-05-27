@@ -278,7 +278,7 @@ generateLayer generator screen layer =
   if Screen.top screen < Layer.posY layer - 500 then Nothing else Just (layer, generator layer)
 
 dropPassedLayers :: Screen.Screen -> [Layer.Layer] -> [Layer.Layer]
-dropPassedLayers screen = filter (not . passed screen)
+dropPassedLayers screen = dropWhile (passed screen)
 
 passed :: Screen.Screen -> Layer.Layer -> Bool
 screen `passed` layer = Screen.bottom screen > Layer.posY layer

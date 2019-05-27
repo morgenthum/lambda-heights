@@ -67,8 +67,8 @@ maxColumnWidth c sm =
 
 -- Position combinators
 
-positionWith :: LocationGen -> CellPositioner
-positionWith g table = let V2 r c = tableDimension table in matrix r c $ g table
+locateWith :: LocationGen -> CellPositioner
+locateWith g table = let V2 r c = tableDimension table in matrix r c $ g table
 
 grid :: Matrix Size -> LocationGen
 grid sm _ (r, c) =
@@ -94,8 +94,8 @@ move pos g table loc = g table loc + pos
 
 -- Text position combinators
 
-positionTextWith :: TextLocationGen -> TextPositioner
-positionTextWith g table = let V2 r c = tableDimension table in matrix r c g
+locateTextWith :: TextLocationGen -> TextPositioner
+locateTextWith g table = let V2 r c = tableDimension table in matrix r c g
 
 indentText :: Matrix Position -> V2 Int -> TextLocationGen
 indentText pm (V2 ix iy) (r, c) = let V2 x y = getElem r c pm in V2 (x + ix) (y + iy)

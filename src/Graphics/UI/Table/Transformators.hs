@@ -16,6 +16,9 @@ merge table styles sizes positions textPositions =
                           (getElem r c textPositions)
   in  matrix rCount cCount f
 
+translateTable :: Position -> TableView a -> TableView a
+translateTable pos = fmap (translate pos)
+
 translate :: Position -> CellView a -> CellView a
 translate pos view =
   view { position = position view + pos, textPosition = textPosition view + pos }

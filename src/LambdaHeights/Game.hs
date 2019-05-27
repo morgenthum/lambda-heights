@@ -114,20 +114,25 @@ startReplayMenu ctx = do
   config <- ReplayMenu.createConfig
   let loop = timedLoop Menu.keyInput ReplayMenu.update noOutput $ ReplayMenu.render ctx config
   filePath <- startLoop timer (ReplayMenu.State table) loop
-  state    <- if isNothing filePath then return Game.Menu else startReplay (fromJust filePath) ctx
+  state    <- if isNothing filePath
+    then return Game.Menu
+    else startReplayFromFile (fromJust filePath) ctx
   Menu.deleteConfig config
   return state
 
-startReplay :: FilePath -> RenderContext -> IO Game.State
-startReplay replayFilePath ctx = do
+startReplayFromFile :: FilePath -> RenderContext -> IO Game.State
+startReplayFromFile replayFilePath ctx = do
   replay <- deserializeFromFile replayFilePath
   case replay of
     Nothing     -> return Game.Menu
-    Just events -> do
-      timer  <- playTimer
-      config <- Play.createConfig
-      let loop = timedLoop Replay.input Replay.update noOutput $ Replay.render ctx config
-      result <- startLoop timer (Replay.State Play.newState events) loop
-      _      <- showScore ctx $ Play.score $ Play.player $ Replay.state result
-      Play.deleteConfig config
-      return Game.Menu
+    Just events -> startReplay events ctx
+
+startReplay :: [[Events.PlayerEvent]] -> RenderContext -> IO Game.State
+startReplay events ctx = do
+  timer  <- playTimer
+  config <- Play.createConfig
+  let loop = timedLoop Replay.input Replay.update noOutput $ Replay.render ctx config
+  result <- startLoop timer (Replay.State Play.newState events) loop
+  _      <- showScore ctx $ Play.score $ Play.player $ Replay.state result
+  Play.deleteConfig config
+  return Game.Menu

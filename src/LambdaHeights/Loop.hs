@@ -45,53 +45,40 @@ timedLoop input update output render = do
       timedLoop input update output render
 
 incrementFrame :: (M.Monad m) => LoopState m s r
-incrementFrame = M.modify f
+incrementFrame = M.modify increment
  where
-  f s = s
-    { Timer.timer =
-      (Timer.timer s)
-        { Timer.counter =
-          (Timer.counter $ Timer.timer s) { Timer.frames = ( Timer.frames
-                                                           $ Timer.counter
-                                                           $ Timer.timer s
-                                                           )
-                                            + 1
-                                          }
-        }
-    }
+  increment state =
+    let timer    = Timer.timer state
+        counter  = Timer.counter timer
+        frames   = Timer.frames counter
+        counter' = counter { Timer.frames = frames + 1 }
+        timer'   = timer { Timer.counter = counter' }
+    in  state { Timer.timer = timer' }
 
 updateTimer :: (M.MonadIO m) => LoopState m s r
 updateTimer = do
   timedState <- M.get
   current    <- fromIntegral <$> SDL.ticks
-
   let timer   = Timer.timer timedState
   let elapsed = current - Timer.current timer
   let lag     = Timer.lag timer + fromIntegral elapsed
-
-  M.put $ timedState
-    { Timer.timer = timer { Timer.current = current, Timer.elapsed = elapsed, Timer.lag = lag }
-    }
+  let timer' = timer { Timer.current = current, Timer.elapsed = elapsed, Timer.lag = lag }
+  M.put $ timedState { Timer.timer = timer' }
 
 updateFrameCounter :: (M.Monad m) => LoopState m s r
 updateFrameCounter = do
   timedState <- M.get
   let timer          = Timer.timer timedState
   let counter        = Timer.counter timer
-
   let elapsedMillis  = Timer.current timer - Timer.start counter
   let elapsedSeconds = realToFrac elapsedMillis / 1000 :: Float
   let frames         = Timer.frames counter
-  let fps = round (realToFrac frames / elapsedSeconds :: Float)
-
-  M.when (elapsedSeconds >= 0.25 && frames > 10) $ M.put $ timedState
-    { Timer.timer = timer
-                      { Timer.counter = counter { Timer.start  = Timer.current timer
-                                                , Timer.frames = 0
-                                                , Timer.fps    = fps
-                                                }
-                      }
-    }
+  M.when (elapsedSeconds >= 0.25 && frames > 10) $ do
+    let fps      = round (realToFrac frames / elapsedSeconds :: Float)
+    let counter' = counter { Timer.start = Timer.current timer, Timer.frames = 0, Timer.fps = fps }
+    let timer'   = timer { Timer.counter = counter' }
+    let state'   = timedState { Timer.timer = timer' }
+    M.put state'
 
 updateCycle :: (M.Monad m) => Input m e -> Update s r e -> Output m s r e -> LoopState m s r
 updateCycle input update output = do

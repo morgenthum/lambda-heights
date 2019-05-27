@@ -1,20 +1,16 @@
 module LambdaHeights.Scale where
 
-import           Foreign.C.Types
 import           LambdaHeights.Types
 import           LambdaHeights.Types.Screen
 import           Linear.V2
 
-type WindowPosition = V2 CInt
-type WindowSize = V2 CInt
-
-toWindowSize :: Screen -> WindowSize -> Size -> WindowSize
+toWindowSize :: (Integral a) => Screen -> V2 a -> Size -> V2 a
 toWindowSize screen (V2 w h) (V2 x y) =
   let x' = translate screen w x
       y' = translate screen h y
   in  V2 x' y'
 
-toWindowPosition :: Screen -> WindowSize -> Position -> WindowPosition
+toWindowPosition :: (Integral a) => Screen -> V2 a -> Position -> V2 a
 toWindowPosition screen (V2 w h) (V2 x y) =
   let x' = translate screen w x
       y' = translateFlipped screen h y
