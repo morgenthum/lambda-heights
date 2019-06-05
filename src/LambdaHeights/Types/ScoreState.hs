@@ -1,7 +1,6 @@
 module LambdaHeights.Types.ScoreState where
 
-import           Data.Matrix
-import           Graphics.UI.Types.Table
+import           LambdaHeights.Types.Table
 import           Linear.V2
 
 type Score = Int
@@ -12,4 +11,4 @@ data State = State {
 }
 
 newState :: Int -> State
-newState s = State {score = s, menu = Table (fromLists [["score: " ++ show s]]) (V2 1 1)}
+newState s = State {score = s, menu = newTable [["score: " ++ show s]] (V2 1 1)}

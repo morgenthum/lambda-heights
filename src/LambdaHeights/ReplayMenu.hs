@@ -3,16 +3,14 @@
 module LambdaHeights.ReplayMenu where
 
 import           Data.Either
-import           Data.Matrix
 import qualified Data.Text                           as T
 import           Data.Yaml
-import qualified Graphics.UI.Table.Update            as GUI
-import qualified Graphics.UI.Types.Table             as GUI
 import qualified LambdaHeights.Menu                  as Menu
 import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Table                 as Table
 import qualified LambdaHeights.Types.ReplayMenuState as ReplayMenu
 import qualified LambdaHeights.Types.ReplayState     as Replay
+import qualified LambdaHeights.Types.Table           as Table
 import qualified LambdaHeights.Types.Timer           as Timer
 import           Linear.V2
 import           Linear.V4
@@ -32,11 +30,11 @@ loadReplayFiles = do
 filterPacked :: (T.Text -> Bool) -> [String] -> [String]
 filterPacked f = map T.unpack . filter f . map T.pack
 
-buildTable :: [Replay.Description] -> GUI.Table
+buildTable :: [Replay.Description] -> Table.Table
 buildTable xs =
-  let content  = fromLists $ tableHeader : ensureRows (map Replay.toList xs)
+  let texts    = tableHeader : ensureRows (map Replay.toList xs)
       selected = V2 2 1
-  in  GUI.Table content selected
+  in  Table.newTable texts selected
 
 tableHeader :: [String]
 tableHeader = ["File name", "Time", "Duration (sec)", "Score"]
@@ -45,23 +43,31 @@ ensureRows :: [[String]] -> [[String]]
 ensureRows [] = [replicate 4 "n/a"]
 ensureRows xs = xs
 
+updateSelection :: Table.UpdateTable
+updateSelection =
+  Table.with Table.toKeycode $ Table.applyKeycode $ Table.limitNotFirstRow $ Table.limitFirstColumn
+    Table.limitAll
+
 update
   :: Timer.LoopTimer -> [SDL.Event] -> ReplayMenu.State -> Either (Maybe String) ReplayMenu.State
 update _ events state =
-  let updater =
-        GUI.with GUI.toSelectEvent
-          $ GUI.applySelectEvent
-          $ GUI.limitNotFirstRow
-          $ GUI.limitFirstColumn GUI.limitAll
-      updated = Menu.update updater id events $ ReplayMenu.table state
+  let updated = Menu.update updateSelection id events $ ReplayMenu.table state
   in  case updated of
         Left  result -> Left result
-        Right table  -> Right $ state { ReplayMenu.table = table }
+        Right table  -> Right $ updateViewport $ state { ReplayMenu.table = table }
+
+updateViewport :: ReplayMenu.State -> ReplayMenu.State
+updateViewport state =
+  let viewport = Table.updatePageViewport (ReplayMenu.table state) (ReplayMenu.viewport state)
+  in  state { ReplayMenu.viewport = viewport }
 
 render :: RenderContext -> Menu.RenderConfig -> Timer.LoopTimer -> ReplayMenu.State -> IO ()
 render (window, renderer) config _ state = do
   SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 255
   SDL.clear renderer
-  view <- Table.newTableView (Menu.font config) $ ReplayMenu.table state
+  let table    = ReplayMenu.table state
+  let viewport = ReplayMenu.viewport state
+  let table'   = Table.viewportTable viewport table
+  view <- Table.newTableView (Menu.font config) table'
   Menu.render (window, renderer) view
   SDL.present renderer

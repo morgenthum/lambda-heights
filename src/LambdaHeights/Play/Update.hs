@@ -61,7 +61,7 @@ updateScreen player = scrollScreenToPlayer player . scrollScreenOverTime
 scrollScreenOverTime :: Screen.Screen -> Screen.Screen
 scrollScreenOverTime screen =
   let height = Screen.bottom screen
-      factor = min 500 (100 + height / 200)
+      factor = min 500 (100 + height / 125)
   in  if height == 0 then screen else scrollScreen (updateFactor * factor) screen
 
 scrollScreenToPlayer :: Player.Player -> Screen.Screen -> Screen.Screen
@@ -239,8 +239,9 @@ player `onTop` layer =
 -- Drop passed and generate new layers.
 
 newPattern :: [Pattern.PatternEntry]
-newPattern =
-  Pattern.combine 1 [Pattern.leftRightPattern, Pattern.boostPattern, Pattern.stairsPattern]
+newPattern = Pattern.combine
+  1
+  [Pattern.leftRightPattern, Pattern.boostPattern, Pattern.stairsPattern, Pattern.highPattern]
 
 updateLayers :: Screen.Screen -> [Layer.Layer] -> [Layer.Layer]
 updateLayers screen = fillLayers screen . dropPassedLayers screen
@@ -264,10 +265,10 @@ nextLayerByPattern (p : ps) layer =
 
 deriveFrom :: Layer.Layer -> Pattern.PatternEntry -> Layer.Layer
 layer `deriveFrom` entry =
-  let Pattern.PatternEntry entryId (V2 w h, x) d = entry
+  let Pattern.PatternEntry entryId (V2 w h) (V2 x y) = entry
       layerId = Layer.layerId layer + 1
-      V2 _ y  = Layer.position layer
-  in  Layer.Layer layerId entryId (V2 w h) $ V2 x (y + d)
+      V2 _ py = Layer.position layer
+  in  Layer.Layer layerId entryId (V2 w h) $ V2 x (py + y)
 
 generateLayer
   :: (Layer.Layer -> Layer.Layer)

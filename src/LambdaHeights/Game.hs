@@ -112,13 +112,14 @@ startReplayMenu ctx = do
   timer  <- menuTimer
   table  <- ReplayMenu.buildTable <$> ReplayMenu.loadReplayFiles
   config <- ReplayMenu.createConfig
+  let state = ReplayMenu.newState table
   let loop = timedLoop Menu.keyInput ReplayMenu.update noOutput $ ReplayMenu.render ctx config
-  filePath <- startLoop timer (ReplayMenu.State table) loop
-  state    <- if isNothing filePath
+  filePath <- startLoop timer state loop
+  state'   <- if isNothing filePath
     then return Game.Menu
     else startReplayFromFile (fromJust filePath) ctx
   Menu.deleteConfig config
-  return state
+  return state'
 
 startReplayFromFile :: FilePath -> RenderContext -> IO Game.State
 startReplayFromFile replayFilePath ctx = do

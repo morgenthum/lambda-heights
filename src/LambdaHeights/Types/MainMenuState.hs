@@ -1,7 +1,6 @@
 module LambdaHeights.Types.MainMenuState where
 
-import           Data.Matrix
-import           Graphics.UI.Types.Table
+import           LambdaHeights.Types.Table
 import           Linear.V2
 
 newtype State = State {
@@ -9,4 +8,4 @@ newtype State = State {
 }
 
 newState :: State
-newState = State {menu = Table (fromLists [["play"], ["replay"], ["exit"]]) (V2 1 1)}
+newState = State {menu = newTable [["play"], ["replay"], ["exit"]] (V2 1 1)}

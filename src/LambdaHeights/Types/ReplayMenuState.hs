@@ -1,8 +1,13 @@
 module LambdaHeights.Types.ReplayMenuState where
 
-import           Graphics.UI.Types.Table
+import           LambdaHeights.Types.Table
+import           Linear.V2
 
-newtype State = State {
-  table  :: Table
+data State = State {
+  table    :: Table,
+  viewport :: TableViewport
 }
 
+newState :: Table -> State
+newState t =
+  let V2 _ cols = dimension t in State {table = t, viewport = TableViewport (V2 1 1) (V2 7 cols)}

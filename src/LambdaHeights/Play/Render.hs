@@ -13,7 +13,7 @@ where
 import qualified Data.Vector.Storable          as V
 import           Data.Word
 import           Foreign.C.Types
-import qualified Graphics.UI.Render            as Render
+import qualified LambdaHeights.Render          as Render
 import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Scale           as Scale
 import           LambdaHeights.Types
