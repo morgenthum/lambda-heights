@@ -11,7 +11,4 @@ data Rect = Rect {
 }
 
 inside :: Point -> Rect -> Bool
-p `inside` r =
-  let V2   px       py       = p
-      Rect (V2 x y) (V2 w h) = r
-  in  px >= x && px <= x + w && py <= y && py >= y - h
+(V2 px py) `inside` (Rect (V2 x y) (V2 w h)) = px >= x && px <= x + w && py <= y && py >= y - h

@@ -32,9 +32,14 @@ filterPacked f = map T.unpack . filter f . map T.pack
 
 buildTable :: [Replay.Description] -> Table.Table
 buildTable xs =
-  let texts    = tableHeader : ensureRows (map Replay.toList xs)
+  let texts    = tableHeader : ensureRows (map toList xs)
       selected = V2 2 1
   in  Table.newTable texts selected
+
+toList :: Replay.Description -> [String]
+toList x =
+  let durationSec = realToFrac (Replay.duration x) / 1000 :: Float
+  in  [Replay.fileName x, show $ Replay.time x, show durationSec, show $ Replay.score x]
 
 tableHeader :: [String]
 tableHeader = ["File name", "Time", "Duration (sec)", "Score"]

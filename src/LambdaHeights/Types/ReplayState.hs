@@ -19,12 +19,7 @@ data Description = Description {
   time     :: UTCTime,
   duration :: Word32,
   score    :: Int
-} deriving (Generic)
+} deriving Generic
 
 instance ToJSON Description
 instance FromJSON Description
-
-toList :: Description -> [String]
-toList x =
-  let durationSec = realToFrac (duration x) / 1000 :: Float
-  in  [fileName x, show $ time x, show durationSec, show $ score x]

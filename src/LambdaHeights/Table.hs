@@ -7,7 +7,7 @@ import qualified Data.Vector               as V
 import           LambdaHeights.Render
 import           LambdaHeights.Types.Table
 import           Linear.V2
-import           Linear.V2.Utils
+import qualified Linear.V2.Utils           as V2
 import           Linear.V4
 import qualified SDL
 import qualified SDL.Font                  as SDLF
@@ -36,26 +36,24 @@ type LimitSelection = Table -> Table
 
 tableSize :: TableView -> V2 Int
 tableSize view =
-  let minPositions = fmap position view
-      sizes        = fmap size view
+  let minPositions = fmap viewPos view
+      sizes        = fmap viewSize view
       maxPositions = mapPos (\(r, c) pos -> pos + getElem r c sizes) minPositions
       minList      = toList minPositions
       maxList      = toList maxPositions
-      getX (V2 x _) = x
-      getY (V2 _ y) = y
-      minX = minimum $ map getX minList
-      maxX = maximum $ map getX maxList
-      minY = minimum $ map getY minList
-      maxY = maximum $ map getY maxList
+      minX         = minimum $ map V2.getX minList
+      maxX         = maximum $ map V2.getX maxList
+      minY         = minimum $ map V2.getY minList
+      maxY         = maximum $ map V2.getY maxList
   in  V2 (maxX - minX) (maxY - minY)
 
 translate :: Position -> TableView -> TableView
 translate pos =
-  fmap $ \view -> view { position = position view + pos, textPosition = textPosition view + pos }
+  fmap $ \view -> view { viewPos = viewPos view + pos, viewTextPos = viewTextPos view + pos }
 
 positionCenter :: Size -> Size -> Position
-positionCenter (V2 pw ph) (V2 w h) =
-  let half x = round (realToFrac x / 2 :: Float) in V2 (half pw - half w) (half ph - half h)
+positionCenter (V2 pw ph) (V2 cw ch) =
+  let half x = round (realToFrac x / 2 :: Float) in V2 (half pw - half cw) (half ph - half ch)
 
 merge
   :: Matrix String
@@ -78,10 +76,10 @@ ifSelector :: Selector -> Generator a -> Generator a -> Generator a
 ifSelector s lhs rhs table pos = if s table pos then lhs table pos else rhs table pos
 
 selectedRow :: Selector
-selectedRow table (r, c) = let V2 sr _ = selected table in row sr table (r, c)
+selectedRow table = row (V2.getX $ selected table) table
 
 row :: Int -> Selector
-row x table (r, c) = let V2 r' _ = location $ getElem r c $ content table in x == r'
+row x table (r, c) = x == V2.getX (cellLocation $ getElem r c $ content table)
 
 -- Style combinators
 
@@ -165,7 +163,7 @@ centerText sm pm fsm _ (r, c) =
 
 newMenuView :: SDLF.Font -> Table -> IO TableView
 newMenuView f t = do
-  let contents = text <$> content t
+  let contents = cellText <$> content t
   fontSizes <- loadFontSizes f contents
   let selectedStyle = always $ CellStyle f (V4 30 30 30 255) (V4 0 191 255 255)
   let bodyStyle     = always $ CellStyle f (V4 30 30 30 255) (V4 255 255 255 255)
@@ -177,7 +175,7 @@ newMenuView f t = do
 
 newTableView :: SDLF.Font -> Table -> IO TableView
 newTableView f t = do
-  let contents = text <$> content t
+  let contents = cellText <$> content t
   fontSizes <- loadFontSizes f contents
   let headStyle           = always $ CellStyle f (V4 0 191 255 255) (V4 30 30 30 255)
   let selectedStyle       = always $ CellStyle f (V4 30 30 30 255) (V4 0 191 255 255)
@@ -196,14 +194,14 @@ renderTable = mapM_
 
 renderCell :: SDL.Renderer -> CellRenderer
 renderCell renderer cell = do
-  let text'   = viewText cell
-  let style'  = style cell
-  let size'   = convertV2 $ size cell
-  let pos     = convertV2 $ position cell
-  let textPos = convertV2 $ textPosition cell
-  SDL.rendererDrawColor renderer SDL.$= cellBg style'
-  SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P pos) size'
-  renderText renderer (cellFont style') (cellFg style') textPos text'
+  let text    = viewText cell
+  let style   = viewStyle cell
+  let size    = V2.convert $ viewSize cell
+  let pos     = V2.convert $ viewPos cell
+  let textPos = V2.convert $ viewTextPos cell
+  SDL.rendererDrawColor renderer SDL.$= cellBg style
+  SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P pos) size
+  renderText renderer (cellFont style) (cellFg style) textPos text
 
 -- Updating
 
@@ -257,19 +255,19 @@ bound (f, l) x | x < f     = f
 
 updatePageViewport :: Table -> TableViewport -> TableViewport
 updatePageViewport table viewport =
-  let V2 fr fc = from viewport
-      V2 tr tc = to viewport
+  let V2 fr fc = viewportFrom viewport
+      V2 tr tc = viewportTo viewport
       range    = tr - fr + 1
       V2 sr _  = selected table
       dr | sr > tr   = range
          | sr < fr   = -range
          | otherwise = 0
-  in  viewport { from = V2 (fr + dr) fc, to = V2 (tr + dr) tc }
+  in  viewport { viewportFrom = V2 (fr + dr) fc, viewportTo = V2 (tr + dr) tc }
 
 viewportTable :: TableViewport -> Table -> Table
 viewportTable viewport table =
-  let V2 fr fc = from viewport
-      V2 tr tc = to viewport
+  let V2 fr fc = viewportFrom viewport
+      V2 tr tc = viewportTo viewport
       tr'      = min tr $ nrows $ content table
       content' = submatrix fr tr' fc tc $ content table
   in  table { content = content' }

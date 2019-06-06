@@ -17,8 +17,8 @@ data RenderConfig = RenderConfig {
 
 createConfig :: IO RenderConfig
 createConfig = do
-  config <- Menu.createConfig
-  return $ RenderConfig config $ SDL.V4 0 0 0 128
+  menuConfig <- Menu.createConfig
+  return $ RenderConfig menuConfig $ SDL.V4 0 0 0 100
 
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = Menu.deleteConfig . menuConfig
@@ -37,10 +37,9 @@ toState _             = Pause.Resume
 render
   :: RenderContext -> RenderConfig -> ProxyRenderer a -> Timer.LoopTimer -> Pause.State a -> IO ()
 render (window, renderer) config proxyRenderer timer state = do
-  proxyRenderer timer $ Pause.menuState state
+  proxyRenderer timer $ Pause.pausedState state
   renderOverlay (window, renderer) config
-  view <- Table.newMenuView (Menu.font $ menuConfig config) $ Pause.menu state
-  Menu.render (window, renderer) view
+  renderMenu (window, renderer) config state
   SDL.present renderer
 
 renderOverlay :: RenderContext -> RenderConfig -> IO ()
@@ -48,3 +47,7 @@ renderOverlay (window, renderer) config = do
   windowSize <- SDL.get $ SDL.windowSize window
   SDL.rendererDrawColor renderer SDL.$= overlayColor config
   SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P $ SDL.V2 0 0) windowSize
+
+renderMenu :: RenderContext -> RenderConfig -> Pause.State a -> IO ()
+renderMenu ctx config state =
+  Table.newMenuView (Menu.font $ menuConfig config) (Pause.menu state) >>= Menu.render ctx

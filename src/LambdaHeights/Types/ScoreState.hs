@@ -10,5 +10,5 @@ data State = State {
   menu  :: Table
 }
 
-newState :: Int -> State
-newState s = State {score = s, menu = newTable [["score: " ++ show s]] (V2 1 1)}
+newState :: Score -> State
+newState score = State {score = score, menu = newTable [["score: " ++ show score]] (V2 1 1)}

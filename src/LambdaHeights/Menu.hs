@@ -29,11 +29,11 @@ update :: Table.UpdateTable -> ToResult a -> [SDL.Event] -> Table.Table -> Eithe
 update updater toResult events table =
   let table' = updater events table
   in  if pressedKey SDL.KeycodeReturn events
-        then Left $ toResult $ Just $ Table.text $ Table.selectedValue table'
+        then Left $ toResult $ Just $ Table.cellText $ Table.selectedValue table'
         else if pressedKey SDL.KeycodeEscape events then Left $ toResult Nothing else Right table'
 
 pressedKey :: SDL.Keycode -> [SDL.Event] -> Bool
-pressedKey code = any (isPressedKeycode code)
+pressedKey code = any $ isPressedKeycode code
 
 isPressedKeycode :: SDL.Keycode -> SDL.Event -> Bool
 isPressedKeycode code event = case SDL.eventPayload event of
@@ -45,7 +45,7 @@ isPressedKeycode code event = case SDL.eventPayload event of
 
 render :: RenderContext -> Table.TableView -> IO ()
 render (window, renderer) view = do
-  parentSize <- convertV2 <$> SDL.get (SDL.windowSize window)
+  parentSize <- convert <$> SDL.get (SDL.windowSize window)
   let childSize = Table.tableSize view
   let pos       = Table.positionCenter parentSize childSize
   let view'     = Table.translate pos view

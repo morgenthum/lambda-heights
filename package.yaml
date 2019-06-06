@@ -43,6 +43,7 @@ library:
   source-dirs: src
   ghc-options:
   - -Wall
+  - -fno-warn-name-shadowing
   - -O2
 
 executables:

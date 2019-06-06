@@ -5,7 +5,7 @@ where
 
 import           Control.Concurrent.Async
 import           Control.Concurrent.STM.TChan
-import           Data.Maybe
+import           Control.Monad.Extra
 import           Data.Time
 import           LambdaHeights.Loop
 import qualified LambdaHeights.MainMenu              as MainMenu
@@ -27,6 +27,7 @@ import qualified LambdaHeights.Types.ReplayMenuState as ReplayMenu
 import qualified LambdaHeights.Types.ReplayState     as Replay
 import qualified LambdaHeights.Types.ScoreState      as Score
 import qualified LambdaHeights.Types.Timer           as Timer
+import           Prelude                             hiding (init)
 import           System.Directory
 
 type PlayLoopState = LoopState IO Play.State Play.Result
@@ -40,10 +41,13 @@ playTimer = Timer.newTimer 7
 
 start :: IO ()
 start = do
-  createDirectoryIfMissing True "replays"
+  init
   ctx <- createContext "Lambda-Heights"
   _   <- startState ctx Game.Menu
   deleteContext ctx
+
+init :: IO ()
+init = createDirectoryIfMissing True "replays"
 
 startState :: RenderContext -> Game.State -> IO Game.State
 startState _   Game.Exit   = return Game.Exit
@@ -89,7 +93,7 @@ startGameLoop filePath channel gameState playLoop pauseLoop = do
   handle <- async $ serialize (fromTChan channel) (toFile $ filePath ++ ".dat")
   result <- startLoop timer gameState playLoop
   wait handle
-  let score = Play.score . Play.player . Play.state $ result
+  let score = Play.score $ Play.player $ Play.state result
   case Play.reason result of
     Play.Finished -> return score
     Play.Paused   -> do
@@ -115,18 +119,13 @@ startReplayMenu ctx = do
   let state = ReplayMenu.newState table
   let loop = timedLoop Menu.keyInput ReplayMenu.update noOutput $ ReplayMenu.render ctx config
   filePath <- startLoop timer state loop
-  state'   <- if isNothing filePath
-    then return Game.Menu
-    else startReplayFromFile (fromJust filePath) ctx
+  state    <- maybe (return Game.Menu) (`startReplayFromFile` ctx) filePath
   Menu.deleteConfig config
-  return state'
+  return state
 
 startReplayFromFile :: FilePath -> RenderContext -> IO Game.State
-startReplayFromFile replayFilePath ctx = do
-  replay <- deserializeFromFile replayFilePath
-  case replay of
-    Nothing     -> return Game.Menu
-    Just events -> startReplay events ctx
+startReplayFromFile replayFilePath ctx =
+  maybeM (return Game.Menu) (`startReplay` ctx) $ deserializeFromFile replayFilePath
 
 startReplay :: [[Events.PlayerEvent]] -> RenderContext -> IO Game.State
 startReplay events ctx = do

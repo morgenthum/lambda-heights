@@ -16,23 +16,23 @@ data Table = Table {
 }
 
 data Cell = Cell {
-  location :: Location,
-  text     :: String
+  cellLocation :: Location,
+  cellText     :: String
 }
 
 data TableViewport = TableViewport {
-  from :: Location,
-  to   :: Location
+  viewportFrom :: Location,
+  viewportTo   :: Location
 }
 
 type TableView = Matrix CellView
 
 data CellView = CellView {
-  viewText     :: String,
-  style        :: CellStyle,
-  size         :: Size,
-  position     :: Position,
-  textPosition :: Position
+  viewText    :: String,
+  viewStyle   :: CellStyle,
+  viewSize    :: Size,
+  viewPos     :: Position,
+  viewTextPos :: Position
 }
 
 data CellStyle = CellStyle {
@@ -42,10 +42,10 @@ data CellStyle = CellStyle {
 }
 
 newTable :: [[String]] -> Location -> Table
-newTable texts' selected' =
-  let textMatrix = fromLists texts'
-      cells      = mapPos (\(r, c) x -> Cell (V2 r c) x) textMatrix
-  in  Table cells selected'
+newTable texts selected =
+  let toCell (r, c) = Cell (V2 r c)
+      cells = mapPos toCell $ fromLists texts
+  in  Table cells selected
 
 selectedValue :: Table -> Cell
 selectedValue t = let V2 r c = selected t in getElem r c $ content t
