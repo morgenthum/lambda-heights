@@ -31,7 +31,7 @@ import           Prelude                             hiding (init)
 import           System.Directory
 
 type PlayLoopState = LoopState IO Play.State Play.Result
-type PauseLoopState = LoopState IO (Pause.State Play.State) Pause.ExitReason
+type ReplayLoopState = LoopState IO Replay.State Replay.Result
 
 menuTimer :: IO Timer.LoopTimer
 menuTimer = Timer.newTimer 30
@@ -66,41 +66,52 @@ startMenu ctx = do
 
 startGame :: RenderContext -> IO Game.State
 startGame ctx = do
-  time        <- getCurrentTime
-  channel     <- newTChanIO
-  playConfig  <- Play.createConfig
-  pauseConfig <- Pause.createConfig
+  time       <- getCurrentTime
+  channel    <- newTChanIO
+  playConfig <- Play.createConfig
   let replayFile    = Replay.newFileName time
   let output        = Play.output time replayFile channel
   let playRenderer  = Play.renderDefault ctx playConfig
-  let pauseRenderer = Pause.render ctx pauseConfig $ Play.renderPause ctx playConfig
+  let pauseRenderer = Play.renderPause ctx playConfig
   let gameLoop = timedLoop Play.keyInput Play.update output playRenderer
-  let pauseLoop = timedLoop Menu.keyInput Pause.update noOutput pauseRenderer
-  state <- startGameLoop replayFile channel Play.newState gameLoop pauseLoop >>= showScore ctx
-  Pause.deleteConfig pauseConfig
+  state <- startGameLoop ctx replayFile channel Play.newState gameLoop pauseRenderer
+    >>= showScore ctx
   Play.deleteConfig playConfig
   return state
 
 startGameLoop
-  :: FilePath
+  :: RenderContext
+  -> FilePath
   -> TChan (Maybe [Events.PlayerEvent])
   -> Play.State
   -> PlayLoopState
-  -> PauseLoopState
+  -> Pause.ProxyRenderer Play.State
   -> IO Score.Score
-startGameLoop filePath channel gameState playLoop pauseLoop = do
+startGameLoop ctx filePath channel state loop pauseRenderer = do
   timer  <- playTimer
   handle <- async $ serialize (fromTChan channel) (toFile $ filePath ++ ".dat")
-  result <- startLoop timer gameState playLoop
+  result <- startLoop timer state loop
+  let state' = Play.state result
   wait handle
-  let score = Play.score $ Play.player $ Play.state result
+  let score = Play.score $ Play.player state'
   case Play.reason result of
     Play.Finished -> return score
     Play.Paused   -> do
-      reason <- startLoop timer (Pause.newState $ Play.state result) pauseLoop
+      let pauseState = Pause.newState state'
+      reason <- startPause ctx pauseState pauseRenderer
       case reason of
-        Pause.Resume -> startGameLoop filePath channel (Play.state result) playLoop pauseLoop
+        Pause.Resume -> startGameLoop ctx filePath channel state' loop pauseRenderer
         Pause.Exit   -> return score
+
+startPause :: RenderContext -> Pause.State a -> Pause.ProxyRenderer a -> IO Pause.ExitReason
+startPause ctx state proxyRenderer = do
+  timer       <- playTimer
+  pauseConfig <- Pause.createConfig
+  let renderer = Pause.render ctx pauseConfig proxyRenderer
+  let loop     = timedLoop Menu.keyInput Pause.update noOutput renderer
+  reason <- startLoop timer state loop
+  Pause.deleteConfig pauseConfig
+  return reason
 
 showScore :: RenderContext -> Score.Score -> IO Game.State
 showScore ctx score = do
@@ -129,10 +140,30 @@ startReplayFromFile replayFilePath ctx =
 
 startReplay :: [[Events.PlayerEvent]] -> RenderContext -> IO Game.State
 startReplay events ctx = do
-  timer  <- playTimer
   config <- Play.createConfig
   let loop = timedLoop Replay.input Replay.update noOutput $ Replay.render ctx config
-  result <- startLoop timer (Replay.State Play.newState events) loop
-  _      <- showScore ctx $ Play.score $ Play.player $ Replay.state result
+  let state         = Replay.State Play.newState events
+  let pauseRenderer = Play.renderPause ctx config
+  result <- startReplayLoop ctx state loop pauseRenderer >>= showScore ctx
   Play.deleteConfig config
-  return Game.Menu
+  return result
+
+startReplayLoop
+  :: RenderContext
+  -> Replay.State
+  -> ReplayLoopState
+  -> Pause.ProxyRenderer Play.State
+  -> IO Score.Score
+startReplayLoop ctx state loop pauseRenderer = do
+  timer  <- playTimer
+  result <- startLoop timer state loop
+  let state' = Replay.state result
+  let score = Play.score $ Play.player $ Replay.playState state'
+  case Replay.reason result of
+    Play.Finished -> return score
+    Play.Paused   -> do
+      let pauseState = Pause.newState $ Replay.playState state'
+      reason <- startPause ctx pauseState pauseRenderer
+      case reason of
+        Pause.Resume -> startReplayLoop ctx state' loop pauseRenderer
+        Pause.Exit   -> return score

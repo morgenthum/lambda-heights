@@ -9,9 +9,14 @@ import           GHC.Generics
 import           LambdaHeights.Types.Events
 import qualified LambdaHeights.Types.PlayState as Play
 
+data Result = Result {
+  reason :: Play.ExitReason,
+  state  :: State
+}
+
 data State = State {
-  state  :: Play.State,
-  events :: [[PlayerEvent]]
+  playState :: Play.State,
+  events    :: [[PlayerEvent]]
 }
 
 data Description = Description {

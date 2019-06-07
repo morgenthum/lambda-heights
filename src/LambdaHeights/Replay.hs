@@ -15,14 +15,15 @@ input :: IO [Events.ControlEvent]
 input = Events.control <$> Play.keyInput
 
 update
-  :: Timer.LoopTimer -> [Events.ControlEvent] -> Replay.State -> Either Replay.State Replay.State
-update _ _ (Replay.State state []) = Left $ Replay.State state []
+  :: Timer.LoopTimer -> [Events.ControlEvent] -> Replay.State -> Either Replay.Result Replay.State
+update _ _ (Replay.State state []) = Left $ Replay.Result Play.Finished $ Replay.State state []
 update timer events state =
   let repEvents : repEventList = Replay.events state
-      updated = Play.update timer (Events.Events events repEvents) $ Replay.state state
+      updated = Play.update timer (Events.Events events repEvents) $ Replay.playState state
   in  case updated of
-        Left  result    -> Left $ Replay.State (Play.state result) repEventList
+        Left result ->
+          Left $ Replay.Result (Play.reason result) $ Replay.State (Play.state result) repEventList
         Right playState -> Right $ Replay.State playState repEventList
 
 render :: RenderContext -> Play.RenderConfig -> Timer.LoopTimer -> Replay.State -> IO ()
-render graphics config timer = Play.renderDefault graphics config timer . Replay.state
+render graphics config timer = Play.renderDefault graphics config timer . Replay.playState
