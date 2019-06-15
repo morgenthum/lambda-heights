@@ -7,6 +7,7 @@ import           Data.Maybe
 import           LambdaHeights.Types.Events
 import qualified SDL
 
+-- | Polls pending SDL events and maps them to Events.
 keyInput :: IO Events
 keyInput = do
   events <- SDL.pollEvents

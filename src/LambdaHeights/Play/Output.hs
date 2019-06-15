@@ -16,9 +16,9 @@ import           LambdaHeights.Types.Timer
 
 type Output = LoopTimer -> Events -> Either State.Result State.State -> IO ()
 
--- Broadcast occured events into a channel.
-
-output :: UTCTime -> FilePath -> TChan (Maybe [PlayerEvent]) -> Output
+-- | Outputs occured events into a channel and
+--   creates a replay description file if the end is reached.
+output :: LocalTime -> FilePath -> TChan (Maybe [PlayerEvent]) -> Output
 output time fileName channel _ events resultState = do
   liftIO $ atomically $ writeTChan channel $ Just $ player events
   case resultState of
@@ -27,7 +27,7 @@ output time fileName channel _ events resultState = do
       encodeFile (fileName ++ ".desc") $ toJSON $ createDesc time fileName result
     Right _ -> return ()
 
-createDesc :: UTCTime -> FilePath -> State.Result -> Replay.Description
+createDesc :: LocalTime -> FilePath -> State.Result -> Replay.Description
 createDesc time fileName result = Replay.Description
   { Replay.fileName = fileName ++ ".dat"
   , Replay.time     = time

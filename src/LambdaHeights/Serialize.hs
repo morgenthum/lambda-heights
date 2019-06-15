@@ -11,14 +11,7 @@ import           System.Directory
 type Source m a = m (Maybe a)
 type Target m a = a -> m ()
 
-fromTChan :: TChan (Maybe a) -> Source IO a
-fromTChan = atomically . readTChan
-
-toFile :: (Serialise a) => FilePath -> Target IO a
-toFile path x = do
-  BS.appendFile path $ serialise x
-  BS.appendFile path $ BS8.pack "/"
-
+-- | Loops a serialization from a source to a target.
 serialize :: (Monad m, Serialise a) => Source m a -> Target m a -> m ()
 serialize source target = do
   maybeX <- source
@@ -26,6 +19,17 @@ serialize source target = do
     target x
     serialize source target
 
+-- | Reads atomically from a channel.
+fromTChan :: TChan (Maybe a) -> Source IO a
+fromTChan = atomically . readTChan
+
+-- | Serializes to a file and separates with "/".
+toFile :: (Serialise a) => FilePath -> Target IO a
+toFile path x = do
+  BS.appendFile path $ serialise x
+  BS.appendFile path $ BS8.pack "/"
+
+-- | Deserializes a "/"-separated sequence of serializations from a file.
 deserializeFromFile :: (Serialise a) => FilePath -> IO (Maybe [a])
 deserializeFromFile filePath = do
   exist <- doesFileExist filePath

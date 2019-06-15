@@ -21,10 +21,14 @@ data State = State {
 
 data Description = Description {
   fileName :: String,
-  time     :: UTCTime,
+  time     :: LocalTime,
   duration :: Word32,
   score    :: Int
-} deriving Generic
+} deriving (Eq, Generic)
 
 instance ToJSON Description
 instance FromJSON Description
+
+instance Ord Description where
+ lhs <= rhs = time lhs <= time rhs
+

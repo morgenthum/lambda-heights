@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module LambdaHeights.Game
   ( start
   )
@@ -66,11 +68,13 @@ startMenu ctx = do
 
 startGame :: RenderContext -> IO Game.State
 startGame ctx = do
-  time       <- getCurrentTime
+  time <- getCurrentTime
+  zone <- getCurrentTimeZone
+  let localTime = utcToLocalTime zone time
   channel    <- newTChanIO
   playConfig <- Play.createConfig
-  let replayFile    = Replay.newFileName time
-  let output        = Play.output time replayFile channel
+  let replayFile    = Replay.toFilePath time
+  let output        = Play.output localTime replayFile channel
   let playRenderer  = Play.renderDefault ctx playConfig
   let pauseRenderer = Play.renderPause ctx playConfig
   let gameLoop = timedLoop Play.keyInput Play.update output playRenderer

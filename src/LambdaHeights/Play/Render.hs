@@ -6,7 +6,6 @@ module LambdaHeights.Play.Render
   , renderPause
   , render
   , clear
-  , present
   )
 where
 
@@ -51,33 +50,17 @@ createConfig = do
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
 
-data Shape = Shape [Float] [Float]
-
-shapeSize :: Shape -> Size
-shapeSize (Shape xs ys) = V2 (maximum xs) (maximum ys)
-
-playerShape :: Shape
-playerShape = Shape [0, 10, 40, 30, 20, 10, 0, 15] [80, 80, 0, 0, 25, 0, 0, 40]
-
-playerSpeedShape :: Shape
-playerSpeedShape = Shape [0, 10, 25, 10, 0, 15] [80, 80, 40, 0, 0, 40]
-
-clear :: SDL.Renderer -> SDLP.Color -> IO ()
-clear renderer color = do
-  SDL.rendererDrawColor renderer SDL.$= color
-  SDL.clear renderer
-
-present :: SDL.Renderer -> IO ()
-present = SDL.present
-
+-- | Clears the screen, renders the state and presents the screen.
 renderDefault :: RenderContext -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
 renderDefault (window, renderer) config =
-  render (clear renderer $ bgColor config) (present renderer) (window, renderer) config
+  render (clear renderer $ bgColor config) (SDL.present renderer) (window, renderer) config
 
+-- | Clears the screen, renders the state but does not presents it.
 renderPause :: RenderContext -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
 renderPause (window, renderer) config =
   render (clear renderer $ bgColor config) (return ()) (window, renderer) config
 
+-- | Renders the state and executes an pre and post action.
 render :: IO () -> IO () -> RenderContext -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
 render pre post (window, renderer) config timer state = do
   pre
@@ -85,15 +68,21 @@ render pre post (window, renderer) config timer state = do
   mapM_ (renderLayer renderer windowSize $ State.screen state) $ State.layers state
   renderPlayer renderer config windowSize (State.screen state) (State.player state)
   renderPlayerShadow renderer config windowSize (State.screen state) (State.player state)
-  renderHud renderer config timer state
+  renderHud renderer config windowSize timer state
   post
 
-renderHud :: SDL.Renderer -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
-renderHud renderer config timer state = do
+-- | Clears the screen with given color.
+clear :: SDL.Renderer -> SDLP.Color -> IO ()
+clear renderer color = do
+  SDL.rendererDrawColor renderer SDL.$= color
+  SDL.clear renderer
+
+renderHud :: SDL.Renderer -> RenderConfig -> V2 CInt -> Timer.LoopTimer -> State.State -> IO ()
+renderHud renderer config windowSize timer state = do
   renderHudVelocity renderer config state
   renderHudTime renderer config state
   renderHudScore renderer config state
-  renderHudFPS renderer config timer
+  renderHudFPS renderer config windowSize timer
 
 renderHudVelocity :: SDL.Renderer -> RenderConfig -> State.State -> IO ()
 renderHudVelocity renderer config state = do
@@ -120,18 +109,25 @@ renderHudScore renderer config state = do
   Render.renderText renderer textFont (headlineColor config) (V2 20 60) "SCORE"
   Render.renderText renderer textFont (textColor config) (V2 100 60) (show score)
 
-renderHudFPS :: SDL.Renderer -> RenderConfig -> Timer.LoopTimer -> IO ()
-renderHudFPS renderer config timer = do
+renderHudFPS :: SDL.Renderer -> RenderConfig -> V2 CInt -> Timer.LoopTimer -> IO ()
+renderHudFPS renderer config (V2 w _) timer = do
   let textFont = font config
   let fps      = Timer.fps . Timer.counter $ timer
-  Render.renderText renderer textFont (headlineColor config) (V2 250 20) "FPS"
-  Render.renderText renderer textFont (textColor config) (V2 320 20) (show fps)
+  let x        = w - 125
+  Render.renderText renderer textFont (headlineColor config) (V2 x 20) "FPS"
+  Render.renderText renderer textFont (textColor config) (V2 (x + 70) 20) (show fps)
+
+data Shape = Shape [Float] [Float]
+
+shapeSize :: Shape -> Size
+shapeSize (Shape xs ys) = V2 (maximum xs) (maximum ys)
 
 renderPlayer :: SDL.Renderer -> RenderConfig -> V2 CInt -> Screen.Screen -> Player.Player -> IO ()
 renderPlayer renderer config windowSize screen player = do
-  let shape =
-        centerBottom (Player.position player) $ flipByVel (Player.velocity player) playerShape
-  renderShape renderer windowSize screen (playerColor config) shape
+  let shape = Shape [0, 10, 40, 30, 20, 10, 0, 15] [80, 80, 0, 0, 25, 0, 0, 40]
+  let translatedShape =
+        centerBottom (Player.position player) $ flipByVel (Player.velocity player) shape
+  renderShape renderer windowSize screen (playerColor config) translatedShape
 
 renderPlayerShadow
   :: SDL.Renderer -> RenderConfig -> V2 CInt -> Screen.Screen -> Player.Player -> IO ()
@@ -139,11 +135,12 @@ renderPlayerShadow renderer config windowSize screen player = do
   let V2 posX posY = Player.position player
   let V2 velX _    = Player.velocity player
   let offX         = if velX >= 0 then -20 else 20
-  let shape =
-        centerBottom (V2 (posX + offX) posY) $ flipByVel (Player.velocity player) playerSpeedShape
+  let shape        = Shape [0, 10, 25, 10, 0, 15] [80, 80, 40, 0, 0, 40]
+  let translatedShape =
+        centerBottom (V2 (posX + offX) posY) $ flipByVel (Player.velocity player) shape
   let SDL.V4 r g b _ = playerShadowColor config
   let a = round $ if abs velX > 10000 then 255 else abs velX / 10000 * 255
-  renderShape renderer windowSize screen (SDL.V4 r g b a) shape
+  renderShape renderer windowSize screen (SDL.V4 r g b a) translatedShape
 
 renderShape :: SDL.Renderer -> V2 CInt -> Screen.Screen -> SDLP.Color -> Shape -> IO ()
 renderShape renderer (V2 w h) screen color (Shape xs ys) = do
@@ -175,10 +172,12 @@ centerBottom (V2 posX posY) (Shape xs ys) =
   in  Shape xs' ys'
 
 layerColor :: Layer.Layer -> SDL.V4 Word8
-layerColor layer | h >= 300  = SDL.V4 0 255 127 255
-                 | w >= 1000 = SDL.V4 255 255 255 255
-                 | w >= 500  = SDL.V4 75 0 130 255
-                 | w >= 400  = SDL.V4 31 135 120 255
-                 | w >= 300  = SDL.V4 255 127 80 255
-                 | otherwise = SDL.V4 255 215 0 255
-  where V2 w h = Layer.size layer
+layerColor layer =
+  let V2 w h = Layer.size layer
+      go | h >= 300  = SDL.V4 0 255 127 255
+         | w >= 1000 = SDL.V4 255 255 255 255
+         | w >= 500  = SDL.V4 75 0 130 255
+         | w >= 400  = SDL.V4 31 135 120 255
+         | w >= 300  = SDL.V4 255 127 80 255
+         | otherwise = SDL.V4 255 215 0 255
+  in  go

@@ -1,6 +1,5 @@
 module LambdaHeights.Play.Update
-  ( Updater
-  , update
+  ( update
   )
 where
 
@@ -25,8 +24,7 @@ type Updater = Timer.LoopTimer -> Events.Events -> State.State -> Either State.R
 updateFactor :: Float
 updateFactor = 1 / 128
 
--- | Applies occured events and updates the game world.
-
+-- | Applies occured events and updates the game state.
 update :: Updater
 update timer events state =
   let time   = State.duration state
@@ -74,7 +72,6 @@ scrollScreen :: Float -> Screen.Screen -> Screen.Screen
 scrollScreen delta screen =
   screen { Screen.top = Screen.top screen + delta, Screen.bottom = Screen.bottom screen + delta }
 
-
 -- Apply the player events to the motion.
 
 updateMotion :: [Events.PlayerEvent] -> State.Motion -> State.Motion
@@ -92,7 +89,6 @@ applyPlayerEvent moveState Events.PlayerJumped = moveState { State.jump = True }
 
 resetMotion :: State.Motion -> State.Motion
 resetMotion motion = motion { State.jump = False }
-
 
 -- Updating the player involves the following steps:
 -- 1. Update the motion of the player.
@@ -116,7 +112,6 @@ updateMotionType :: [Layer.Layer] -> Player.Player -> Player.Player
 updateMotionType layers player =
   let collided = not $ null $ find (player `inside`) layers
   in  player { Player.motionType = if collided then Player.Ground else Player.Air }
-
 
 -- Update the motion of the player (acceleration, velocity, position).
 
@@ -184,7 +179,6 @@ updatePos player =
 applyWithFactor :: Fractional a => a -> V2 a -> V2 a -> V2 a
 applyWithFactor factor (V2 x y) (V2 x' y') = V2 (x + x' * factor) (y + y' * factor)
 
-
 -- Correct the position and velocity if it is colliding with a layer
 -- or the bounds of the screen.
 
@@ -226,15 +220,14 @@ player `inside` layer =
   let playerPos = Player.position player
       layerPos  = Layer.position layer
       size      = Layer.size layer
-  in  playerPos `Collision.inside` Collision.Rect layerPos size
+  in  playerPos `Collision.inside` (layerPos, size)
 
 onTop :: Player.Player -> Layer.Layer -> Bool
 player `onTop` layer =
   let playerPos = Player.position player
       layerPos  = Layer.position layer
       V2 w _    = Layer.size layer
-  in  playerPos `Collision.inside` Collision.Rect layerPos (V2 w 20)
-
+  in  playerPos `Collision.inside` (layerPos, V2 w 20)
 
 -- Drop passed and generate new layers.
 

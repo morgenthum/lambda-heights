@@ -1,4 +1,8 @@
-module LambdaHeights.Score where
+module LambdaHeights.Score
+  ( update
+  , render
+  )
+where
 
 import qualified LambdaHeights.Menu             as Menu
 import           LambdaHeights.RenderContext

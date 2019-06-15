@@ -3,6 +3,7 @@
 module LambdaHeights.ReplayMenu where
 
 import           Data.Either
+import           Data.List
 import qualified Data.Text                           as T
 import           Data.Yaml
 import qualified LambdaHeights.Menu                  as Menu
@@ -25,7 +26,7 @@ loadReplayFiles :: IO [Replay.Description]
 loadReplayFiles = do
   fileNames <- filterPacked (T.isSuffixOf ".desc") <$> listDirectory "replays"
   let filePathes = map ("replays/" ++) fileNames
-  rights <$> mapM decodeFileEither filePathes
+  sortBy (flip compare) . rights <$> mapM decodeFileEither filePathes
 
 filterPacked :: (T.Text -> Bool) -> [String] -> [String]
 filterPacked f = map T.unpack . filter f . map T.pack

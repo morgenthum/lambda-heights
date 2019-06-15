@@ -1,4 +1,10 @@
-module LambdaHeights.Replay where
+module LambdaHeights.Replay
+  ( toFilePath
+  , input
+  , update
+  , render
+  )
+where
 
 import           Data.Time
 import qualified LambdaHeights.Play              as Play
@@ -8,8 +14,8 @@ import qualified LambdaHeights.Types.PlayState   as Play
 import qualified LambdaHeights.Types.ReplayState as Replay
 import qualified LambdaHeights.Types.Timer       as Timer
 
-newFileName :: UTCTime -> String
-newFileName time = "replays/" ++ formatTime defaultTimeLocale "%_Y%m%d%H%M%S" time
+toFilePath :: UTCTime -> String
+toFilePath time = "replays/" ++ formatTime defaultTimeLocale "%_Y%m%d%H%M%S" time
 
 input :: IO [Events.ControlEvent]
 input = Events.control <$> Play.keyInput

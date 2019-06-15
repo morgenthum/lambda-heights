@@ -4,11 +4,7 @@ import           LambdaHeights.Types
 import           Linear.V2
 
 type Point = Position
-
-data Rect = Rect {
-    position :: Position,
-    size     :: Size
-}
+type Rect = (Position, Size)
 
 inside :: Point -> Rect -> Bool
-(V2 px py) `inside` (Rect (V2 x y) (V2 w h)) = px >= x && px <= x + w && py <= y && py >= y - h
+(V2 px py) `inside` (V2 x y, V2 w h) = px >= x && px <= x + w && py <= y && py >= y - h
