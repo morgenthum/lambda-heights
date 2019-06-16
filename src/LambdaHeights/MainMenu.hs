@@ -31,5 +31,5 @@ render (window, renderer) config _ state = do
   SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 255
   SDL.clear renderer
   view <- Table.newMenuView (Menu.font config) $ MainMenu.menu state
-  Menu.render (window, renderer) view
+  Menu.render (window, renderer) config view
   SDL.present renderer

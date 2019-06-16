@@ -49,5 +49,6 @@ renderOverlay (window, renderer) config = do
   SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P $ SDL.V2 0 0) windowSize
 
 renderMenu :: RenderContext -> RenderConfig -> Pause.State a -> IO ()
-renderMenu ctx config state =
-  Table.newMenuView (Menu.font $ menuConfig config) (Pause.menu state) >>= Menu.render ctx
+renderMenu ctx config state = do
+  let font = Menu.font $ menuConfig config
+  Table.newMenuView font (Pause.menu state) >>= Menu.render ctx (menuConfig config)

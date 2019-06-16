@@ -8,6 +8,7 @@ import           Data.Yaml
 import           GHC.Generics
 import           LambdaHeights.Types.Events
 import qualified LambdaHeights.Types.PlayState as Play
+import           LambdaHeights.Version
 
 data Result = Result {
   reason :: Play.ExitReason,
@@ -23,7 +24,8 @@ data Description = Description {
   fileName :: String,
   time     :: LocalTime,
   duration :: Word32,
-  score    :: Int
+  score    :: Int,
+  version  :: Version
 } deriving (Eq, Generic)
 
 instance ToJSON Description

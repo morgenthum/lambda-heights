@@ -13,6 +13,7 @@ import qualified LambdaHeights.Types.Player      as Player
 import qualified LambdaHeights.Types.PlayState   as State
 import qualified LambdaHeights.Types.ReplayState as Replay
 import           LambdaHeights.Types.Timer
+import           LambdaHeights.Version
 
 type Output = LoopTimer -> Events -> Either State.Result State.State -> IO ()
 
@@ -33,4 +34,5 @@ createDesc time fileName result = Replay.Description
   , Replay.time     = time
   , Replay.duration = State.duration $ State.state result
   , Replay.score    = Player.score $ State.player $ State.state result
+  , Replay.version  = currentVersion
   }

@@ -66,16 +66,16 @@ highPattern :: PatternGenerator
 highPattern begin = repeatPattern
   1
   begin
-  [ PatternEntry 0 (V2 300 50) (V2 100 500)
-  , PatternEntry 0 (V2 300 50) (V2 600 0)
-  , PatternEntry 0 (V2 300 50) (V2 200 750)
-  , PatternEntry 0 (V2 300 50) (V2 500 750)
-  , PatternEntry 0 (V2 300 50) (V2 200 750)
-  , PatternEntry 0 (V2 300 50) (V2 500 750)
-  , PatternEntry 0 (V2 300 50) (V2 200 750)
-  , PatternEntry 0 (V2 300 50) (V2 500 750)
-  , PatternEntry 0 (V2 300 50) (V2 200 750)
-  , PatternEntry 0 (V2 300 50) (V2 500 750)
+  [ PatternEntry 0 (V2 350 50) (V2 100 500)
+  , PatternEntry 0 (V2 350 50) (V2 600 0)
+  , PatternEntry 0 (V2 350 50) (V2 200 750)
+  , PatternEntry 0 (V2 350 50) (V2 500 750)
+  , PatternEntry 0 (V2 350 50) (V2 200 750)
+  , PatternEntry 0 (V2 350 50) (V2 500 750)
+  , PatternEntry 0 (V2 350 50) (V2 200 750)
+  , PatternEntry 0 (V2 350 50) (V2 500 750)
+  , PatternEntry 0 (V2 350 50) (V2 200 750)
+  , PatternEntry 0 (V2 350 50) (V2 500 750)
   ]
 
 repeatPattern :: Int -> Int -> [PatternEntry] -> [PatternEntry]

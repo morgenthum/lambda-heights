@@ -37,7 +37,7 @@ data RenderConfig = RenderConfig {
 
 createConfig :: IO RenderConfig
 createConfig = do
-  loadedFont <- SDLF.load "retro_gaming.ttf" 11
+  loadedFont <- SDLF.load "fonts/retro_gaming.ttf" 11
   return $ RenderConfig
     { font              = loadedFont
     , headlineColor     = SDL.V4 255 255 255 255

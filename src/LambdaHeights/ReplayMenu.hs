@@ -20,7 +20,9 @@ import qualified SDL.Font                            as SDLF
 import           System.Directory
 
 createConfig :: IO Menu.RenderConfig
-createConfig = Menu.RenderConfig <$> SDLF.load "retro_gaming.ttf" 11
+createConfig = Menu.RenderConfig <$> SDLF.load "fonts/retro_gaming.ttf" 11 <*> SDLF.load
+  "fonts/retro_gaming.ttf"
+  11
 
 loadReplayFiles :: IO [Replay.Description]
 loadReplayFiles = do
@@ -40,13 +42,18 @@ buildTable xs =
 toList :: Replay.Description -> [String]
 toList x =
   let durationSec = realToFrac (Replay.duration x) / 1000 :: Float
-  in  [Replay.fileName x, show $ Replay.time x, show durationSec, show $ Replay.score x]
+  in  [ Replay.fileName x
+      , show $ Replay.time x
+      , show durationSec
+      , show $ Replay.score x
+      , show $ Replay.version x
+      ]
 
 tableHeader :: [String]
-tableHeader = ["File name", "Time", "Duration (sec)", "Score"]
+tableHeader = ["file path", "time", "duraction (sec)", "score", "version"]
 
 ensureRows :: [[String]] -> [[String]]
-ensureRows [] = [replicate 4 "n/a"]
+ensureRows [] = [replicate 5 "n/a"]
 ensureRows xs = xs
 
 updateSelection :: Table.UpdateTable
@@ -75,5 +82,5 @@ render (window, renderer) config _ state = do
   let viewport = ReplayMenu.viewport state
   let table'   = Table.viewportTable viewport table
   view <- Table.newTableView (Menu.font config) table'
-  Menu.render (window, renderer) view
+  Menu.render (window, renderer) config view
   SDL.present renderer
