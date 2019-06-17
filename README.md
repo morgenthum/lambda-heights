@@ -2,18 +2,26 @@
 
 ## Description
 
-Lambda-Heights is a fast paced arcade game. You play a small lambda letter which has the mission to escape the world to the top. You can jump onto layers to get to the top, sounds easy - but there is the darkness which comes closer and closer to you - and it gets faster over the time.
+Lambda-Heights is a fast paced game. You play a small lambda letter which can jump and move left and right. You need to jump onto layers to move upwards. Meanwhile the screen also moves upward - so you need to hold the velocity. If the bottom of the screen touches the player, the game is over.
 
 ![Ingame screenshot](https://github.com/morgenthum/lambda-heights/blob/master/screenshot.png "Ingame")
 
-### Additional features
+## Features
 
-- It always records your game and stores it to your hard disk drive - which can be replayed later.
+- Games are always recorded to the local disk.
+- Watch your games again by choosing the replay in the replay menu.
 
-#### What is planned?
+## Controls
 
-- Multiple replays (with timestamp)
-- Highscore table over all players (with replays).
+- A or left arrow = Move left
+- D or right arrow = Move right
+- Space = Jump
+- Esc = Pause / Exit
+
+### Jump tricks
+
+- Double your jump impulse by having a velocity higher than 750.
+- If you are jumping and the bottom of the player is inside a layer, you can jump again, which results in very high jumps.
 
 ## Build
 
@@ -27,7 +35,7 @@ You need the following software installed on your machine to build lambda-height
 
 #### Mac 
 
-I recommend to use [Homebrew](https://brew.sh/) to install the SDL2 libraries:
+I recommend to use [homebrew](https://brew.sh/) to install the SDL2 libraries:
 ```
 brew install pkg-config
 brew install sdl2
@@ -50,10 +58,8 @@ pacman -S mingw-w64-x86_64-SDL2_gfx
 pacman -S mingw-w64-x86_64-SDL2_ttf
 ```
 
-Pacman stores the pkg-config files of the libraries to `/mingw64/lib/pkgconfig` which wasn't in the lookup path on my machine by default. I had to copy the `sdl2*.pc` files to `/usr/lib/pkgconfig` by my own to enable the haskell stack to find the native libraries for the haskell binding libraries.
-
 ### Build the project
 
-Clone this repository, navigate to the root folder and run `stack build`. This should take some time to setup the project by installing the isolated compiler and all the dependencies of the project. When the process is done, you should find a executable in `.stack-work/install/xyz/bin` relative to the project folder. You need to copy the font `HighSchoolUSASans.ttf` to the executable to get it running.
+Clone this repository, navigate to the root folder and run `stack build`. This should take some time to setup the project by installing the isolated compiler and all the dependencies of the project. When the process is done, you should find a executable in `.stack-work/install/xyz/bin` relative to the project folder. Copy the executable to the project root, because it needs the fonts folder.
 
 Have fun!
