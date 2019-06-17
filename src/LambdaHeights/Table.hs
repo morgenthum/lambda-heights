@@ -208,8 +208,8 @@ renderCell renderer cell = do
 with :: ConvertEvent e -> ApplyEvent e -> UpdateTable
 with convert apply events table = foldl apply table $ mapMaybe convert events
 
-toKeycode :: ConvertEvent SDL.Keycode
-toKeycode event = case SDL.eventPayload event of
+convertKeycode :: ConvertEvent SDL.Keycode
+convertKeycode event = case SDL.eventPayload event of
   SDL.KeyboardEvent keyEvent ->
     let code   = SDL.keysymKeycode (SDL.keyboardEventKeysym keyEvent)
         motion = SDL.keyboardEventKeyMotion keyEvent

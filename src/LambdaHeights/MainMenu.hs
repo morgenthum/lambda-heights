@@ -5,6 +5,7 @@ module LambdaHeights.MainMenu
 where
 
 import qualified LambdaHeights.Menu                as Menu
+import           LambdaHeights.Render
 import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Table               as Table
 import qualified LambdaHeights.Types.GameState     as Game
@@ -27,9 +28,6 @@ toState (Just "exit"  ) = Game.Exit
 toState _               = Game.Menu
 
 render :: RenderContext -> Menu.RenderConfig -> Timer.LoopTimer -> MainMenu.State -> IO ()
-render (window, renderer) config _ state = do
-  SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 255
-  SDL.clear renderer
+render (window, renderer) config _ state = renderFrame renderer (V4 0 0 0 255) $ do
   view <- Table.newMenuView (Menu.font config) $ MainMenu.menu state
   Menu.render (window, renderer) config view
-  SDL.present renderer

@@ -33,7 +33,7 @@ keyInput :: IO [SDL.Event]
 keyInput = SDL.pollEvents
 
 updateDefault :: ToResult a -> [SDL.Event] -> Table.Table -> Either a Table.Table
-updateDefault = update $ Table.with Table.toKeycode $ Table.applyKeycode Table.limitAll
+updateDefault = update $ Table.with Table.convertKeycode $ Table.applyKeycode Table.limitAll
 
 update :: Table.UpdateTable -> ToResult a -> [SDL.Event] -> Table.Table -> Either a Table.Table
 update updater toResult events table =

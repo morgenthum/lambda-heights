@@ -73,13 +73,12 @@ startGame ctx = do
   let localTime = utcToLocalTime zone time
   channel    <- newTChanIO
   playConfig <- Play.createConfig
-  let replayFile    = Replay.toFilePath time
-  let output        = Play.output localTime replayFile channel
+  let filePath      = Replay.filePath time
+  let output        = Play.output localTime filePath channel
   let playRenderer  = Play.renderDefault ctx playConfig
-  let pauseRenderer = Play.renderPause ctx playConfig
+  let pauseRenderer = Play.render ctx playConfig
   let gameLoop = timedLoop Play.keyInput Play.update output playRenderer
-  state <- startGameLoop ctx replayFile channel Play.newState gameLoop pauseRenderer
-    >>= showScore ctx
+  state <- startGameLoop ctx filePath channel Play.newState gameLoop pauseRenderer >>= showScore ctx
   Play.deleteConfig playConfig
   return state
 
@@ -147,7 +146,7 @@ startReplay events ctx = do
   config <- Play.createConfig
   let loop = timedLoop Replay.input Replay.update noOutput $ Replay.render ctx config
   let state         = Replay.State Play.newState events
-  let pauseRenderer = Play.renderPause ctx config
+  let pauseRenderer = Play.render ctx config
   result <- startReplayLoop ctx state loop pauseRenderer >>= showScore ctx
   Play.deleteConfig config
   return result

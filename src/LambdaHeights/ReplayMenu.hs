@@ -7,6 +7,7 @@ import           Data.List
 import qualified Data.Text                           as T
 import           Data.Yaml
 import qualified LambdaHeights.Menu                  as Menu
+import           LambdaHeights.Render
 import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Table                 as Table
 import qualified LambdaHeights.Types.ReplayMenuState as ReplayMenu
@@ -58,8 +59,10 @@ ensureRows xs = xs
 
 updateSelection :: Table.UpdateTable
 updateSelection =
-  Table.with Table.toKeycode $ Table.applyKeycode $ Table.limitNotFirstRow $ Table.limitFirstColumn
-    Table.limitAll
+  Table.with Table.convertKeycode
+    $ Table.applyKeycode
+    $ Table.limitNotFirstRow
+    $ Table.limitFirstColumn Table.limitAll
 
 update
   :: Timer.LoopTimer -> [SDL.Event] -> ReplayMenu.State -> Either (Maybe String) ReplayMenu.State
@@ -75,12 +78,9 @@ updateViewport state =
   in  state { ReplayMenu.viewport = viewport }
 
 render :: RenderContext -> Menu.RenderConfig -> Timer.LoopTimer -> ReplayMenu.State -> IO ()
-render (window, renderer) config _ state = do
-  SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 255
-  SDL.clear renderer
+render (window, renderer) config _ state = renderFrame renderer (V4 0 0 0 255) $ do
   let table    = ReplayMenu.table state
   let viewport = ReplayMenu.viewport state
   let table'   = Table.viewportTable viewport table
   view <- Table.newTableView (Menu.font config) table'
   Menu.render (window, renderer) config view
-  SDL.present renderer

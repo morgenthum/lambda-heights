@@ -5,6 +5,7 @@ module LambdaHeights.Score
 where
 
 import qualified LambdaHeights.Menu             as Menu
+import           LambdaHeights.Render
 import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Table            as Table
 import qualified LambdaHeights.Types.ScoreState as Score
@@ -20,9 +21,6 @@ update _ events state =
         Right menu -> Right $ state { Score.menu = menu }
 
 render :: RenderContext -> Menu.RenderConfig -> Timer.LoopTimer -> Score.State -> IO ()
-render (window, renderer) config _ state = do
-  SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 255
-  SDL.clear renderer
+render (window, renderer) config _ state = renderFrame renderer (V4 0 0 0 255) $ do
   view <- Table.newMenuView (Menu.font config) $ Score.menu state
   Menu.render (window, renderer) config view
-  SDL.present renderer

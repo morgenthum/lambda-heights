@@ -3,7 +3,6 @@ module LambdaHeights.Play.Render
   , createConfig
   , deleteConfig
   , renderDefault
-  , renderPause
   , render
   , clear
   )
@@ -22,6 +21,7 @@ import qualified LambdaHeights.Types.PlayState as State
 import qualified LambdaHeights.Types.Screen    as Screen
 import qualified LambdaHeights.Types.Timer     as Timer
 import           Linear.V2
+import           Linear.V4
 import qualified SDL
 import qualified SDL.Font                      as SDLF
 import qualified SDL.Primitive                 as SDLP
@@ -52,24 +52,17 @@ deleteConfig = SDLF.free . font
 
 -- | Clears the screen, renders the state and presents the screen.
 renderDefault :: RenderContext -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
-renderDefault (window, renderer) config =
-  render (clear renderer $ bgColor config) (SDL.present renderer) (window, renderer) config
-
--- | Clears the screen, renders the state but does not presents it.
-renderPause :: RenderContext -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
-renderPause (window, renderer) config =
-  render (clear renderer $ bgColor config) (return ()) (window, renderer) config
+renderDefault (window, renderer) config timer state =
+  Render.renderFrame renderer (V4 30 30 30 255) $ render (window, renderer) config timer state
 
 -- | Renders the state and executes an pre and post action.
-render :: IO () -> IO () -> RenderContext -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
-render pre post (window, renderer) config timer state = do
-  pre
+render :: RenderContext -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
+render (window, renderer) config timer state = do
   windowSize <- SDL.get $ SDL.windowSize window
   mapM_ (renderLayer renderer windowSize $ State.screen state) $ State.layers state
   renderPlayer renderer config windowSize (State.screen state) (State.player state)
   renderPlayerShadow renderer config windowSize (State.screen state) (State.player state)
   renderHud renderer config windowSize timer state
-  post
 
 -- | Clears the screen with given color.
 clear :: SDL.Renderer -> SDLP.Color -> IO ()
