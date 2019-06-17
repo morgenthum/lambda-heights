@@ -1,5 +1,9 @@
 # Implementation
 
+## Module dependencies
+
+![Dependencies](https://github.com/morgenthum/lambda-heights/blob/master/dependency-graph.png "Dependencies")
+
 ## State machine
 
 The game is a finite state machine. There is a state for the main menu, replay menu, playing and so on.
