@@ -32,19 +32,20 @@ eventToPlayerEvent event = case SDL.eventPayload event of
   SDL.KeyboardEvent keyEvent ->
     let code   = SDL.keysymKeycode (SDL.keyboardEventKeysym keyEvent)
         motion = SDL.keyboardEventKeyMotion keyEvent
-    in  keyToPlayerEvent code motion
+        repeat = SDL.keyboardEventRepeat keyEvent
+    in  keyToPlayerEvent code motion repeat
   _ -> Nothing
 
-keyToPlayerEvent :: SDL.Keycode -> SDL.InputMotion -> Maybe PlayerEvent
-keyToPlayerEvent SDL.KeycodeA     SDL.Pressed  = Just $ PlayerMoved MoveLeft True
-keyToPlayerEvent SDL.KeycodeA     SDL.Released = Just $ PlayerMoved MoveLeft False
-keyToPlayerEvent SDL.KeycodeLeft  SDL.Pressed  = Just $ PlayerMoved MoveLeft True
-keyToPlayerEvent SDL.KeycodeLeft  SDL.Released = Just $ PlayerMoved MoveLeft False
-keyToPlayerEvent SDL.KeycodeD     SDL.Pressed  = Just $ PlayerMoved MoveRight True
-keyToPlayerEvent SDL.KeycodeD     SDL.Released = Just $ PlayerMoved MoveRight False
-keyToPlayerEvent SDL.KeycodeRight SDL.Pressed  = Just $ PlayerMoved MoveRight True
-keyToPlayerEvent SDL.KeycodeRight SDL.Released = Just $ PlayerMoved MoveRight False
-keyToPlayerEvent SDL.KeycodeW     SDL.Pressed  = Just PlayerJumped
-keyToPlayerEvent SDL.KeycodeUp    SDL.Pressed  = Just PlayerJumped
-keyToPlayerEvent SDL.KeycodeSpace SDL.Pressed  = Just PlayerJumped
-keyToPlayerEvent _                _            = Nothing
+keyToPlayerEvent :: SDL.Keycode -> SDL.InputMotion -> Bool -> Maybe PlayerEvent
+keyToPlayerEvent SDL.KeycodeA     SDL.Pressed  _     = Just $ PlayerMoved MoveLeft True
+keyToPlayerEvent SDL.KeycodeA     SDL.Released _     = Just $ PlayerMoved MoveLeft False
+keyToPlayerEvent SDL.KeycodeLeft  SDL.Pressed  _     = Just $ PlayerMoved MoveLeft True
+keyToPlayerEvent SDL.KeycodeLeft  SDL.Released _     = Just $ PlayerMoved MoveLeft False
+keyToPlayerEvent SDL.KeycodeD     SDL.Pressed  _     = Just $ PlayerMoved MoveRight True
+keyToPlayerEvent SDL.KeycodeD     SDL.Released _     = Just $ PlayerMoved MoveRight False
+keyToPlayerEvent SDL.KeycodeRight SDL.Pressed  _     = Just $ PlayerMoved MoveRight True
+keyToPlayerEvent SDL.KeycodeRight SDL.Released _     = Just $ PlayerMoved MoveRight False
+keyToPlayerEvent SDL.KeycodeW     SDL.Pressed  False = Just PlayerJumped
+keyToPlayerEvent SDL.KeycodeUp    SDL.Pressed  False = Just PlayerJumped
+keyToPlayerEvent SDL.KeycodeSpace SDL.Pressed  False = Just PlayerJumped
+keyToPlayerEvent _                _            _     = Nothing
