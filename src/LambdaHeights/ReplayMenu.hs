@@ -16,11 +16,10 @@ import qualified LambdaHeights.Types.Table           as Table
 import qualified LambdaHeights.Types.Timer           as Timer
 import           Linear.V2
 import qualified SDL
-import qualified SDL.Font                            as SDLF
 import           System.Directory
 
 createConfig :: IO Menu.RenderConfig
-createConfig = Menu.RenderConfig <$> retroGamingFont 11 <*> SDLF.load "fonts/retro_gaming.ttf" 11
+createConfig = Menu.RenderConfig <$> retroGamingFont 11 <*> retroGamingFont 11
 
 loadReplayFiles :: IO [Replay.Description]
 loadReplayFiles = do
