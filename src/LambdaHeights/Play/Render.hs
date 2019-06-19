@@ -13,6 +13,7 @@ import           Data.Word
 import           Foreign.C.Types
 import qualified LambdaHeights.Render          as Render
 import           LambdaHeights.RenderContext
+import           LambdaHeights.Resources
 import qualified LambdaHeights.Scale           as Scale
 import           LambdaHeights.Types
 import qualified LambdaHeights.Types.Layer     as Layer
@@ -37,7 +38,7 @@ data RenderConfig = RenderConfig {
 
 createConfig :: IO RenderConfig
 createConfig = do
-  loadedFont <- SDLF.load "fonts/retro_gaming.ttf" 11
+  loadedFont <- retroGamingFont 11
   return $ RenderConfig
     { font              = loadedFont
     , headlineColor     = SDL.V4 255 255 255 255

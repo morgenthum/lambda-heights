@@ -9,6 +9,7 @@ import           Data.Yaml
 import qualified LambdaHeights.Menu                  as Menu
 import           LambdaHeights.Render
 import           LambdaHeights.RenderContext
+import           LambdaHeights.Resources
 import qualified LambdaHeights.Table                 as Table
 import qualified LambdaHeights.Types.ReplayMenuState as ReplayMenu
 import qualified LambdaHeights.Types.ReplayState     as Replay
@@ -21,9 +22,7 @@ import qualified SDL.Font                            as SDLF
 import           System.Directory
 
 createConfig :: IO Menu.RenderConfig
-createConfig = Menu.RenderConfig <$> SDLF.load "fonts/retro_gaming.ttf" 11 <*> SDLF.load
-  "fonts/retro_gaming.ttf"
-  11
+createConfig = Menu.RenderConfig <$> retroGamingFont 11 <*> SDLF.load "fonts/retro_gaming.ttf" 11
 
 loadReplayFiles :: IO [Replay.Description]
 loadReplayFiles = do

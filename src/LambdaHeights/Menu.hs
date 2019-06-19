@@ -3,6 +3,7 @@ module LambdaHeights.Menu where
 import qualified Data.Text                   as T
 import           LambdaHeights.Render
 import           LambdaHeights.RenderContext
+import           LambdaHeights.Resources
 import qualified LambdaHeights.Table         as Table
 import qualified LambdaHeights.Types.Table   as Table
 import           LambdaHeights.Version
@@ -20,9 +21,7 @@ data RenderConfig = RenderConfig {
 }
 
 createConfig :: IO RenderConfig
-createConfig = RenderConfig <$> SDLF.load "fonts/HighSchoolUSASans.ttf" 28 <*> SDLF.load
-  "fonts/retro_gaming.ttf"
-  11
+createConfig = RenderConfig <$> highSchoolUSASansFont 28 <*> retroGamingFont 11
 
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig config = do

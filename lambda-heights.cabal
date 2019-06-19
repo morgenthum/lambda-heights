@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a5cc8d8203abd5bba26d6a4221045cf5560520968078c38cc8bab48d8cb45570
+-- hash: 37c057799201c83e115f64881f3c6c733e54eaca0625c45ac015243356393984
 
 name:           lambda-heights
 version:        1.0.1
@@ -43,6 +43,7 @@ library
       LambdaHeights.RenderContext
       LambdaHeights.Replay
       LambdaHeights.ReplayMenu
+      LambdaHeights.Resources
       LambdaHeights.Scale
       LambdaHeights.Score
       LambdaHeights.Serialize
@@ -74,6 +75,7 @@ library
     , bytestring >=0.10.8.2
     , directory >=1.3.3.0
     , extra >=1.6.14
+    , file-embed >=0.0.11
     , linear >=1.20.8
     , matrix >=0.3.6.1
     , mtl >=2.2.2
@@ -102,6 +104,7 @@ executable lambda-heights-exe
     , bytestring >=0.10.8.2
     , directory >=1.3.3.0
     , extra >=1.6.14
+    , file-embed >=0.0.11
     , lambda-heights
     , linear >=1.20.8
     , matrix >=0.3.6.1
@@ -132,6 +135,7 @@ test-suite lambda-heights-test
     , bytestring >=0.10.8.2
     , directory >=1.3.3.0
     , extra >=1.6.14
+    , file-embed >=0.0.11
     , lambda-heights
     , linear >=1.20.8
     , matrix >=0.3.6.1
