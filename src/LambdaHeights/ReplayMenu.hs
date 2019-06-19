@@ -7,7 +7,6 @@ import           Data.List
 import qualified Data.Text                           as T
 import           Data.Yaml
 import qualified LambdaHeights.Menu                  as Menu
-import           LambdaHeights.Render
 import           LambdaHeights.RenderContext
 import           LambdaHeights.Resources
 import qualified LambdaHeights.Table                 as Table
@@ -16,7 +15,6 @@ import qualified LambdaHeights.Types.ReplayState     as Replay
 import qualified LambdaHeights.Types.Table           as Table
 import qualified LambdaHeights.Types.Timer           as Timer
 import           Linear.V2
-import           Linear.V4
 import qualified SDL
 import qualified SDL.Font                            as SDLF
 import           System.Directory
@@ -77,9 +75,9 @@ updateViewport state =
   in  state { ReplayMenu.viewport = viewport }
 
 render :: RenderContext -> Menu.RenderConfig -> Timer.LoopTimer -> ReplayMenu.State -> IO ()
-render (window, renderer) config _ state = renderFrame renderer (V4 0 0 0 255) $ do
+render ctx config _ state = do
   let table    = ReplayMenu.table state
   let viewport = ReplayMenu.viewport state
   let table'   = Table.viewportTable viewport table
   view <- Table.newTableView (Menu.font config) table'
-  Menu.render (window, renderer) config view
+  Menu.render ctx config view

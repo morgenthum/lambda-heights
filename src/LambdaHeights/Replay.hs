@@ -32,4 +32,4 @@ update timer events state =
         Right playState -> Right $ Replay.State playState repEventList
 
 render :: RenderContext -> Play.RenderConfig -> Timer.LoopTimer -> Replay.State -> IO ()
-render graphics config timer = Play.renderDefault graphics config timer . Replay.playState
+render graphics config timer = Play.render graphics config timer . Replay.playState

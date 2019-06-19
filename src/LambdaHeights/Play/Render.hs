@@ -2,7 +2,6 @@ module LambdaHeights.Play.Render
   ( RenderConfig(..)
   , createConfig
   , deleteConfig
-  , renderDefault
   , render
   , clear
   )
@@ -22,7 +21,6 @@ import qualified LambdaHeights.Types.PlayState as State
 import qualified LambdaHeights.Types.Screen    as Screen
 import qualified LambdaHeights.Types.Timer     as Timer
 import           Linear.V2
-import           Linear.V4
 import qualified SDL
 import qualified SDL.Font                      as SDLF
 import qualified SDL.Primitive                 as SDLP
@@ -50,11 +48,6 @@ createConfig = do
 
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = SDLF.free . font
-
--- | Clears the screen, renders the state and presents the screen.
-renderDefault :: RenderContext -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
-renderDefault (window, renderer) config timer state =
-  Render.renderFrame renderer (V4 30 30 30 255) $ render (window, renderer) config timer state
 
 -- | Renders the state and executes an pre and post action.
 render :: RenderContext -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
