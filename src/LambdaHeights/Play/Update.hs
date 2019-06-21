@@ -13,9 +13,8 @@ import qualified LambdaHeights.Types.Player    as Player
 import qualified LambdaHeights.Types.PlayState as State
 import qualified LambdaHeights.Types.Screen    as Screen
 import qualified LambdaHeights.Types.Timer     as Timer
+import qualified LambdaHeights.Types.Loop as Loop
 import           Linear.V2
-
-type Updater = Timer.LoopTimer -> Events.Events -> State.State -> Either State.Result State.State
 
 -- Update the world state.
 -- 1. Applies occured events to the current world state.
@@ -25,7 +24,7 @@ updateFactor :: Float
 updateFactor = 1 / 128
 
 -- | Applies occured events and updates the game state.
-update :: Updater
+update :: Loop.Update State.State State.Result Events.Events
 update timer events state =
   let time   = State.duration state
       screen = State.screen state
@@ -38,7 +37,7 @@ update timer events state =
                      , State.player   = updatePlayer screen motion layers player
                      , State.layers   = updateLayers screen layers
                      }
-  in  updatedResult events state'
+  in  (timer, updatedResult events state')
 
 updatedResult :: Events.Events -> State.State -> Either State.Result State.State
 updatedResult events state =

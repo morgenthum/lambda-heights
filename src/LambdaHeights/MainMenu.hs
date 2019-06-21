@@ -10,14 +10,15 @@ import qualified LambdaHeights.Table               as Table
 import qualified LambdaHeights.Types.GameState     as Game
 import qualified LambdaHeights.Types.MainMenuState as MainMenu
 import qualified LambdaHeights.Types.Timer         as Timer
+import qualified LambdaHeights.Types.Loop as Loop
 import qualified SDL
 
-update :: Timer.LoopTimer -> [SDL.Event] -> MainMenu.State -> Either Game.State MainMenu.State
-update _ events state =
+update :: Loop.Update MainMenu.State Game.State [SDL.Event]
+update timer events state =
   let updated = Menu.updateDefault toState events $ MainMenu.menu state
   in  case updated of
-        Left  result -> Left result
-        Right menu   -> Right $ state { MainMenu.menu = menu }
+        Left  result -> (timer, Left result)
+        Right menu   -> (timer, Right $ state { MainMenu.menu = menu })
 
 toState :: Maybe String -> Game.State
 toState (Just "play"  ) = Game.Play

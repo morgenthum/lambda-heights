@@ -6,6 +6,7 @@ import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Table            as Table
 import qualified LambdaHeights.Types.PauseState as Pause
 import qualified LambdaHeights.Types.Timer      as Timer
+import qualified LambdaHeights.Types.Loop as Loop
 import qualified SDL
 
 type ProxyRenderer a = Timer.LoopTimer -> a -> IO ()
@@ -20,12 +21,12 @@ createConfig = RenderConfig <$> Menu.createConfig
 deleteConfig :: RenderConfig -> IO ()
 deleteConfig = Menu.deleteConfig . menuConfig
 
-update :: Timer.LoopTimer -> [SDL.Event] -> Pause.State a -> Either Pause.ExitReason (Pause.State a)
-update _ events state =
+update :: Loop.Update (Pause.State a) Pause.ExitReason [SDL.Event]
+update timer events state =
   let updated = Menu.updateDefault toState events $ Pause.menu state
   in  case updated of
-        Left  result -> Left result
-        Right menu   -> Right $ state { Pause.menu = menu }
+        Left  result -> (timer, Left result)
+        Right menu   -> (timer, Right $ state { Pause.menu = menu })
 
 toState :: Maybe String -> Pause.ExitReason
 toState (Just "exit") = Pause.Exit

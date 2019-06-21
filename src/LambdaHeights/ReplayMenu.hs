@@ -14,6 +14,7 @@ import qualified LambdaHeights.Types.ReplayMenuState as ReplayMenu
 import qualified LambdaHeights.Types.ReplayState     as Replay
 import qualified LambdaHeights.Types.Table           as Table
 import qualified LambdaHeights.Types.Timer           as Timer
+import qualified LambdaHeights.Types.Loop as Loop
 import           Linear.V2
 import qualified SDL
 import           System.Directory
@@ -60,13 +61,12 @@ updateSelection =
     $ Table.limitNotFirstRow
     $ Table.limitFirstColumn Table.limitAll
 
-update
-  :: Timer.LoopTimer -> [SDL.Event] -> ReplayMenu.State -> Either (Maybe String) ReplayMenu.State
-update _ events state =
+update :: Loop.Update ReplayMenu.State (Maybe String) [SDL.Event]
+update timer events state =
   let updated = Menu.update updateSelection id events $ ReplayMenu.table state
   in  case updated of
-        Left  result -> Left result
-        Right table  -> Right $ updateViewport $ state { ReplayMenu.table = table }
+        Left  result -> (timer, Left result)
+        Right table  -> (timer, Right $ updateViewport $ state { ReplayMenu.table = table })
 
 updateViewport :: ReplayMenu.State -> ReplayMenu.State
 updateViewport state =

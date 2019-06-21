@@ -36,8 +36,8 @@ import           Prelude                             hiding (init)
 import qualified SDL
 import           System.Directory
 
-type PlayLoopState = LoopState IO Play.State Play.Result
-type ReplayLoopState = LoopState IO Replay.State Replay.Result
+type PlayLoopState = LoopState IO Play.State Play.Result ()
+type ReplayLoopState = LoopState IO Replay.State Replay.Result ()
 
 menuTimer :: IO Timer.LoopTimer
 menuTimer = Timer.newTimer 30

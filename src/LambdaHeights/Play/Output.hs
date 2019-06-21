@@ -12,10 +12,10 @@ import           LambdaHeights.Types.Events
 import qualified LambdaHeights.Types.Player      as Player
 import qualified LambdaHeights.Types.PlayState   as State
 import qualified LambdaHeights.Types.ReplayState as Replay
-import           LambdaHeights.Types.Timer
+import qualified LambdaHeights.Types.Loop as Loop
 import           LambdaHeights.Version
 
-type Output = LoopTimer -> Events -> Either State.Result State.State -> IO ()
+type Output = Loop.Output IO State.State State.Result Events
 
 -- | Outputs occured events into a channel and
 --   creates a replay description file if the end is reached.

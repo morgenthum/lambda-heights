@@ -37,7 +37,7 @@ updateDefault = update $ Table.with Table.convertKeycode $ Table.applyKeycode Ta
 update :: Table.UpdateTable -> ToResult a -> [SDL.Event] -> Table.Table -> Either a Table.Table
 update updater toResult events table =
   let table' = updater events table
-  in  if pressedKey SDL.KeycodeReturn events
+  in  if pressedKey SDL.KeycodeReturn events || pressedKey SDL.KeycodeSpace events
         then Left $ toResult $ Just $ Table.cellText $ Table.selectedValue table'
         else if pressedKey SDL.KeycodeEscape events then Left $ toResult Nothing else Right table'
 

@@ -3,11 +3,6 @@ module LambdaHeights.Types.Timer where
 import           Data.Word
 import qualified SDL
 
-data TimedState s r = TimedState {
-  timer :: LoopTimer,
-  state :: Either r s
-}
-
 data LoopTimer = LoopTimer {
   counter :: FrameCounter,
   current :: Word32,
