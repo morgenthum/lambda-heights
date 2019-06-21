@@ -3,17 +3,18 @@ module LambdaHeights.Play.Update
   )
 where
 
+import           Control.Monad.State
 import           Data.Function
 import           Data.List
 import qualified LambdaHeights.Play.Collision  as Collision
 import qualified LambdaHeights.Play.Pattern    as Pattern
 import qualified LambdaHeights.Types.Events    as Events
 import qualified LambdaHeights.Types.Layer     as Layer
+import qualified LambdaHeights.Types.Loop      as Loop
 import qualified LambdaHeights.Types.Player    as Player
 import qualified LambdaHeights.Types.PlayState as State
 import qualified LambdaHeights.Types.Screen    as Screen
 import qualified LambdaHeights.Types.Timer     as Timer
-import qualified LambdaHeights.Types.Loop as Loop
 import           Linear.V2
 
 -- Update the world state.
@@ -25,19 +26,21 @@ updateFactor = 1 / 128
 
 -- | Applies occured events and updates the game state.
 update :: Loop.Update State.State State.Result Events.Events
-update timer events state =
+update events = do
+  timer <- Loop.getTimer
+  state <- Loop.getState
   let time   = State.duration state
-      screen = State.screen state
-      layers = State.layers state
-      player = State.player state
-      motion = updateMotion (Events.player events) $ State.motion state
-      state' = state { State.duration = time + Timer.rate timer
+  let screen = State.screen state
+  let layers = State.layers state
+  let player = State.player state
+  let motion = updateMotion (Events.player events) $ State.motion state
+  let state' = state { State.duration = time + Timer.rate timer
                      , State.screen   = updateScreen player screen
                      , State.motion   = resetMotion motion
                      , State.player   = updatePlayer screen motion layers player
                      , State.layers   = updateLayers screen layers
                      }
-  in  (timer, updatedResult events state')
+  put (timer, updatedResult events state')
 
 updatedResult :: Events.Events -> State.State -> Either State.Result State.State
 updatedResult events state =

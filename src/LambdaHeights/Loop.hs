@@ -12,8 +12,8 @@ where
 
 import qualified Control.Monad.Fail        as M
 import qualified Control.Monad.State       as M
+import           LambdaHeights.Types.Loop
 import qualified LambdaHeights.Types.Timer as Timer
-import LambdaHeights.Types.Loop
 import qualified SDL
 
 type LoopState m s r = M.StateT (Timer.LoopTimer, Either r s) m
@@ -27,7 +27,12 @@ startLoop timer state loop = do
   return result
 
 timedLoop
-  :: (M.MonadIO m) => Input m e -> Update s r e -> Output m s r e -> Render m s -> LoopState m s r ()
+  :: (M.MonadIO m)
+  => Input m e
+  -> Update s r e
+  -> Output m s r e
+  -> Render m s
+  -> LoopState m s r ()
 timedLoop input update output render = do
   updateTimer
   updateFrameCounter
@@ -53,7 +58,7 @@ incrementFrame = M.modify increment
 updateTimer :: (M.MonadIO m) => LoopState m s r ()
 updateTimer = do
   (timer, state) <- M.get
-  current    <- fromIntegral <$> SDL.ticks
+  current        <- fromIntegral <$> SDL.ticks
   let elapsed = current - Timer.current timer
   let lag     = Timer.lag timer + fromIntegral elapsed
   let timer' = timer { Timer.current = current, Timer.elapsed = elapsed, Timer.lag = lag }
@@ -74,15 +79,14 @@ updateFrameCounter = do
 
 updateCycle :: (M.Monad m) => Input m e -> Update s r e -> Output m s r e -> LoopState m s r ()
 updateCycle input update output = do
-  (timer, state) <- M.get
-  case state of
-    Left  _     -> return ()
-    Right state ->
-      M.when (Timer.lag timer > Timer.rate timer) $ do
-        events <- M.lift input
-        let (timer', eitherState) = update timer events state
-        M.lift $ output timer events eitherState
-        let lag  = Timer.lag timer
-        let rate = Timer.rate timer
-        M.put (timer' { Timer.lag = lag - rate }, eitherState)
-        updateCycle input update output
+  (timer, eitherState) <- M.get
+  case eitherState of
+    Left  _ -> return ()
+    Right _ -> M.when (Timer.lag timer > Timer.rate timer) $ do
+      events <- M.lift input
+      let (timer', eitherState') = M.execState (update events) (timer, eitherState)
+      M.lift $ output timer events eitherState'
+      let lag  = Timer.lag timer
+      let rate = Timer.rate timer
+      M.put (timer' { Timer.lag = lag - rate }, eitherState')
+      updateCycle input update output

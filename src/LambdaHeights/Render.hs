@@ -34,8 +34,8 @@ renderText renderer font color position text = do
   SDL.copy renderer texture Nothing (Just $ SDL.Rectangle (SDL.P position) (V2 w h))
   SDL.destroyTexture texture
 
-renderOverlay :: RenderContext -> IO ()
-renderOverlay (window, renderer) = do
+renderOverlay :: RenderContext -> V4 Word8 -> IO ()
+renderOverlay (window, renderer) color = do
   windowSize <- SDL.get $ SDL.windowSize window
-  SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 100
+  SDL.rendererDrawColor renderer SDL.$= color
   SDL.fillRect renderer $ Just $ SDL.Rectangle (SDL.P $ V2 0 0) windowSize

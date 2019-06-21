@@ -9,10 +9,10 @@ import           Control.Monad.STM
 import           Data.Time
 import           Data.Yaml
 import           LambdaHeights.Types.Events
+import qualified LambdaHeights.Types.Loop        as Loop
 import qualified LambdaHeights.Types.Player      as Player
 import qualified LambdaHeights.Types.PlayState   as State
 import qualified LambdaHeights.Types.ReplayState as Replay
-import qualified LambdaHeights.Types.Loop as Loop
 import           LambdaHeights.Version
 
 type Output = Loop.Output IO State.State State.Result Events

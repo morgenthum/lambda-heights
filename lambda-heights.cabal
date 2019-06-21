@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 73ad2039c22ff74a9917e3d1320d85f7a537527e3225f3d7cb459bae76ae7a9d
+-- hash: 3e82a88ea68650b1c7d6eedab89f75574c87c5289165ebbb93938ac00f7666cd
 
 name:           lambda-heights
-version:        1.0.1
+version:        1.1.0
 description:    Please see the README on GitHub at <https://github.com/morgenthum/lambda-heights#readme>
 homepage:       https://github.com/morgenthum/lambda-heights#readme
 bug-reports:    https://github.com/morgenthum/lambda-heights/issues
