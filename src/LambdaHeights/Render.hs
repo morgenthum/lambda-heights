@@ -1,29 +1,35 @@
 module LambdaHeights.Render where
 
-import           Control.Monad.IO.Class
+import qualified Control.Monad.IO.Class      as M
+import qualified Control.Monad.Reader        as M
 import qualified Data.Text                   as T
 import           Data.Word
 import           Foreign.C.Types
 import           LambdaHeights.Loop
 import           LambdaHeights.RenderContext
+import           LambdaHeights.Types.Loop
 import           Linear.V2
 import           Linear.V4
 import qualified SDL
 import qualified SDL.Font                    as SDLF
 
-renderFrame :: (MonadIO m) => RenderContext -> V4 Word8 -> Render m s -> Render m s
-renderFrame (_, renderer) color render timer state = do
+renderFrame :: (M.MonadIO m) => RenderContext -> V4 Word8 -> Render m s -> Render m s
+renderFrame (_, renderer) color render = do
+  timer <- askRenderTimer
+  state <- askRenderState
   SDL.rendererDrawColor renderer SDL.$= color
   SDL.clear renderer
-  render timer state
+  M.lift $ M.runReaderT render (timer, state)
   SDL.present renderer
 
-renderBoth :: (Monad m) => Render m s1 -> Render m s2 -> Render m (s1, s2)
-renderBoth r1 r2 timer (s1, s2) = do
-  r1 timer s1
-  r2 timer s2
+renderBoth :: (M.Monad m) => Render m s1 -> Render m s2 -> Render m (s1, s2)
+renderBoth r1 r2 = do
+  timer    <- askRenderTimer
+  (s1, s2) <- askRenderState
+  M.lift $ M.runReaderT r1 (timer, s1)
+  M.lift $ M.runReaderT r2 (timer, s2)
 
-renderText :: (MonadIO m) => SDL.Renderer -> SDLF.Font -> SDLF.Color -> V2 CInt -> String -> m ()
+renderText :: (M.MonadIO m) => SDL.Renderer -> SDLF.Font -> SDLF.Color -> V2 CInt -> String -> m ()
 renderText renderer font color position text = do
   surface <- SDLF.blended font color (T.pack text)
   texture <- SDL.createTextureFromSurface renderer surface
@@ -34,7 +40,7 @@ renderText renderer font color position text = do
   SDL.copy renderer texture Nothing (Just $ SDL.Rectangle (SDL.P position) (V2 w h))
   SDL.destroyTexture texture
 
-renderOverlay :: RenderContext -> V4 Word8 -> IO ()
+renderOverlay :: (M.MonadIO m) => RenderContext -> V4 Word8 -> m ()
 renderOverlay (window, renderer) color = do
   windowSize <- SDL.get $ SDL.windowSize window
   SDL.rendererDrawColor renderer SDL.$= color

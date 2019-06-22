@@ -10,7 +10,7 @@ module LambdaHeights.Loop
   )
 where
 
-import qualified Control.Monad.Fail        as M
+import qualified Control.Monad.Reader      as M
 import qualified Control.Monad.State       as M
 import           LambdaHeights.Types.Loop
 import qualified LambdaHeights.Types.Timer as Timer
@@ -21,10 +21,12 @@ type LoopState m s r = M.StateT (Timer.LoopTimer, Either r s) m
 noOutput :: (Monad m) => Output m s r e
 noOutput _ _ _ = return ()
 
-startLoop :: (M.MonadFail m, M.MonadIO m) => Timer.LoopTimer -> s -> LoopState m s r () -> m r
+startLoop :: (M.MonadIO m) => Timer.LoopTimer -> s -> LoopState m s r () -> m r
 startLoop timer state loop = do
-  Left result <- snd <$> M.execStateT loop (timer, Right state)
-  return result
+  eitherResult <- snd <$> M.execStateT loop (timer, Right state)
+  case eitherResult of
+    Left  result -> return result
+    Right _      -> fail "state instead of result returned in startLoop"
 
 timedLoop
   :: (M.MonadIO m)
@@ -41,7 +43,7 @@ timedLoop input update output render = do
   case state of
     Left  _     -> return ()
     Right state -> do
-      M.lift $ render timer state
+      M.lift $ M.runReaderT render (timer, state)
       incrementFrame
       timedLoop input update output render
 

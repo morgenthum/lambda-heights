@@ -1,5 +1,6 @@
 module LambdaHeights.Menu where
 
+import qualified Control.Monad.IO.Class      as M
 import qualified Data.Text                   as T
 import           LambdaHeights.Render
 import           LambdaHeights.RenderContext
@@ -20,15 +21,15 @@ data RenderConfig = RenderConfig {
   versionFont :: SDLF.Font
 }
 
-createConfig :: IO RenderConfig
+createConfig :: (M.MonadIO m) => m RenderConfig
 createConfig = RenderConfig <$> highSchoolUSASansFont 28 <*> retroGamingFont 11
 
-deleteConfig :: RenderConfig -> IO ()
+deleteConfig :: (M.MonadIO m) => RenderConfig -> m ()
 deleteConfig config = do
   SDLF.free $ font config
   SDLF.free $ versionFont config
 
-keyInput :: IO [SDL.Event]
+keyInput :: (M.MonadIO m) => m [SDL.Event]
 keyInput = SDL.pollEvents
 
 updateDefault :: ToResult a -> [SDL.Event] -> Table.Table -> Either a Table.Table
@@ -52,7 +53,7 @@ isPressedKeycode code event = case SDL.eventPayload event of
     in  code == actualCode && motion == SDL.Pressed
   _ -> False
 
-render :: RenderContext -> RenderConfig -> Table.TableView -> IO ()
+render :: (M.MonadIO m) => RenderContext -> RenderConfig -> Table.TableView -> m ()
 render (window, renderer) config view = do
   parentSize <- convert <$> SDL.get (SDL.windowSize window)
   let childSize = Table.tableSize view
@@ -61,7 +62,7 @@ render (window, renderer) config view = do
   Table.renderTable (Table.renderCell renderer) view'
   renderVersion (window, renderer) config
 
-renderVersion :: RenderContext -> RenderConfig -> IO ()
+renderVersion :: (M.MonadIO m) => RenderContext -> RenderConfig -> m ()
 renderVersion (window, renderer) config = do
   let version = "version " ++ show currentVersion
   V2 _ h  <- SDL.get $ SDL.windowSize window

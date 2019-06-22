@@ -7,6 +7,7 @@ module LambdaHeights.Play.Render
   )
 where
 
+import qualified Control.Monad.IO.Class        as M
 import qualified Data.Vector.Storable          as V
 import           Data.Word
 import           Foreign.C.Types
@@ -16,6 +17,7 @@ import           LambdaHeights.Resources
 import qualified LambdaHeights.Scale           as Scale
 import           LambdaHeights.Types
 import qualified LambdaHeights.Types.Layer     as Layer
+import qualified LambdaHeights.Types.Loop      as Loop
 import qualified LambdaHeights.Types.Player    as Player
 import qualified LambdaHeights.Types.PlayState as State
 import qualified LambdaHeights.Types.Screen    as Screen
@@ -34,7 +36,7 @@ data RenderConfig = RenderConfig {
   textColor         :: SDL.V4 Word8
 }
 
-createConfig :: IO RenderConfig
+createConfig :: (M.MonadIO m) => m RenderConfig
 createConfig = do
   loadedFont <- retroGamingFont 11
   return $ RenderConfig
@@ -46,17 +48,18 @@ createConfig = do
     , textColor         = SDL.V4 0 191 255 255
     }
 
-deleteConfig :: RenderConfig -> IO ()
+deleteConfig :: (M.MonadIO m) => RenderConfig -> m ()
 deleteConfig = SDLF.free . font
 
 -- | Renders the state and executes an pre and post action.
-render :: RenderContext -> RenderConfig -> Timer.LoopTimer -> State.State -> IO ()
-render (window, renderer) config timer state = do
+render :: (M.MonadIO m) => RenderContext -> RenderConfig -> Loop.Render m State.State
+render (window, renderer) config = do
+  state      <- Loop.askRenderState
   windowSize <- SDL.get $ SDL.windowSize window
   mapM_ (renderLayer renderer windowSize $ State.screen state) $ State.layers state
   renderPlayer renderer config windowSize (State.screen state) (State.player state)
   renderPlayerShadow renderer config windowSize (State.screen state) (State.player state)
-  renderHud renderer config windowSize timer state
+  renderHud renderer config windowSize
 
 -- | Clears the screen with given color.
 clear :: SDL.Renderer -> SDLP.Color -> IO ()
@@ -64,23 +67,27 @@ clear renderer color = do
   SDL.rendererDrawColor renderer SDL.$= color
   SDL.clear renderer
 
-renderHud :: SDL.Renderer -> RenderConfig -> V2 CInt -> Timer.LoopTimer -> State.State -> IO ()
-renderHud renderer config windowSize timer state = do
-  renderHudVelocity renderer config state
-  renderHudTime renderer config state
-  renderHudScore renderer config state
-  renderHudFPS renderer config windowSize timer
+renderHud
+  :: (M.MonadIO m) => SDL.Renderer -> RenderConfig -> V2 CInt -> Loop.RenderState m State.State ()
+renderHud renderer config windowSize = do
+  renderHudVelocity renderer config
+  renderHudTime renderer config
+  renderHudScore renderer config
+  renderHudFPS renderer config windowSize
 
-renderHudVelocity :: SDL.Renderer -> RenderConfig -> State.State -> IO ()
-renderHudVelocity renderer config state = do
+renderHudVelocity
+  :: (M.MonadIO m) => SDL.Renderer -> RenderConfig -> Loop.RenderState m State.State ()
+renderHudVelocity renderer config = do
+  state <- Loop.askRenderState
   let textFont = font config
   let V2 x y   = Player.velocity . State.player $ state
   Render.renderText renderer textFont (headlineColor config) (V2 20 20) "VELOCITY"
   Render.renderText renderer textFont (textColor config) (V2 100 20) $ show (round x :: Int)
   Render.renderText renderer textFont (textColor config) (V2 150 20) $ show (round y :: Int)
 
-renderHudTime :: SDL.Renderer -> RenderConfig -> State.State -> IO ()
-renderHudTime renderer config state = do
+renderHudTime :: (M.MonadIO m) => SDL.Renderer -> RenderConfig -> Loop.RenderState m State.State ()
+renderHudTime renderer config = do
+  state <- Loop.askRenderState
   let textFont = font config
   let duration = State.duration state
   let seconds = truncate (realToFrac duration / 1000 :: Float) :: Integer
@@ -89,15 +96,18 @@ renderHudTime renderer config state = do
   Render.renderText renderer textFont (textColor config) (V2 100 40) (show seconds)
   Render.renderText renderer textFont (textColor config) (V2 150 40) (show millis)
 
-renderHudScore :: SDL.Renderer -> RenderConfig -> State.State -> IO ()
-renderHudScore renderer config state = do
+renderHudScore :: (M.MonadIO m) => SDL.Renderer -> RenderConfig -> Loop.RenderState m State.State ()
+renderHudScore renderer config = do
+  state <- Loop.askRenderState
   let textFont = font config
   let score    = Player.score . State.player $ state
   Render.renderText renderer textFont (headlineColor config) (V2 20 60) "SCORE"
   Render.renderText renderer textFont (textColor config) (V2 100 60) (show score)
 
-renderHudFPS :: SDL.Renderer -> RenderConfig -> V2 CInt -> Timer.LoopTimer -> IO ()
-renderHudFPS renderer config (V2 w _) timer = do
+renderHudFPS
+  :: (M.MonadIO m) => SDL.Renderer -> RenderConfig -> V2 CInt -> Loop.RenderState m State.State ()
+renderHudFPS renderer config (V2 w _) = do
+  timer <- Loop.askRenderTimer
   let textFont = font config
   let fps      = Timer.fps . Timer.counter $ timer
   let x        = w - 125
@@ -109,7 +119,14 @@ data Shape = Shape [Float] [Float]
 shapeSize :: Shape -> Size
 shapeSize (Shape xs ys) = V2 (maximum xs) (maximum ys)
 
-renderPlayer :: SDL.Renderer -> RenderConfig -> V2 CInt -> Screen.Screen -> Player.Player -> IO ()
+renderPlayer
+  :: (M.MonadIO m)
+  => SDL.Renderer
+  -> RenderConfig
+  -> V2 CInt
+  -> Screen.Screen
+  -> Player.Player
+  -> m ()
 renderPlayer renderer config windowSize screen player = do
   let shape = Shape [0, 10, 40, 30, 20, 10, 0, 15] [80, 80, 0, 0, 25, 0, 0, 40]
   let translatedShape =
@@ -117,7 +134,13 @@ renderPlayer renderer config windowSize screen player = do
   renderShape renderer windowSize screen (playerColor config) translatedShape
 
 renderPlayerShadow
-  :: SDL.Renderer -> RenderConfig -> V2 CInt -> Screen.Screen -> Player.Player -> IO ()
+  :: (M.MonadIO m)
+  => SDL.Renderer
+  -> RenderConfig
+  -> V2 CInt
+  -> Screen.Screen
+  -> Player.Player
+  -> m ()
 renderPlayerShadow renderer config windowSize screen player = do
   let V2 posX posY = Player.position player
   let V2 velX _    = Player.velocity player
@@ -129,7 +152,8 @@ renderPlayerShadow renderer config windowSize screen player = do
   let a = round $ if abs velX > 10000 then 255 else abs velX / 10000 * 255
   renderShape renderer windowSize screen (SDL.V4 r g b a) translatedShape
 
-renderShape :: SDL.Renderer -> V2 CInt -> Screen.Screen -> SDLP.Color -> Shape -> IO ()
+renderShape
+  :: (M.MonadIO m) => SDL.Renderer -> V2 CInt -> Screen.Screen -> SDLP.Color -> Shape -> m ()
 renderShape renderer (V2 w h) screen color (Shape xs ys) = do
   let toVector   = foldl V.snoc V.empty
   let transformX = fromIntegral . Scale.translate screen w
@@ -138,7 +162,7 @@ renderShape renderer (V2 w h) screen color (Shape xs ys) = do
   let ys'        = toVector . map transformY $ ys
   SDLP.fillPolygon renderer xs' ys' color
 
-renderLayer :: SDL.Renderer -> V2 CInt -> Screen.Screen -> Layer.Layer -> IO ()
+renderLayer :: (M.MonadIO m) => SDL.Renderer -> V2 CInt -> Screen.Screen -> Layer.Layer -> m ()
 renderLayer renderer windowSize screen layer = do
   let size     = Scale.toWindowSize screen windowSize (Layer.size layer)
   let position = Scale.toWindowPosition screen windowSize (Layer.position layer)

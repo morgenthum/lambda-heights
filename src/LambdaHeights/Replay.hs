@@ -6,7 +6,8 @@ module LambdaHeights.Replay
   )
 where
 
-import           Control.Monad.State
+import qualified Control.Monad.Reader            as M
+import qualified Control.Monad.State             as M
 import           Data.Time
 import qualified LambdaHeights.Play              as Play
 import           LambdaHeights.Render
@@ -27,35 +28,42 @@ input = Events.control <$> Play.keyInput
 
 update :: Loop.Update Replay.State Replay.Result [Events.ControlEvent]
 update events = do
-  timer <- Loop.getTimer
-  state <- Loop.getState
-  case state of
-    (Replay.State state []) -> Loop.putResult $ Replay.Result Play.Finished $ Replay.State state []
-    _                       -> do
-      Loop.putTimer $ updateTimer timer state
+  timer <- Loop.getUpdateTimer
+  state <- Loop.getUpdateState
+  if endReached state
+    then Loop.putUpdateResult $ Replay.Result Play.Finished state
+    else do
+      updateTimer
       let repEvents : repEventList = Replay.events state
       let playUpdate               = Play.update $ Events.Events events repEvents
       let playState                = (timer, Right $ Replay.playState state)
-      let (_, updated)             = execState playUpdate playState
+      let (_, updated)             = M.execState playUpdate playState
       case updated of
         Left playResult -> do
-          let
-            result = Replay.Result (Play.reason playResult)
-              $ Replay.State (Play.state playResult) repEventList
-          Loop.putResult result
-        Right playState -> Loop.putState $ Replay.State playState repEventList
+          let state  = Replay.State (Play.state playResult) repEventList
+          let result = Replay.Result (Play.reason playResult) state
+          Loop.putUpdateResult result
+        Right playState -> Loop.putUpdateState $ Replay.State playState repEventList
 
-updateTimer :: Timer.LoopTimer -> Replay.State -> Timer.LoopTimer
-updateTimer timer state =
+updateTimer :: Loop.UpdateState Replay.State Replay.Result ()
+updateTimer = do
+  timer <- Loop.getUpdateTimer
+  state <- Loop.getUpdateState
   let remainingFrames = length $ Replay.events state
-      go n | n < 200   = timer { Timer.rate = 14 }
+  let go n | n < 200   = timer { Timer.rate = 14 }
            | otherwise = timer
-  in  go remainingFrames
+  Loop.putUpdateTimer $ go remainingFrames
 
-render :: RenderContext -> Play.RenderConfig -> Timer.LoopTimer -> Replay.State -> IO ()
-render ctx config timer state = do
-  Play.render ctx config timer $ Replay.playState state
+endReached :: Replay.State -> Bool
+endReached (Replay.State _ []) = True
+endReached _                   = False
+
+render :: (M.MonadIO m) => RenderContext -> Play.RenderConfig -> Loop.Render m Replay.State
+render ctx config = do
+  timer <- Loop.askRenderTimer
+  state <- Loop.askRenderState
+  M.runReaderT (Play.render ctx config) (timer, Replay.playState state)
   let remainingFrames = length $ Replay.events state
-  when (remainingFrames <= 50) $ do
+  M.when (remainingFrames <= 50) $ do
     let a = flipRange (normalize (0, 50) (realToFrac remainingFrames)) * 255 :: Float
     renderOverlay ctx $ V4 0 0 0 $ truncate a

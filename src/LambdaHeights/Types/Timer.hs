@@ -1,5 +1,6 @@
 module LambdaHeights.Types.Timer where
 
+import           Control.Monad.IO.Class
 import           Data.Word
 import qualified SDL
 
@@ -17,7 +18,7 @@ data FrameCounter = FrameCounter {
   fps    :: Word32
 }
 
-newTimer :: Word32 -> IO LoopTimer
+newTimer :: (MonadIO m) => Word32 -> m LoopTimer
 newTimer rate = do
   start <- fromIntegral <$> SDL.ticks
   return $ LoopTimer

@@ -13,12 +13,12 @@ type Size = V2 Int
 data Table = Table {
   content  :: Matrix Cell,
   selected :: Location
-}
+} deriving (Eq)
 
 data Cell = Cell {
   cellLocation :: Location,
   cellText     :: String
-}
+} deriving (Eq)
 
 data TableViewport = TableViewport {
   viewportFrom :: Location,

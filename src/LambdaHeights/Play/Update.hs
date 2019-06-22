@@ -27,8 +27,8 @@ updateFactor = 1 / 128
 -- | Applies occured events and updates the game state.
 update :: Loop.Update State.State State.Result Events.Events
 update events = do
-  timer <- Loop.getTimer
-  state <- Loop.getState
+  timer <- Loop.getUpdateTimer
+  state <- Loop.getUpdateState
   let time   = State.duration state
   let screen = State.screen state
   let layers = State.layers state

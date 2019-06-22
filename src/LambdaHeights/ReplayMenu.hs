@@ -2,6 +2,7 @@
 
 module LambdaHeights.ReplayMenu where
 
+import qualified Control.Monad.IO.Class              as M
 import           Data.Either
 import           Data.List
 import qualified Data.Text                           as T
@@ -14,19 +15,18 @@ import qualified LambdaHeights.Types.Loop            as Loop
 import qualified LambdaHeights.Types.ReplayMenuState as ReplayMenu
 import qualified LambdaHeights.Types.ReplayState     as Replay
 import qualified LambdaHeights.Types.Table           as Table
-import qualified LambdaHeights.Types.Timer           as Timer
 import           Linear.V2
 import qualified SDL
 import           System.Directory
 
-createConfig :: IO Menu.RenderConfig
+createConfig :: (M.MonadIO m) => m Menu.RenderConfig
 createConfig = Menu.RenderConfig <$> retroGamingFont 11 <*> retroGamingFont 11
 
-loadReplayFiles :: IO [Replay.Description]
+loadReplayFiles :: (M.MonadIO m) => m [Replay.Description]
 loadReplayFiles = do
-  fileNames <- filterPacked (T.isSuffixOf ".desc") <$> listDirectory "replays"
+  fileNames <- M.liftIO $ filterPacked (T.isSuffixOf ".desc") <$> listDirectory "replays"
   let filePathes = map ("replays/" ++) fileNames
-  sortBy (flip compare) . rights <$> mapM decodeFileEither filePathes
+  M.liftIO $ sortBy (flip compare) . rights <$> mapM decodeFileEither filePathes
 
 filterPacked :: (T.Text -> Bool) -> [String] -> [String]
 filterPacked f = map T.unpack . filter f . map T.pack
@@ -63,18 +63,19 @@ updateSelection =
 
 update :: Loop.Update ReplayMenu.State (Maybe String) [SDL.Event]
 update events = do
-  state <- Loop.getState
+  state <- Loop.getUpdateState
   case Menu.update updateSelection id events $ ReplayMenu.table state of
-    Left  result -> Loop.putResult result
-    Right table  -> Loop.putState $ updateViewport $ state { ReplayMenu.table = table }
+    Left  result -> Loop.putUpdateResult result
+    Right table  -> Loop.putUpdateState $ updateViewport $ state { ReplayMenu.table = table }
 
 updateViewport :: ReplayMenu.State -> ReplayMenu.State
 updateViewport state =
   let viewport = Table.updatePageViewport (ReplayMenu.table state) (ReplayMenu.viewport state)
   in  state { ReplayMenu.viewport = viewport }
 
-render :: RenderContext -> Menu.RenderConfig -> Timer.LoopTimer -> ReplayMenu.State -> IO ()
-render ctx config _ state = do
+render :: (M.MonadIO m) => RenderContext -> Menu.RenderConfig -> Loop.Render m ReplayMenu.State
+render ctx config = do
+  state <- Loop.askRenderState
   let table    = ReplayMenu.table state
   let viewport = ReplayMenu.viewport state
   let table'   = Table.viewportTable viewport table

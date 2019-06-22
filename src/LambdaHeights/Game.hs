@@ -8,6 +8,7 @@ where
 import           Control.Concurrent.Async
 import           Control.Concurrent.STM.TChan
 import           Control.Monad.Extra
+import           Control.Monad.IO.Class
 import           Data.Time
 import           LambdaHeights.Loop
 import qualified LambdaHeights.MainMenu              as MainMenu
@@ -22,6 +23,7 @@ import qualified LambdaHeights.Score                 as Score
 import           LambdaHeights.Serialize
 import qualified LambdaHeights.Types.Events          as Events
 import qualified LambdaHeights.Types.GameState       as Game
+import qualified LambdaHeights.Types.Loop            as Loop
 import qualified LambdaHeights.Types.MainMenuState   as MainMenu
 import qualified LambdaHeights.Types.PauseState      as Pause
 import qualified LambdaHeights.Types.Player          as Play
@@ -36,16 +38,16 @@ import           Prelude                             hiding (init)
 import qualified SDL
 import           System.Directory
 
-type PlayLoopState = LoopState IO Play.State Play.Result ()
-type ReplayLoopState = LoopState IO Replay.State Replay.Result ()
+type PlayLoopState m = LoopState m Play.State Play.Result ()
+type ReplayLoopState m = LoopState m Replay.State Replay.Result ()
 
-menuTimer :: IO Timer.LoopTimer
+menuTimer :: (MonadIO m) => m Timer.LoopTimer
 menuTimer = Timer.newTimer 30
 
-playTimer :: IO Timer.LoopTimer
+playTimer :: (MonadIO m) => m Timer.LoopTimer
 playTimer = Timer.newTimer 7
 
-scoreTimer :: IO Timer.LoopTimer
+scoreTimer :: (MonadIO m) => m Timer.LoopTimer
 scoreTimer = Timer.newTimer 4
 
 start :: IO ()
@@ -93,19 +95,20 @@ startGame ctx = do
   return state
 
 startGameLoop
-  :: RenderContext
+  :: (MonadIO m)
+  => RenderContext
   -> FilePath
   -> TChan (Maybe [Events.PlayerEvent])
   -> Play.State
-  -> PlayLoopState
-  -> Pause.ProxyRenderer Play.State
-  -> IO Score.Score
+  -> PlayLoopState m
+  -> Loop.Render m Play.State
+  -> m Score.Score
 startGameLoop ctx filePath channel state loop pauseRenderer = do
   timer  <- playTimer
-  handle <- async $ serialize (fromTChan channel) (toFile $ filePath ++ ".dat")
+  handle <- liftIO $ async $ serialize (fromTChan channel) (toFile $ filePath ++ ".dat")
   result <- startLoop timer state loop
   let state' = Play.state result
-  wait handle
+  liftIO $ wait handle
   let score = Play.score $ Play.player state'
   case Play.reason result of
     Play.Finished -> return score
@@ -116,7 +119,7 @@ startGameLoop ctx filePath channel state loop pauseRenderer = do
         Pause.Resume -> startGameLoop ctx filePath channel state' loop pauseRenderer
         Pause.Exit   -> return score
 
-startPause :: RenderContext -> Pause.State a -> Pause.ProxyRenderer a -> IO Pause.ExitReason
+startPause :: (MonadIO m) => RenderContext -> Pause.State s -> Loop.Render m s -> m Pause.ExitReason
 startPause ctx state proxyRenderer = do
   timer       <- playTimer
   pauseConfig <- Pause.createConfig
@@ -126,7 +129,7 @@ startPause ctx state proxyRenderer = do
   Pause.deleteConfig pauseConfig
   return reason
 
-startScore :: RenderContext -> Score.Score -> IO Game.State
+startScore :: (MonadIO m) => RenderContext -> Score.Score -> m Game.State
 startScore ctx score = do
   timer  <- menuTimer
   config <- Menu.createConfig
@@ -140,7 +143,8 @@ startScoreWithReplay :: RenderContext -> FilePath -> Score.Score -> IO Game.Stat
 startScoreWithReplay ctx filePath score =
   maybeM (return Game.Menu) (startScoreWithReplayLoop ctx score) $ deserializeFromFile filePath
 
-startScoreWithReplayLoop :: RenderContext -> Score.Score -> [[Events.PlayerEvent]] -> IO Game.State
+startScoreWithReplayLoop
+  :: (MonadIO m) => RenderContext -> Score.Score -> [[Events.PlayerEvent]] -> m Game.State
 startScoreWithReplayLoop ctx score events = do
   timer        <- scoreTimer
   replayConfig <- Play.createConfig
@@ -160,12 +164,12 @@ startScoreWithReplayLoop ctx score events = do
     Nothing -> startScore ctx score
     Just _  -> return Game.Menu
 
-scoreWithReplayInput :: IO ([Events.ControlEvent], [SDL.Event])
+scoreWithReplayInput :: (MonadIO m) => m ([Events.ControlEvent], [SDL.Event])
 scoreWithReplayInput = do
   events <- Menu.keyInput
   return ([], events)
 
-startReplayMenu :: RenderContext -> IO Game.State
+startReplayMenu :: (MonadIO m) => RenderContext -> m Game.State
 startReplayMenu ctx = do
   timer  <- menuTimer
   table  <- ReplayMenu.buildTable <$> ReplayMenu.loadReplayFiles
@@ -178,9 +182,9 @@ startReplayMenu ctx = do
   Menu.deleteConfig config
   return state
 
-startReplayFromFile :: FilePath -> RenderContext -> IO Game.State
+startReplayFromFile :: (MonadIO m) => FilePath -> RenderContext -> m Game.State
 startReplayFromFile replayFilePath ctx =
-  maybeM (return Game.Menu) (`startReplay` ctx) $ deserializeFromFile replayFilePath
+  liftIO $ maybeM (return Game.Menu) (`startReplay` ctx) $ deserializeFromFile replayFilePath
 
 startReplay :: [[Events.PlayerEvent]] -> RenderContext -> IO Game.State
 startReplay events ctx = do
@@ -194,11 +198,12 @@ startReplay events ctx = do
   return result
 
 startReplayLoop
-  :: RenderContext
+  :: (MonadIO m)
+  => RenderContext
   -> Replay.State
-  -> ReplayLoopState
-  -> Pause.ProxyRenderer Play.State
-  -> IO Score.Score
+  -> ReplayLoopState m
+  -> Loop.Render m Play.State
+  -> m Score.Score
 startReplayLoop ctx state loop pauseRenderer = do
   timer  <- playTimer
   result <- startLoop timer state loop

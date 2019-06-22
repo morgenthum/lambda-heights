@@ -1,5 +1,6 @@
 module LambdaHeights.Table where
 
+import qualified Control.Monad.IO.Class    as M
 import           Data.Matrix
 import           Data.Maybe
 import qualified Data.Text                 as T
@@ -24,8 +25,8 @@ type SizeGen = Generator Size
 type PositionGen = Generator Position
 type TextPositionGen = Generator Position
 
-type TableRenderer = TableView -> IO ()
-type CellRenderer = CellView -> IO ()
+type TableRenderer m = TableView -> m ()
+type CellRenderer m = CellView -> m ()
 type UpdateTable = [SDL.Event] -> Table -> Table
 
 type ConvertEvent e = SDL.Event -> Maybe e
@@ -91,7 +92,7 @@ always x _ _ = x
 
 -- Size combinators
 
-loadFontSizes :: SDLF.Font -> Matrix String -> IO (Matrix Size)
+loadFontSizes :: (M.MonadIO m) => SDLF.Font -> Matrix String -> m (Matrix Size)
 loadFontSizes font cm = do
   sm <- mapM (SDLF.size font . T.pack) cm
   return $ fmap (uncurry V2) sm
@@ -161,7 +162,7 @@ centerText sm pm fsm _ (r, c) =
 
 -- Templates
 
-newMenuView :: SDLF.Font -> Table -> IO TableView
+newMenuView :: (M.MonadIO m) => SDLF.Font -> Table -> m TableView
 newMenuView f t = do
   let contents = cellText <$> content t
   fontSizes <- loadFontSizes f contents
@@ -173,7 +174,7 @@ newMenuView f t = do
   let textPositions = (locateTextWith $ centerText sizes positions fontSizes) t
   return $ merge contents styles sizes positions textPositions
 
-newTableView :: SDLF.Font -> Table -> IO TableView
+newTableView :: (M.MonadIO m) => SDLF.Font -> Table -> m TableView
 newTableView f t = do
   let contents = cellText <$> content t
   fontSizes <- loadFontSizes f contents
@@ -189,10 +190,10 @@ newTableView f t = do
 
 -- Rendering
 
-renderTable :: CellRenderer -> TableRenderer
+renderTable :: (M.MonadIO m) => CellRenderer m -> TableRenderer m
 renderTable = mapM_
 
-renderCell :: SDL.Renderer -> CellRenderer
+renderCell :: (M.MonadIO m) => SDL.Renderer -> CellRenderer m
 renderCell renderer cell = do
   let text    = viewText cell
   let style   = viewStyle cell
