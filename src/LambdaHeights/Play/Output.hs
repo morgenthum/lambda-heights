@@ -20,11 +20,12 @@ type Output = Loop.Output IO State.State State.Result Events
 -- | Outputs occured events into a channel and
 --   creates a replay description file if the end is reached.
 output :: LocalTime -> FilePath -> TChan (Maybe [PlayerEvent]) -> Output
-output time fileName channel _ events resultState = do
+output time fileName channel events = do
+  state <- Loop.askOutputState
   liftIO $ atomically $ writeTChan channel $ Just $ player events
-  case resultState of
-    Left result -> do
-      liftIO $ atomically $ writeTChan channel Nothing
+  case state of
+    Left result -> liftIO $ do
+      atomically $ writeTChan channel Nothing
       encodeFile (fileName ++ ".desc") $ toJSON $ createDesc time fileName result
     Right _ -> return ()
 

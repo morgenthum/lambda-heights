@@ -19,14 +19,14 @@ import qualified SDL
 type LoopState m s r = M.StateT (Timer.LoopTimer, Either r s) m
 
 noOutput :: (Monad m) => Output m s r e
-noOutput _ _ _ = return ()
+noOutput _ = return ()
 
 startLoop :: (M.MonadIO m) => Timer.LoopTimer -> s -> LoopState m s r () -> m r
 startLoop timer state loop = do
   eitherResult <- snd <$> M.execStateT loop (timer, Right state)
   case eitherResult of
     Left  result -> return result
-    Right _      -> fail "state instead of result returned in startLoop"
+    Right _      -> fail "returned state instead of result in startLoop"
 
 timedLoop
   :: (M.MonadIO m)
@@ -87,7 +87,7 @@ updateCycle input update output = do
     Right _ -> M.when (Timer.lag timer > Timer.rate timer) $ do
       events <- M.lift input
       let (timer', eitherState') = M.execState (update events) (timer, eitherState)
-      M.lift $ output timer events eitherState'
+      M.lift $ M.runReaderT (output events) (timer', eitherState')
       let lag  = Timer.lag timer
       let rate = Timer.rate timer
       M.put (timer' { Timer.lag = lag - rate }, eitherState')

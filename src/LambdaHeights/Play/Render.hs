@@ -74,6 +74,7 @@ renderHud renderer config windowSize = do
   renderHudTime renderer config
   renderHudScore renderer config
   renderHudFPS renderer config windowSize
+  renderHudRate renderer config windowSize
 
 renderHudVelocity
   :: (M.MonadIO m) => SDL.Renderer -> RenderConfig -> Loop.RenderState m State.State ()
@@ -93,8 +94,8 @@ renderHudTime renderer config = do
   let seconds = truncate (realToFrac duration / 1000 :: Float) :: Integer
   let millis   = mod duration 1000
   Render.renderText renderer textFont (headlineColor config) (V2 20 40) "TIME"
-  Render.renderText renderer textFont (textColor config) (V2 100 40) (show seconds)
-  Render.renderText renderer textFont (textColor config) (V2 150 40) (show millis)
+  Render.renderText renderer textFont (textColor config) (V2 100 40) $ show seconds
+  Render.renderText renderer textFont (textColor config) (V2 150 40) $ show millis
 
 renderHudScore :: (M.MonadIO m) => SDL.Renderer -> RenderConfig -> Loop.RenderState m State.State ()
 renderHudScore renderer config = do
@@ -102,7 +103,7 @@ renderHudScore renderer config = do
   let textFont = font config
   let score    = Player.score . State.player $ state
   Render.renderText renderer textFont (headlineColor config) (V2 20 60) "SCORE"
-  Render.renderText renderer textFont (textColor config) (V2 100 60) (show score)
+  Render.renderText renderer textFont (textColor config) (V2 100 60) $ show score
 
 renderHudFPS
   :: (M.MonadIO m) => SDL.Renderer -> RenderConfig -> V2 CInt -> Loop.RenderState m State.State ()
@@ -112,7 +113,17 @@ renderHudFPS renderer config (V2 w _) = do
   let fps      = Timer.fps . Timer.counter $ timer
   let x        = w - 125
   Render.renderText renderer textFont (headlineColor config) (V2 x 20) "FPS"
-  Render.renderText renderer textFont (textColor config) (V2 (x + 70) 20) (show fps)
+  Render.renderText renderer textFont (textColor config) (V2 (x + 70) 20) $ show fps
+
+renderHudRate
+  :: (M.MonadIO m) => SDL.Renderer -> RenderConfig -> V2 CInt -> Loop.RenderState m State.State ()
+renderHudRate renderer config (V2 w _) = do
+  timer <- Loop.askRenderTimer
+  let textFont = font config
+  let rate     = Timer.rate timer
+  let x        = w - 125
+  Render.renderText renderer textFont (headlineColor config) (V2 x 40) "RATE"
+  Render.renderText renderer textFont (textColor config) (V2 (x + 70) 40) $ show rate
 
 data Shape = Shape [Float] [Float]
 

@@ -10,7 +10,10 @@ data Events = Events {
   player  :: [PlayerEvent]
 }
 
-data ControlEvent = Paused deriving (Eq)
+data ControlEvent = Paused
+                  | Slower
+                  | Faster
+                  deriving (Eq)
 
 data PlayerEvent = PlayerMoved Direction Bool
                  | PlayerJumped

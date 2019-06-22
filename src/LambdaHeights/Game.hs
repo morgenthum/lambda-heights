@@ -121,7 +121,7 @@ startGameLoop ctx filePath channel state loop pauseRenderer = do
 
 startPause :: (MonadIO m) => RenderContext -> Pause.State s -> Loop.Render m s -> m Pause.ExitReason
 startPause ctx state proxyRenderer = do
-  timer       <- playTimer
+  timer       <- menuTimer
   pauseConfig <- Pause.createConfig
   let renderer = Render.renderFrame ctx (V4 0 0 0 255) $ Pause.render ctx pauseConfig proxyRenderer
   let loop     = timedLoop Menu.keyInput Pause.update noOutput renderer

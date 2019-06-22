@@ -33,6 +33,7 @@ update events = do
   if endReached state
     then Loop.putUpdateResult $ Replay.Result Play.Finished state
     else do
+      updateSpeed events
       updateTimer
       let repEvents : repEventList = Replay.events state
       let playUpdate               = Play.update $ Events.Events events repEvents
@@ -45,13 +46,24 @@ update events = do
           Loop.putUpdateResult result
         Right playState -> Loop.putUpdateState $ Replay.State playState repEventList
 
+updateSpeed :: [Events.ControlEvent] -> Loop.UpdateState Replay.State Replay.Result ()
+updateSpeed events = do
+  timer <- Loop.getUpdateTimer
+  let rate = Timer.rate timer
+  M.when (elem Events.Faster events && rate > 1) $ Loop.putUpdateTimer $ timer
+    { Timer.rate = rate - 1
+    }
+  M.when (elem Events.Slower events && rate < 25) $ Loop.putUpdateTimer $ timer
+    { Timer.rate = rate + 1
+    }
+
 updateTimer :: Loop.UpdateState Replay.State Replay.Result ()
 updateTimer = do
   timer <- Loop.getUpdateTimer
   state <- Loop.getUpdateState
   let remainingFrames = length $ Replay.events state
-  let go n | n < 200   = timer { Timer.rate = 14 }
-           | otherwise = timer
+  let go n | n < 200 && Timer.rate timer < 14 = timer { Timer.rate = 14 }
+           | otherwise                        = timer
   Loop.putUpdateTimer $ go remainingFrames
 
 endReached :: Replay.State -> Bool
