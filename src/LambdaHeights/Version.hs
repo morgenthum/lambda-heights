@@ -22,4 +22,4 @@ instance Read Version where
     in [(version, "")]
 
 currentVersion :: Version
-currentVersion = Version (1, 1, 0)
+currentVersion = Version (1, 2, 0)
