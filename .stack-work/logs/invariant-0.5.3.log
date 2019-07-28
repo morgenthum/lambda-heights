@@ -1,9 +1,0 @@
-Configuring invariant-0.5.3...
-Preprocessing library for invariant-0.5.3..
-Building library for invariant-0.5.3..
-[1 of 4] Compiling Data.Functor.Invariant
-[2 of 4] Compiling Data.Functor.Invariant.TH.Internal
-[3 of 4] Compiling Data.Functor.Invariant.TH
-[4 of 4] Compiling Paths_invariant
-Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/invariant-0.5.3-6UH2y4zs5V53EyNlrIQWRC
-Registering library for invariant-0.5.3..

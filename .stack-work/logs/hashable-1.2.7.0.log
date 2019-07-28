@@ -1,9 +1,0 @@
-Configuring hashable-1.2.7.0...
-Preprocessing library for hashable-1.2.7.0..
-Building library for hashable-1.2.7.0..
-[1 of 4] Compiling Data.Hashable.Class
-[2 of 4] Compiling Data.Hashable.Generic
-[3 of 4] Compiling Data.Hashable
-[4 of 4] Compiling Data.Hashable.Lifted
-Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/hashable-1.2.7.0-2SI038axTEd7AEZJ275kpi
-Registering library for hashable-1.2.7.0..

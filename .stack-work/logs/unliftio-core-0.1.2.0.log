@@ -1,7 +1,0 @@
-Configuring unliftio-core-0.1.2.0...
-Preprocessing library for unliftio-core-0.1.2.0..
-Building library for unliftio-core-0.1.2.0..
-[1 of 2] Compiling Control.Monad.IO.Unlift
-[2 of 2] Compiling Paths_unliftio_core
-Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/unliftio-core-0.1.2.0-DmlZdkLzX278vkyONsp8WQ
-Registering library for unliftio-core-0.1.2.0..

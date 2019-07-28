@@ -1,7 +1,0 @@
-Configuring exceptions-0.10.2...
-Preprocessing library for exceptions-0.10.2..
-Building library for exceptions-0.10.2..
-[1 of 2] Compiling Control.Monad.Catch
-[2 of 2] Compiling Control.Monad.Catch.Pure
-Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/exceptions-0.10.2-2mS9GUVmJpmKSw5CuaN6ik
-Registering library for exceptions-0.10.2..

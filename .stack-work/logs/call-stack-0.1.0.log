@@ -1,8 +1,0 @@
-Configuring call-stack-0.1.0...
-Preprocessing library for call-stack-0.1.0..
-Building library for call-stack-0.1.0..
-[1 of 3] Compiling Data.SrcLoc
-[2 of 3] Compiling Data.CallStack
-[3 of 3] Compiling Paths_call_stack
-Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/call-stack-0.1.0-J1eWgTNOnM4IGVyeW0v2YZ
-Registering library for call-stack-0.1.0..

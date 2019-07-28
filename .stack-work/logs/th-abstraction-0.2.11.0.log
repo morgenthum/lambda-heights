@@ -1,7 +1,0 @@
-Configuring th-abstraction-0.2.11.0...
-Preprocessing library for th-abstraction-0.2.11.0..
-Building library for th-abstraction-0.2.11.0..
-[1 of 2] Compiling Language.Haskell.TH.Datatype.Internal
-[2 of 2] Compiling Language.Haskell.TH.Datatype
-Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/th-abstraction-0.2.11.0-DAhuCgi08HTBWsDjm9nrOq
-Registering library for th-abstraction-0.2.11.0..
