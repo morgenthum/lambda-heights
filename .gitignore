@@ -1,10 +1,7 @@
 .idea/**
-.stack-work/**
-.vscode/**
-out/**
-releases/**
 replays/**
 .DS_Store
-lambda-heights.exe
-lambda-heights.iml
-replay.dat
+**.stack-work/**
+**.cabal
+**.iml
+**.lock

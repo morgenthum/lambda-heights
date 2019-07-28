@@ -1,0 +1,41 @@
+Configuring free-5.1.1...
+Preprocessing library for free-5.1.1..
+Building library for free-5.1.1..
+[ 1 of 20] Compiling Control.Alternative.Free
+[ 2 of 20] Compiling Control.Alternative.Free.Final
+[ 3 of 20] Compiling Control.Applicative.Free
+[ 4 of 20] Compiling Control.Applicative.Free.Fast
+[ 5 of 20] Compiling Control.Applicative.Free.Final
+[ 6 of 20] Compiling Control.Applicative.Trans.Free
+[ 7 of 20] Compiling Control.Comonad.Cofree.Class
+[ 8 of 20] Compiling Control.Comonad.Trans.Cofree
+[ 9 of 20] Compiling Control.Monad.Free.Class
+[10 of 20] Compiling Control.Monad.Free.TH
+[11 of 20] Compiling Data.Functor.Classes.Compat
+[12 of 20] Compiling Control.Monad.Trans.Iter
+[13 of 20] Compiling Control.Monad.Trans.Free.Ap
+
+src/Control/Monad/Trans/Free/Ap.hs:311:3: warning: [-Wnoncanonical-monadfail-instances]
+    Noncanonical ‘fail’ definition detected
+    in the instance declaration for ‘Monad (FreeT f m)’.
+    Either remove definition for ‘fail’ or define as ‘fail = Control.Monad.Fail.fail’
+    |
+311 |   fail e = FreeT (fail e)
+    |   ^^^^^^^^^^^^^^^^^^^^^^^
+[14 of 20] Compiling Control.Monad.Trans.Free
+
+src/Control/Monad/Trans/Free.hs:312:3: warning: [-Wnoncanonical-monadfail-instances]
+    Noncanonical ‘fail’ definition detected
+    in the instance declaration for ‘Monad (FreeT f m)’.
+    Either remove definition for ‘fail’ or define as ‘fail = Control.Monad.Fail.fail’
+    |
+312 |   fail e = FreeT (fail e)
+    |   ^^^^^^^^^^^^^^^^^^^^^^^
+[15 of 20] Compiling Control.Monad.Trans.Free.Church
+[16 of 20] Compiling Control.Monad.Free.Ap
+[17 of 20] Compiling Control.Monad.Free
+[18 of 20] Compiling Control.Monad.Free.Church
+[19 of 20] Compiling Control.Comonad.Trans.Coiter
+[20 of 20] Compiling Control.Comonad.Cofree
+Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/free-5.1.1-1WK4DQ74Obk1gQRAdkSkff
+Registering library for free-5.1.1..

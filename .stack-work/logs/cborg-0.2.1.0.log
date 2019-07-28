@@ -1,0 +1,19 @@
+Configuring cborg-0.2.1.0...
+Preprocessing library for cborg-0.2.1.0..
+Building library for cborg-0.2.1.0..
+[ 1 of 14] Compiling Codec.CBOR.ByteArray.Internal
+[ 2 of 14] Compiling Codec.CBOR.ByteArray.Sliced
+[ 3 of 14] Compiling Codec.CBOR.ByteArray
+[ 4 of 14] Compiling Codec.CBOR.Decoding
+[ 5 of 14] Compiling Codec.CBOR.Encoding[boot]
+[ 6 of 14] Compiling Codec.CBOR.FlatTerm[boot]
+[ 7 of 14] Compiling Codec.CBOR.Encoding
+[ 8 of 14] Compiling Codec.CBOR.FlatTerm
+[ 9 of 14] Compiling Codec.CBOR.Magic
+[10 of 14] Compiling Codec.CBOR.Read
+[11 of 14] Compiling Codec.CBOR.Term
+[12 of 14] Compiling Codec.CBOR
+[13 of 14] Compiling Codec.CBOR.Write
+[14 of 14] Compiling Codec.CBOR.Pretty
+Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/cborg-0.2.1.0-9keixXAjWujKKNae1wf7g9
+Registering library for cborg-0.2.1.0..

@@ -1,0 +1,10 @@
+Configuring scientific-0.3.6.2...
+Preprocessing library for scientific-0.3.6.2..
+Building library for scientific-0.3.6.2..
+[1 of 5] Compiling GHC.Integer.Compat
+[2 of 5] Compiling Utils
+[3 of 5] Compiling Data.Scientific
+[4 of 5] Compiling Data.Text.Lazy.Builder.Scientific
+[5 of 5] Compiling Data.ByteString.Builder.Scientific
+Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/scientific-0.3.6.2-BboXwnuKby4BtCVtfss4TP
+Registering library for scientific-0.3.6.2..

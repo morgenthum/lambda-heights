@@ -1,0 +1,43 @@
+Configuring sdl2-2.4.1.0...
+Preprocessing library for sdl2-2.4.1.0..
+Building library for sdl2-2.4.1.0..
+[ 1 of 38] Compiling Data.Bitmask
+[ 2 of 38] Compiling SDL.Exception
+[ 3 of 38] Compiling SDL.Internal.Numbered
+[ 4 of 38] Compiling SDL.Internal.Vect
+[ 5 of 38] Compiling SDL.Raw.Enum
+[ 6 of 38] Compiling SDL.Input.Keyboard.Codes
+[ 7 of 38] Compiling SDL.Raw.Error
+[ 8 of 38] Compiling SDL.Raw.Platform
+[ 9 of 38] Compiling SDL.Raw.Power
+[10 of 38] Compiling SDL.Raw.Types
+[11 of 38] Compiling SDL.Raw.Timer
+[12 of 38] Compiling SDL.Raw.Thread
+[13 of 38] Compiling SDL.Raw.Haptic
+[14 of 38] Compiling SDL.Raw.Filesystem
+[15 of 38] Compiling SDL.Raw.Event
+[16 of 38] Compiling SDL.Raw.Basic
+[17 of 38] Compiling SDL.Raw.Audio
+[18 of 38] Compiling SDL.Raw.Video
+[19 of 38] Compiling SDL.Raw
+[20 of 38] Compiling SDL.Power
+[21 of 38] Compiling SDL.Internal.Types
+[22 of 38] Compiling SDL.Input.Keyboard
+[23 of 38] Compiling SDL.Internal.Exception
+[24 of 38] Compiling SDL.Filesystem
+[25 of 38] Compiling SDL.Audio
+[26 of 38] Compiling SDL.Input.GameController
+[27 of 38] Compiling SDL.Init
+[28 of 38] Compiling SDL.Hint
+[29 of 38] Compiling SDL.Time
+[30 of 38] Compiling SDL.Vect
+[31 of 38] Compiling SDL.Input.Joystick
+[32 of 38] Compiling SDL.Video.OpenGL
+[33 of 38] Compiling SDL.Video.Renderer
+[34 of 38] Compiling SDL.Video
+[35 of 38] Compiling SDL.Input.Mouse
+[36 of 38] Compiling SDL.Input
+[37 of 38] Compiling SDL.Event
+[38 of 38] Compiling SDL
+Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/sdl2-2.4.1.0-757QNJhDCdg3vCG6UvUoDR
+Registering library for sdl2-2.4.1.0..

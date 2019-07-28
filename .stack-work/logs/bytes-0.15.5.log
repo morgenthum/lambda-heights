@@ -1,0 +1,13 @@
+[1 of 2] Compiling Main             ( /private/var/folders/z8/6381qc4x4q7fhjf52d4c8km00000gn/T/stack525/bytes-0.15.5/Setup.lhs, /private/var/folders/z8/6381qc4x4q7fhjf52d4c8km00000gn/T/stack525/bytes-0.15.5/.stack-work/dist/x86_64-osx/Cabal-2.4.0.1/setup/Main.o )
+[2 of 2] Compiling StackSetupShim   ( /Users/mario/.stack/setup-exe-src/setup-shim-mPHDZzAJ.hs, /private/var/folders/z8/6381qc4x4q7fhjf52d4c8km00000gn/T/stack525/bytes-0.15.5/.stack-work/dist/x86_64-osx/Cabal-2.4.0.1/setup/StackSetupShim.o )
+Linking /private/var/folders/z8/6381qc4x4q7fhjf52d4c8km00000gn/T/stack525/bytes-0.15.5/.stack-work/dist/x86_64-osx/Cabal-2.4.0.1/setup/setup ...
+Configuring bytes-0.15.5...
+Preprocessing library for bytes-0.15.5..
+Building library for bytes-0.15.5..
+[1 of 5] Compiling Data.Bytes.Get
+[2 of 5] Compiling Data.Bytes.Put
+[3 of 5] Compiling Data.Bytes.Signed
+[4 of 5] Compiling Data.Bytes.VarInt
+[5 of 5] Compiling Data.Bytes.Serial
+Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/bytes-0.15.5-8r7sPW7Cl8Q99XUR1MLfyY
+Registering library for bytes-0.15.5..

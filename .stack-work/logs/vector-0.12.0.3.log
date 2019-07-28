@@ -1,0 +1,26 @@
+Configuring vector-0.12.0.3...
+Preprocessing library for vector-0.12.0.3..
+Building library for vector-0.12.0.3..
+[ 1 of 21] Compiling Data.Vector.Fusion.Util
+[ 2 of 21] Compiling Data.Vector.Fusion.Bundle.Size
+[ 3 of 21] Compiling Data.Vector.Generic.Mutable.Base
+[ 4 of 21] Compiling Data.Vector.Generic.Base
+[ 5 of 21] Compiling Data.Vector.Internal.Check
+[ 6 of 21] Compiling Data.Vector.Fusion.Stream.Monadic
+[ 7 of 21] Compiling Data.Vector.Fusion.Bundle.Monadic
+[ 8 of 21] Compiling Data.Vector.Fusion.Bundle
+[ 9 of 21] Compiling Data.Vector.Generic.Mutable
+[10 of 21] Compiling Data.Vector.Generic.New
+[11 of 21] Compiling Data.Vector.Generic
+[12 of 21] Compiling Data.Vector.Mutable
+[13 of 21] Compiling Data.Vector
+[14 of 21] Compiling Data.Vector.Primitive.Mutable
+[15 of 21] Compiling Data.Vector.Primitive
+[16 of 21] Compiling Data.Vector.Storable.Internal
+[17 of 21] Compiling Data.Vector.Storable.Mutable
+[18 of 21] Compiling Data.Vector.Storable
+[19 of 21] Compiling Data.Vector.Unboxed.Base
+[20 of 21] Compiling Data.Vector.Unboxed
+[21 of 21] Compiling Data.Vector.Unboxed.Mutable
+Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/vector-0.12.0.3-LfvlcMFJAcY18uD1Y2O5Ig
+Registering library for vector-0.12.0.3..

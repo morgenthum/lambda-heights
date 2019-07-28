@@ -1,0 +1,15 @@
+Configuring vector-algorithms-0.8.0.1...
+Preprocessing library for vector-algorithms-0.8.0.1..
+Building library for vector-algorithms-0.8.0.1..
+[ 1 of 10] Compiling Data.Vector.Algorithms.Common
+[ 2 of 10] Compiling Data.Vector.Algorithms.Optimal
+[ 3 of 10] Compiling Data.Vector.Algorithms.Insertion
+[ 4 of 10] Compiling Data.Vector.Algorithms.Merge
+[ 5 of 10] Compiling Data.Vector.Algorithms.AmericanFlag
+[ 6 of 10] Compiling Data.Vector.Algorithms.Heap
+[ 7 of 10] Compiling Data.Vector.Algorithms.Intro
+[ 8 of 10] Compiling Data.Vector.Algorithms.Radix
+[ 9 of 10] Compiling Data.Vector.Algorithms.Search
+[10 of 10] Compiling Data.Vector.Algorithms.Tim
+Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/vector-algorithms-0.8.0.1-DPQvLJ6FBZ6AdUOcGRsbpJ
+Registering library for vector-algorithms-0.8.0.1..

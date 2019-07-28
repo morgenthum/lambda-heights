@@ -1,0 +1,21 @@
+Configuring profunctors-5.3...
+Preprocessing library for profunctors-5.3..
+Building library for profunctors-5.3..
+[ 1 of 16] Compiling Data.Profunctor.Unsafe
+[ 2 of 16] Compiling Data.Profunctor.Types
+[ 3 of 16] Compiling Data.Profunctor.Monad
+[ 4 of 16] Compiling Data.Profunctor.Adjunction
+[ 5 of 16] Compiling Data.Profunctor.Strong
+[ 6 of 16] Compiling Data.Profunctor.Closed
+[ 7 of 16] Compiling Data.Profunctor.Choice
+[ 8 of 16] Compiling Data.Profunctor.Traversing
+[ 9 of 16] Compiling Data.Profunctor.Mapping
+[10 of 16] Compiling Data.Profunctor
+[11 of 16] Compiling Data.Profunctor.Sieve
+[12 of 16] Compiling Data.Profunctor.Rep
+[13 of 16] Compiling Data.Profunctor.Composition
+[14 of 16] Compiling Data.Profunctor.Ran
+[15 of 16] Compiling Data.Profunctor.Cayley
+[16 of 16] Compiling Data.Profunctor.Yoneda
+Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/profunctors-5.3-J5LEl92wyYi7WYYYyGYzT4
+Registering library for profunctors-5.3..

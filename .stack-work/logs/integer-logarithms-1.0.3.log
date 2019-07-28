@@ -1,0 +1,9 @@
+Configuring integer-logarithms-1.0.3...
+Preprocessing library for integer-logarithms-1.0.3..
+Building library for integer-logarithms-1.0.3..
+[1 of 4] Compiling GHC.Integer.Logarithms.Compat
+[2 of 4] Compiling Math.NumberTheory.Logarithms
+[3 of 4] Compiling Math.NumberTheory.Powers.Integer
+[4 of 4] Compiling Math.NumberTheory.Powers.Natural
+Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/integer-logarithms-1.0.3-4fjS4bKV0939VXcQKK2I7B
+Registering library for integer-logarithms-1.0.3..

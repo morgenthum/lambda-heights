@@ -1,0 +1,25 @@
+Configuring extra-1.6.15...
+Preprocessing library for extra-1.6.15..
+Building library for extra-1.6.15..
+[ 1 of 20] Compiling Data.IORef.Extra
+[ 2 of 20] Compiling Data.List.NonEmpty.Extra
+[ 3 of 20] Compiling Data.Tuple.Extra
+[ 4 of 20] Compiling Data.Typeable.Extra
+[ 5 of 20] Compiling Numeric.Extra
+[ 6 of 20] Compiling Partial
+[ 7 of 20] Compiling Data.List.Extra
+[ 8 of 20] Compiling Data.Version.Extra
+[ 9 of 20] Compiling Data.Either.Extra
+[10 of 20] Compiling Control.Exception.Extra
+[11 of 20] Compiling Control.Monad.Extra
+[12 of 20] Compiling Control.Concurrent.Extra
+[13 of 20] Compiling System.Directory.Extra
+[14 of 20] Compiling System.Environment.Extra
+[15 of 20] Compiling System.IO.Extra
+[16 of 20] Compiling System.Info.Extra
+[17 of 20] Compiling System.Process.Extra
+[18 of 20] Compiling System.Time.Extra
+[19 of 20] Compiling Extra
+[20 of 20] Compiling Text.Read.Extra
+Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/extra-1.6.15-EDUYiIlEuSxH87j48vGzYY
+Registering library for extra-1.6.15..

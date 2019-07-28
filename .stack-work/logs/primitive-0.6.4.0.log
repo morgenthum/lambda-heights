@@ -1,0 +1,20 @@
+Configuring primitive-0.6.4.0...
+Preprocessing library for primitive-0.6.4.0..
+Building library for primitive-0.6.4.0..
+[ 1 of 15] Compiling Control.Monad.Primitive
+[ 2 of 15] Compiling Data.Primitive.Internal.Compat
+[ 3 of 15] Compiling Data.Primitive.Array
+[ 4 of 15] Compiling Data.Primitive.MVar
+[ 5 of 15] Compiling Data.Primitive.MachDeps
+[ 6 of 15] Compiling Data.Primitive.Internal.Operations
+[ 7 of 15] Compiling Data.Primitive.MutVar
+[ 8 of 15] Compiling Data.Primitive.SmallArray
+[ 9 of 15] Compiling Data.Primitive.Types
+[10 of 15] Compiling Data.Primitive.ByteArray
+[11 of 15] Compiling Data.Primitive.PrimArray
+[12 of 15] Compiling Data.Primitive.Ptr
+[13 of 15] Compiling Data.Primitive.Addr
+[14 of 15] Compiling Data.Primitive.UnliftedArray
+[15 of 15] Compiling Data.Primitive
+Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/primitive-0.6.4.0-ILgywxtLpvnAOlEISPpP5b
+Registering library for primitive-0.6.4.0..

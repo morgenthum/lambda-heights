@@ -1,0 +1,85 @@
+Configuring sdl2-ttf-2.1.0...
+Preprocessing library for sdl2-ttf-2.1.0..
+Building library for sdl2-ttf-2.1.0..
+[1 of 3] Compiling SDL.Raw.Helper
+[2 of 3] Compiling SDL.Raw.Font
+
+src/SDL/Raw/Font.hsc:105:1: warning: [-Wmissing-pattern-synonym-signatures]
+    Pattern synonym with no type signature:
+      pattern UNICODE_BOM_NATIVE :: forall a. (Eq a, Num a) => a
+    |
+105 | pattern UNICODE_BOM_NATIVE      = #{const UNICODE_BOM_NATIVE}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/SDL/Raw/Font.hsc:106:1: warning: [-Wmissing-pattern-synonym-signatures]
+    Pattern synonym with no type signature:
+      pattern UNICODE_BOM_SWAPPED :: forall a. (Eq a, Num a) => a
+    |
+106 | pattern UNICODE_BOM_SWAPPED     = #{const UNICODE_BOM_SWAPPED}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/SDL/Raw/Font.hsc:107:1: warning: [-Wmissing-pattern-synonym-signatures]
+    Pattern synonym with no type signature:
+      pattern TTF_STYLE_NORMAL :: forall a. (Eq a, Num a) => a
+    |
+107 | pattern TTF_STYLE_NORMAL        = #{const TTF_STYLE_NORMAL}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/SDL/Raw/Font.hsc:108:1: warning: [-Wmissing-pattern-synonym-signatures]
+    Pattern synonym with no type signature:
+      pattern TTF_STYLE_BOLD :: forall a. (Eq a, Num a) => a
+    |
+108 | pattern TTF_STYLE_BOLD          = #{const TTF_STYLE_BOLD}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/SDL/Raw/Font.hsc:109:1: warning: [-Wmissing-pattern-synonym-signatures]
+    Pattern synonym with no type signature:
+      pattern TTF_STYLE_ITALIC :: forall a. (Eq a, Num a) => a
+    |
+109 | pattern TTF_STYLE_ITALIC        = #{const TTF_STYLE_ITALIC}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/SDL/Raw/Font.hsc:110:1: warning: [-Wmissing-pattern-synonym-signatures]
+    Pattern synonym with no type signature:
+      pattern TTF_STYLE_UNDERLINE :: forall a. (Eq a, Num a) => a
+    |
+110 | pattern TTF_STYLE_UNDERLINE     = #{const TTF_STYLE_UNDERLINE}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/SDL/Raw/Font.hsc:111:1: warning: [-Wmissing-pattern-synonym-signatures]
+    Pattern synonym with no type signature:
+      pattern TTF_STYLE_STRIKETHROUGH :: forall a. (Eq a, Num a) => a
+    |
+111 | pattern TTF_STYLE_STRIKETHROUGH = #{const TTF_STYLE_STRIKETHROUGH}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/SDL/Raw/Font.hsc:112:1: warning: [-Wmissing-pattern-synonym-signatures]
+    Pattern synonym with no type signature:
+      pattern TTF_HINTING_LIGHT :: forall a. (Eq a, Num a) => a
+    |
+112 | pattern TTF_HINTING_LIGHT       = #{const TTF_HINTING_LIGHT}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/SDL/Raw/Font.hsc:113:1: warning: [-Wmissing-pattern-synonym-signatures]
+    Pattern synonym with no type signature:
+      pattern TTF_HINTING_MONO :: forall a. (Eq a, Num a) => a
+    |
+113 | pattern TTF_HINTING_MONO        = #{const TTF_HINTING_MONO}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/SDL/Raw/Font.hsc:114:1: warning: [-Wmissing-pattern-synonym-signatures]
+    Pattern synonym with no type signature:
+      pattern TTF_HINTING_NONE :: forall a. (Eq a, Num a) => a
+    |
+114 | pattern TTF_HINTING_NONE        = #{const TTF_HINTING_NONE}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/SDL/Raw/Font.hsc:115:1: warning: [-Wmissing-pattern-synonym-signatures]
+    Pattern synonym with no type signature:
+      pattern TTF_HINTING_NORMAL :: forall a. (Eq a, Num a) => a
+    |
+115 | pattern TTF_HINTING_NORMAL      = #{const TTF_HINTING_NORMAL}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[3 of 3] Compiling SDL.Font
+Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/sdl2-ttf-2.1.0-JvKOPLSc3DL6dvobEEtWGg
+Registering library for sdl2-ttf-2.1.0..

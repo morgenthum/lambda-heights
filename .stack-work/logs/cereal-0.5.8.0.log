@@ -1,0 +1,16 @@
+Configuring cereal-0.5.8.0...
+Preprocessing library for cereal-0.5.8.0..
+Building library for cereal-0.5.8.0..
+[1 of 4] Compiling Data.Serialize.Get
+[2 of 4] Compiling Data.Serialize.Put
+[3 of 4] Compiling Data.Serialize.IEEE754
+[4 of 4] Compiling Data.Serialize
+
+src/Data/Serialize.hs:291:9: warning: [-Wincomplete-patterns]
+    Pattern match(es) are non-exhaustive
+    In an equation for ‘findNr’: Patterns not matched: _ _
+    |
+291 |         findNr lo hi
+    |         ^^^^^^^^^^^^...
+Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/cereal-0.5.8.0-GaBg9CPzXaNJC4BIy7cegv
+Registering library for cereal-0.5.8.0..

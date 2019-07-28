@@ -1,0 +1,29 @@
+[1 of 2] Compiling Main             ( /private/var/folders/z8/6381qc4x4q7fhjf52d4c8km00000gn/T/stack525/semigroupoids-5.3.2/Setup.lhs, /private/var/folders/z8/6381qc4x4q7fhjf52d4c8km00000gn/T/stack525/semigroupoids-5.3.2/.stack-work/dist/x86_64-osx/Cabal-2.4.0.1/setup/Main.o )
+[2 of 2] Compiling StackSetupShim   ( /Users/mario/.stack/setup-exe-src/setup-shim-mPHDZzAJ.hs, /private/var/folders/z8/6381qc4x4q7fhjf52d4c8km00000gn/T/stack525/semigroupoids-5.3.2/.stack-work/dist/x86_64-osx/Cabal-2.4.0.1/setup/StackSetupShim.o )
+Linking /private/var/folders/z8/6381qc4x4q7fhjf52d4c8km00000gn/T/stack525/semigroupoids-5.3.2/.stack-work/dist/x86_64-osx/Cabal-2.4.0.1/setup/setup ...
+Configuring semigroupoids-5.3.2...
+Preprocessing library for semigroupoids-5.3.2..
+Building library for semigroupoids-5.3.2..
+[ 1 of 21] Compiling Data.Functor.Extend
+[ 2 of 21] Compiling Data.Functor.Bind.Class
+[ 3 of 21] Compiling Data.Functor.Apply
+[ 4 of 21] Compiling Data.Functor.Bind
+[ 5 of 21] Compiling Data.Functor.Bind.Trans
+[ 6 of 21] Compiling Data.Functor.Alt
+[ 7 of 21] Compiling Data.Bifunctor.Apply
+[ 8 of 21] Compiling Data.Functor.Plus
+[ 9 of 21] Compiling Data.Semigroupoid
+[10 of 21] Compiling Data.Semigroupoid.Dual
+[11 of 21] Compiling Data.Groupoid
+[12 of 21] Compiling Data.Isomorphism
+[13 of 21] Compiling Data.Semigroupoid.Ob
+[14 of 21] Compiling Data.Semigroupoid.Static
+[15 of 21] Compiling Data.Traversable.Instances
+[16 of 21] Compiling Data.Semigroup.Foldable.Class
+[17 of 21] Compiling Data.Semigroup.Bifoldable
+[18 of 21] Compiling Data.Semigroup.Foldable
+[19 of 21] Compiling Data.Semigroup.Traversable.Class
+[20 of 21] Compiling Data.Semigroup.Traversable
+[21 of 21] Compiling Data.Semigroup.Bitraversable
+Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/semigroupoids-5.3.2-HkRlCjp1FzdDLMmsx9hl8h
+Registering library for semigroupoids-5.3.2..

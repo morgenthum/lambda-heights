@@ -1,0 +1,117 @@
+Configuring base-compat-0.10.5...
+Preprocessing library for base-compat-0.10.5..
+Building library for base-compat-0.10.5..
+[  1 of 112] Compiling Control.Concurrent.Compat
+[  2 of 112] Compiling Control.Concurrent.Compat.Repl
+[  3 of 112] Compiling Control.Concurrent.MVar.Compat
+[  4 of 112] Compiling Control.Concurrent.MVar.Compat.Repl
+[  5 of 112] Compiling Control.Exception.Compat
+[  6 of 112] Compiling Control.Exception.Compat.Repl
+[  7 of 112] Compiling Control.Monad.Compat
+[  8 of 112] Compiling Control.Monad.Compat.Repl
+[  9 of 112] Compiling Control.Monad.Fail.Compat
+[ 10 of 112] Compiling Control.Monad.Fail.Compat.Repl
+[ 11 of 112] Compiling Control.Monad.IO.Class.Compat
+[ 12 of 112] Compiling Control.Monad.IO.Class.Compat.Repl
+[ 13 of 112] Compiling Control.Monad.ST.Lazy.Unsafe.Compat
+[ 14 of 112] Compiling Control.Monad.ST.Lazy.Unsafe.Compat.Repl
+[ 15 of 112] Compiling Control.Monad.ST.Unsafe.Compat
+[ 16 of 112] Compiling Control.Monad.ST.Unsafe.Compat.Repl
+[ 17 of 112] Compiling Data.Bifoldable.Compat
+[ 18 of 112] Compiling Data.Bifoldable.Compat.Repl
+[ 19 of 112] Compiling Data.Bifunctor.Compat
+[ 20 of 112] Compiling Data.Bifunctor.Compat.Repl
+[ 21 of 112] Compiling Data.Bitraversable.Compat
+[ 22 of 112] Compiling Data.Bitraversable.Compat.Repl
+[ 23 of 112] Compiling Data.Bits.Compat
+[ 24 of 112] Compiling Data.Bits.Compat.Repl
+[ 25 of 112] Compiling Data.Bool.Compat
+[ 26 of 112] Compiling Data.Bool.Compat.Repl
+[ 27 of 112] Compiling Data.Complex.Compat
+[ 28 of 112] Compiling Data.Complex.Compat.Repl
+[ 29 of 112] Compiling Data.Either.Compat
+[ 30 of 112] Compiling Data.Either.Compat.Repl
+[ 31 of 112] Compiling Data.Foldable.Compat
+[ 32 of 112] Compiling Data.Foldable.Compat.Repl
+[ 33 of 112] Compiling Data.Function.Compat
+[ 34 of 112] Compiling Data.Function.Compat.Repl
+[ 35 of 112] Compiling Data.Functor.Compat
+[ 36 of 112] Compiling Data.Functor.Compat.Repl
+[ 37 of 112] Compiling Data.Functor.Compose.Compat
+[ 38 of 112] Compiling Data.Functor.Compose.Compat.Repl
+[ 39 of 112] Compiling Data.Functor.Const.Compat
+[ 40 of 112] Compiling Data.Functor.Const.Compat.Repl
+[ 41 of 112] Compiling Data.Functor.Contravariant.Compat
+[ 42 of 112] Compiling Data.Functor.Contravariant.Compat.Repl
+[ 43 of 112] Compiling Data.Functor.Identity.Compat
+[ 44 of 112] Compiling Data.Functor.Identity.Compat.Repl
+[ 45 of 112] Compiling Data.Functor.Product.Compat
+[ 46 of 112] Compiling Data.Functor.Product.Compat.Repl
+[ 47 of 112] Compiling Data.Functor.Sum.Compat
+[ 48 of 112] Compiling Data.Functor.Sum.Compat.Repl
+[ 49 of 112] Compiling Data.IORef.Compat
+[ 50 of 112] Compiling Data.IORef.Compat.Repl
+[ 51 of 112] Compiling Data.List.Compat
+[ 52 of 112] Compiling Data.List.Compat.Repl
+[ 53 of 112] Compiling Data.List.NonEmpty.Compat
+[ 54 of 112] Compiling Data.List.NonEmpty.Compat.Repl
+[ 55 of 112] Compiling Data.Monoid.Compat
+[ 56 of 112] Compiling Data.Monoid.Compat.Repl
+[ 57 of 112] Compiling Data.Proxy.Compat
+[ 58 of 112] Compiling Data.Proxy.Compat.Repl
+[ 59 of 112] Compiling Data.Ratio.Compat
+[ 60 of 112] Compiling Data.Ratio.Compat.Repl
+[ 61 of 112] Compiling Data.STRef.Compat
+[ 62 of 112] Compiling Data.STRef.Compat.Repl
+[ 63 of 112] Compiling Data.Semigroup.Compat
+[ 64 of 112] Compiling Data.Semigroup.Compat.Repl
+[ 65 of 112] Compiling Data.String.Compat
+[ 66 of 112] Compiling Data.String.Compat.Repl
+[ 67 of 112] Compiling Data.Type.Coercion.Compat
+[ 68 of 112] Compiling Data.Type.Coercion.Compat.Repl
+[ 69 of 112] Compiling Data.Version.Compat
+[ 70 of 112] Compiling Data.Version.Compat.Repl
+[ 71 of 112] Compiling Data.Void.Compat
+[ 72 of 112] Compiling Data.Void.Compat.Repl
+[ 73 of 112] Compiling Data.Word.Compat
+[ 74 of 112] Compiling Data.Word.Compat.Repl
+[ 75 of 112] Compiling Debug.Trace.Compat
+[ 76 of 112] Compiling Debug.Trace.Compat.Repl
+[ 77 of 112] Compiling Foreign.ForeignPtr.Compat
+[ 78 of 112] Compiling Foreign.ForeignPtr.Compat.Repl
+[ 79 of 112] Compiling Foreign.ForeignPtr.Safe.Compat
+[ 80 of 112] Compiling Foreign.ForeignPtr.Safe.Compat.Repl
+[ 81 of 112] Compiling Foreign.ForeignPtr.Unsafe.Compat
+[ 82 of 112] Compiling Foreign.ForeignPtr.Unsafe.Compat.Repl
+[ 83 of 112] Compiling Foreign.Marshal.Alloc.Compat
+[ 84 of 112] Compiling Foreign.Marshal.Alloc.Compat.Repl
+[ 85 of 112] Compiling Foreign.Marshal.Array.Compat
+[ 86 of 112] Compiling Foreign.Marshal.Array.Compat.Repl
+[ 87 of 112] Compiling Foreign.Marshal.Safe.Compat
+[ 88 of 112] Compiling Foreign.Marshal.Safe.Compat.Repl
+[ 89 of 112] Compiling Foreign.Marshal.Unsafe.Compat
+[ 90 of 112] Compiling Foreign.Marshal.Unsafe.Compat.Repl
+[ 91 of 112] Compiling Foreign.Marshal.Utils.Compat
+[ 92 of 112] Compiling Foreign.Marshal.Compat
+[ 93 of 112] Compiling Foreign.Marshal.Compat.Repl
+[ 94 of 112] Compiling Foreign.Compat
+[ 95 of 112] Compiling Foreign.Compat.Repl
+[ 96 of 112] Compiling Foreign.Marshal.Utils.Compat.Repl
+[ 97 of 112] Compiling Numeric.Compat
+[ 98 of 112] Compiling Numeric.Compat.Repl
+[ 99 of 112] Compiling Numeric.Natural.Compat
+[100 of 112] Compiling Numeric.Natural.Compat.Repl
+[101 of 112] Compiling Prelude.Compat
+[102 of 112] Compiling Prelude.Compat.Repl
+[103 of 112] Compiling System.Environment.Compat
+[104 of 112] Compiling System.Environment.Compat.Repl
+[105 of 112] Compiling System.Exit.Compat
+[106 of 112] Compiling System.Exit.Compat.Repl
+[107 of 112] Compiling System.IO.Unsafe.Compat
+[108 of 112] Compiling System.IO.Unsafe.Compat.Repl
+[109 of 112] Compiling Text.Read.Compat
+[110 of 112] Compiling Text.Read.Compat.Repl
+[111 of 112] Compiling Type.Reflection.Compat
+[112 of 112] Compiling Type.Reflection.Compat.Repl
+Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/base-compat-0.10.5-FRXoAxOVtbG2qLNIZm1tTr
+Registering library for base-compat-0.10.5..

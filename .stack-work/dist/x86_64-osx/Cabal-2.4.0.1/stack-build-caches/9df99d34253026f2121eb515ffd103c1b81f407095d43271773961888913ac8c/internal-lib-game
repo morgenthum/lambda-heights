@@ -1,0 +1,160 @@
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Play/Render.hs:
+  hash: 74c6618cd4b53967f422a71de93068efad28319c1bdb5fca98b485c0e3f222f7
+  size: 8333
+  modtime: 1561295709
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Resources.hs:
+  hash: c5c0997d9f5e1ff2d0d94fc211196686a1df5c2a6bbc9b2c2fc837f9a0754a96
+  size: 453
+  modtime: 1561227167
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Pause.hs:
+  hash: b50c94baa074950a66f026f41db43315ed3d6722d14f2a125b7da1fa73236d05
+  size: 1823
+  modtime: 1561296797
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Version.hs:
+  hash: c9214cd8043d6b9f2997c999a2c0a2ba2c70dd9d185c3a73e26f2591db48bada
+  size: 655
+  modtime: 1561227140
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Render.hs:
+  hash: de2212ed9ae2bd22b8889aff4ff39365b25739447e40b5c3a865c590049d2c12
+  size: 1855
+  modtime: 1561227167
+/Users/mario/Development/intellij-workspace/lambda-heights/ChangeLog.md:
+  hash: e62305be6dd2125ff19f2ab4c0c04f0f0ea98a246684e4b4fe8643404516f4e1
+  size: 54
+  modtime: 1560889391
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Types/PlayState.hs:
+  hash: 6215c4b4e4986964a8730a84ad8f92513ae173663fb61f6a9dff6f5f7a2999f1
+  size: 835
+  modtime: 1561227167
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Types/ReplayState.hs:
+  hash: 707c2ad8cee23e2f7cbdeef942c7b55121ff0021ef2064e43efeaa0f714715c1
+  size: 778
+  modtime: 1560889391
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Play/Collision.hs:
+  hash: 6ab3f4d8cc7cbecea59f136c73cb969b098736d5c6ee44bb1380602d6513c703
+  size: 280
+  modtime: 1560889391
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Game.hs:
+  hash: ac6bb3332a203e997a5ca4d2ed8a6ef8c350f65cd72ca28d56f67457c1957993
+  size: 8810
+  modtime: 1561299345
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Types/Events.hs:
+  hash: 49989dcf4ad2acb8be9c81def41d1d262daa8006e42b446b3324f8265cf67172
+  size: 604
+  modtime: 1561225490
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Update.hs:
+  hash: 51a2cba15aca3311f879143979e2c458a3a2cc09d2822491b0a943ad5145f216
+  size: 769
+  modtime: 1561298024
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Types/PauseState.hs:
+  hash: 1806a86189063e18e9fc47b7a896905027d4f7a7fe999f2fa76cf9c205c34959
+  size: 358
+  modtime: 1561296797
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Types/Table.hs:
+  hash: abba417b901466e4648561517ddf18a8f3bb00eeb4632ee2162ac6226db43e07
+  size: 1191
+  modtime: 1561227167
+/Users/mario/Development/intellij-workspace/lambda-heights/lambda-heights.cabal:
+  hash: 0e0ce1fa78d22b4bee2df2c610a8c22403f838c2c410b40f8d200eaf51b03bb1
+  size: 5245
+  modtime: 1564238591
+/Users/mario/Development/intellij-workspace/lambda-heights/package.yaml:
+  hash: faf5017293d2cad1c8f38ba1cd6df7539647268a19f31cedb00f2f52f6e4811f
+  size: 1840
+  modtime: 1564238816
+/Users/mario/Development/intellij-workspace/lambda-heights/README.md:
+  hash: 5e3f419934d0a2a6d2ea7313289443822cf427c8d9f112da4cf05d9e7384de2f
+  size: 2133
+  modtime: 1560889391
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/Linear/V2/Utils.hs:
+  hash: 8c8d836147ee07fbbb6b44fdfe1e1f9ca419df58e75e59ec3d90773213aafda6
+  size: 240
+  modtime: 1560889391
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Play/Update.hs:
+  hash: 74f8d133686754b8c9aedd41b66690955d97172749836a5e05808dd34c878a03
+  size: 11043
+  modtime: 1561206686
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Types/Layer.hs:
+  hash: 9fe05ffcd3364d0549b3f1fea2caea03df760fb65ce089f63519db9032e37c4f
+  size: 447
+  modtime: 1560889391
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Types/Player.hs:
+  hash: a8ee9cd7b9b6d104166c9d18a9a722ab3f760da1508e8df596457e27173c499d
+  size: 549
+  modtime: 1560889391
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Types/Screen.hs:
+  hash: fdca7a122db9099c275fb4c17cac8ddf11fdfc3bc833a86327fc813278f3a4cb
+  size: 230
+  modtime: 1560889391
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/MainMenu.hs:
+  hash: e5319b39e63c06d64cbd695deff4b878e942d7ce82e3c912c280cf57bb93cece
+  size: 1249
+  modtime: 1561227167
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/ReplayMenu.hs:
+  hash: a5f6aa5879f6921c5e9144ab524932d60529e6950089009265990a5188fc6acd
+  size: 3126
+  modtime: 1561227167
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Scale.hs:
+  hash: a42d98142ecebcb9bcbf91ecc37420e7f2fb7aa921d7a3b1214c0b5a6dd78b17
+  size: 1025
+  modtime: 1560889391
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Score.hs:
+  hash: 3866bcb2aca0b43964bf3f2507966f4446b5e02fc16f4f8c125876a4883e994e
+  size: 1023
+  modtime: 1561227167
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Types/GameState.hs:
+  hash: 9f09b6707b46b00360d144264ade6be2fc3428be01b056e20d846c0cb4a95bfd
+  size: 85
+  modtime: 1560889391
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/RenderContext.hs:
+  hash: 94e66b2d86d5ddfc10dfacb7073d44fa6218684a1975176ffa7d689e158c2e55
+  size: 841
+  modtime: 1561227167
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Play/Input.hs:
+  hash: 0ecc6c9910d65a42c5de73e1966118247153ab9b1c4d514fc220c68a7a1e4e68
+  size: 2740
+  modtime: 1561227082
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Serialize.hs:
+  hash: 3a5858e374b7ce16da4886cd221a28ff1ca6cc787f3df78b7d4cecb3db282ffc
+  size: 1348
+  modtime: 1561227167
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Table.hs:
+  hash: 83cfd246ab69311ee5e735b9ad477fdc5092134b9c4def2aaf493ecb15da2400
+  size: 9963
+  modtime: 1561227167
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Types/ReplayMenuState.hs:
+  hash: 23d342522db274cb87158dcc3812e130db8143d9e072c593f4acfdb280268b2d
+  size: 332
+  modtime: 1560889391
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Replay.hs:
+  hash: 1e182bb0e2767cf7c09806b4d98374b7cc5d5fd094aba19874988dc663fd84fa
+  size: 3150
+  modtime: 1561227167
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Play/Pattern.hs:
+  hash: a02bddd2582842279c31c33c50bac0014b4a2c6d942b9dd34602071c5bb82763
+  size: 2518
+  modtime: 1560889391
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Types.hs:
+  hash: 3496653da06614277daa688ea15ced9dec7f4e1fed8f8e803b803685dc27f809
+  size: 108
+  modtime: 1560889391
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Types/ScoreState.hs:
+  hash: d51687041892e14122a30ab558102872f1dbb2b882f063875a88f1db83d84645
+  size: 313
+  modtime: 1560889391
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Menu.hs:
+  hash: 42606fd95dc38739974b351d4f3431da424fef221588fba00ca8514614e9f0f5
+  size: 2898
+  modtime: 1561227167
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Types/MainMenuState.hs:
+  hash: 59016bbda7a7336c1f8dcea3c6aed76285d3aa613afd03a63a6d40302420a47f
+  size: 257
+  modtime: 1560889391
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Play.hs:
+  hash: 202e0b595c51efd513f39ff44ba1d9bc06b2fb7d313b4d045093ede9d9d216d3
+  size: 523
+  modtime: 1560889391
+/Users/mario/Development/intellij-workspace/lambda-heights/src-game/LambdaHeights/Play/Output.hs:
+  hash: b74bef0fb8541381910b5d317e5a5c55722358ec72b45a6bf5e6b994684cacf7
+  size: 1495
+  modtime: 1561227167

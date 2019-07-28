@@ -1,0 +1,46 @@
+Configuring adjunctions-4.4...
+Preprocessing library for adjunctions-4.4..
+Building library for adjunctions-4.4..
+[ 1 of 11] Compiling Control.Monad.Trans.Conts
+[ 2 of 11] Compiling Data.Functor.Contravariant.Rep
+
+src/Data/Functor/Contravariant/Rep.hs:59:1: warning: [-Winline-rule-shadowing]
+    Rule "tabulate/index" may never fire
+      because rule "Class op index" for ‘index’ might fire first
+    Probable fix: add phase [n] or [~n] to the competing rule
+   |
+59 | "tabulate/index" forall t. tabulate (index t) = t #-}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[ 3 of 11] Compiling Data.Functor.Contravariant.Adjunction
+[ 4 of 11] Compiling Control.Monad.Trans.Contravariant.Adjoint
+[ 5 of 11] Compiling Data.Functor.Rep
+
+src/Data/Functor/Rep.hs:250:1: warning: [-Winline-rule-shadowing]
+    Rule "tabulate/index" may never fire
+      because rule "Class op index" for ‘index’ might fire first
+    Probable fix: add phase [n] or [~n] to the competing rule
+    |
+250 | "tabulate/index" forall t. tabulate (index t) = t #-}
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[ 6 of 11] Compiling Data.Functor.Adjunction
+
+src/Data/Functor/Adjunction.hs:9:14: warning: [-Wtrustworthy-safe]
+    ‘Data.Functor.Adjunction’ is marked as Trustworthy but has been inferred as safe!
+  |
+9 | {-# LANGUAGE Trustworthy #-}
+  |              ^^^^^^^^^^^
+[ 7 of 11] Compiling Control.Monad.Trans.Adjoint
+[ 8 of 11] Compiling Control.Comonad.Trans.Adjoint
+[ 9 of 11] Compiling Control.Monad.Representable.State
+[10 of 11] Compiling Control.Monad.Representable.Reader
+[11 of 11] Compiling Control.Comonad.Representable.Store
+
+src/Control/Comonad/Representable/Store.hs:46:1: warning: [-Wunused-imports]
+    The import of ‘Data.Semigroup’ is redundant
+      except perhaps to import instances from ‘Data.Semigroup’
+    To import instances alone, use: import Data.Semigroup()
+   |
+46 | import Data.Semigroup
+   | ^^^^^^^^^^^^^^^^^^^^^
+Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/adjunctions-4.4-Li0VzrHIPEdEwA261lbxqS
+Registering library for adjunctions-4.4..

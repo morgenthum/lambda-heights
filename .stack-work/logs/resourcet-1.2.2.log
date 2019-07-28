@@ -1,0 +1,25 @@
+Configuring resourcet-1.2.2...
+Preprocessing library for resourcet-1.2.2..
+Building library for resourcet-1.2.2..
+[1 of 5] Compiling Data.Acquire.Internal
+[2 of 5] Compiling Control.Monad.Trans.Resource.Internal
+
+Control/Monad/Trans/Resource/Internal.hs:43:1: warning: [-Wdeprecations]
+    Module ‘Control.Monad.Trans.List’ is deprecated:
+      This transformer is invalid on most monads
+   |
+43 | import Control.Monad.Trans.List     ( ListT    )
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Control/Monad/Trans/Resource/Internal.hs:264:46: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘ListT’
+    (imported from Control.Monad.Trans.List):
+    Deprecated: "This transformer is invalid on most monads"
+    |
+264 | GO(ListT)
+    |                                              ^^^^^
+[3 of 5] Compiling Data.Acquire
+[4 of 5] Compiling Control.Monad.Trans.Resource
+[5 of 5] Compiling UnliftIO.Resource
+Installing library in /Users/mario/.stack/snapshots/x86_64-osx/d3e7af164d733ff8884728e5e4645879ab1ea6706d42eeca81ff0651336051ff/8.6.5/lib/x86_64-osx-ghc-8.6.5/resourcet-1.2.2-2M8XgDBvy4C9UXOo3aGxpt
+Registering library for resourcet-1.2.2..
