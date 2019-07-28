@@ -3,4 +3,5 @@ resolver: lts-13.23
 packages:
 - lambda-heights-client
 - lambda-heights-client-generic
+- lambda-heights-client-windows
 - lambda-heights-core
