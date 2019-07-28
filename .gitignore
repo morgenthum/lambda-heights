@@ -1,4 +1,5 @@
 .idea/**
+out/**
 replays/**
 .DS_Store
 **/.stack-work/**
