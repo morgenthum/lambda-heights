@@ -1,7 +1,7 @@
 .idea/**
 replays/**
 .DS_Store
-**.stack-work/**
+**/.stack-work/**
 **.cabal
 **.iml
 **.lock
