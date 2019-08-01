@@ -6,22 +6,22 @@ module LambdaHeights.Play.Render
   )
 where
 
+import           ComposeEngine.RenderContext
+import qualified ComposeEngine.Types.Loop      as Loop
+import qualified ComposeEngine.Types.Timer     as Timer
 import qualified Control.Monad.IO.Class        as M
 import qualified Control.Monad.Reader          as M
 import qualified Data.Vector.Storable          as V
 import           Data.Word
 import           Foreign.C.Types
 import qualified LambdaHeights.Render          as Render
-import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Scale           as Scale
 import           LambdaHeights.Types
 import           LambdaHeights.Types.Config
 import qualified LambdaHeights.Types.Layer     as Layer
-import qualified LambdaHeights.Types.Loop      as Loop
 import qualified LambdaHeights.Types.Player    as Player
 import qualified LambdaHeights.Types.PlayState as State
 import qualified LambdaHeights.Types.Screen    as Screen
-import qualified LambdaHeights.Types.Timer     as Timer
 import           Linear.V2
 import qualified SDL
 import qualified SDL.Font                      as SDLF

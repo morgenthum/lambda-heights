@@ -1,10 +1,10 @@
 module LambdaHeights.Menu where
 
+import           ComposeEngine.RenderContext
 import qualified Control.Monad.IO.Class      as M
 import qualified Control.Monad.Reader        as M
 import qualified Data.Text                   as T
 import           LambdaHeights.Render
-import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Table         as Table
 import           LambdaHeights.Types.Config
 import qualified LambdaHeights.Types.Table   as Table

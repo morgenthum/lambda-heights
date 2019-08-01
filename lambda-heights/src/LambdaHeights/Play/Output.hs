@@ -3,13 +3,13 @@ module LambdaHeights.Play.Output
   )
 where
 
+import qualified ComposeEngine.Types.Loop        as Loop
 import           Control.Concurrent.STM.TChan
 import           Control.Monad.IO.Class
 import           Control.Monad.STM
 import           Data.Time
 import           Data.Yaml
 import           LambdaHeights.Types.Events
-import qualified LambdaHeights.Types.Loop        as Loop
 import qualified LambdaHeights.Types.Player      as Player
 import qualified LambdaHeights.Types.PlayState   as State
 import qualified LambdaHeights.Types.ReplayState as Replay

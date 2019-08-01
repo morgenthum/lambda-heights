@@ -7,19 +7,21 @@ module LambdaHeights.Game
   )
 where
 
+import           ComposeEngine.Loop
+import           ComposeEngine.RenderContext
+import qualified ComposeEngine.Types.Loop            as Loop
+import qualified ComposeEngine.Types.Timer           as Timer
 import           Control.Concurrent.Async
 import           Control.Concurrent.STM.TChan
 import           Control.Monad.Extra
 import           Control.Monad.IO.Class
 import           Control.Monad.Reader
 import           Data.Time
-import           LambdaHeights.Loop
 import qualified LambdaHeights.MainMenu              as MainMenu
 import qualified LambdaHeights.Menu                  as Menu
 import qualified LambdaHeights.Pause                 as Pause
 import qualified LambdaHeights.Play                  as Play
 import qualified LambdaHeights.Render                as Render
-import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Replay                as Replay
 import qualified LambdaHeights.ReplayMenu            as ReplayMenu
 import qualified LambdaHeights.Score                 as Score
@@ -27,7 +29,6 @@ import           LambdaHeights.Serialize
 import           LambdaHeights.Types.Config
 import qualified LambdaHeights.Types.Events          as Events
 import qualified LambdaHeights.Types.GameState       as Game
-import qualified LambdaHeights.Types.Loop            as Loop
 import qualified LambdaHeights.Types.MainMenuState   as MainMenu
 import qualified LambdaHeights.Types.PauseState      as Pause
 import qualified LambdaHeights.Types.Player          as Play
@@ -35,7 +36,6 @@ import qualified LambdaHeights.Types.PlayState       as Play
 import qualified LambdaHeights.Types.ReplayMenuState as ReplayMenu
 import qualified LambdaHeights.Types.ReplayState     as Replay
 import qualified LambdaHeights.Types.ScoreState      as Score
-import qualified LambdaHeights.Types.Timer           as Timer
 import qualified LambdaHeights.Update                as Update
 import           Linear.V4
 import           Prelude                             hiding (init)

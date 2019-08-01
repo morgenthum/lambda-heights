@@ -4,12 +4,12 @@ module LambdaHeights.Score
   )
 where
 
+import           ComposeEngine.RenderContext
+import qualified ComposeEngine.Types.Loop       as Loop
 import qualified Control.Monad.IO.Class         as M
 import qualified LambdaHeights.Menu             as Menu
 import           LambdaHeights.Render
-import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Table            as Table
-import qualified LambdaHeights.Types.Loop       as Loop
 import qualified LambdaHeights.Types.ScoreState as Score
 import           Linear.V4
 import qualified SDL

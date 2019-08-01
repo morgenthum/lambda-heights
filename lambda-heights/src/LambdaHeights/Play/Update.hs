@@ -3,6 +3,8 @@ module LambdaHeights.Play.Update
   )
 where
 
+import qualified ComposeEngine.Types.Loop      as Loop
+import qualified ComposeEngine.Types.Timer     as Timer
 import           Control.Monad.State
 import           Data.Function
 import           Data.List
@@ -10,11 +12,9 @@ import qualified LambdaHeights.Play.Collision  as Collision
 import qualified LambdaHeights.Play.Pattern    as Pattern
 import qualified LambdaHeights.Types.Events    as Events
 import qualified LambdaHeights.Types.Layer     as Layer
-import qualified LambdaHeights.Types.Loop      as Loop
 import qualified LambdaHeights.Types.Player    as Player
 import qualified LambdaHeights.Types.PlayState as State
 import qualified LambdaHeights.Types.Screen    as Screen
-import qualified LambdaHeights.Types.Timer     as Timer
 import           Linear.V2
 
 -- Update the world state.

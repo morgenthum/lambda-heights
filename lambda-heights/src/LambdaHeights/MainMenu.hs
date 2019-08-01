@@ -4,12 +4,12 @@ module LambdaHeights.MainMenu
   )
 where
 
+import           ComposeEngine.RenderContext
+import qualified ComposeEngine.Types.Loop          as Loop
 import qualified Control.Monad.Reader              as M
 import qualified LambdaHeights.Menu                as Menu
-import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Table               as Table
 import qualified LambdaHeights.Types.GameState     as Game
-import qualified LambdaHeights.Types.Loop          as Loop
 import qualified LambdaHeights.Types.MainMenuState as MainMenu
 import qualified SDL
 

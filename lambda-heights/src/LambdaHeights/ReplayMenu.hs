@@ -2,6 +2,8 @@
 
 module LambdaHeights.ReplayMenu where
 
+import qualified ComposeEngine.Types.Loop            as Loop
+import           ComposeEngine.RenderContext
 import qualified Control.Monad.IO.Class              as M
 import qualified Control.Monad.Reader                as M
 import           Data.Either
@@ -9,10 +11,8 @@ import           Data.List
 import qualified Data.Text                           as T
 import           Data.Yaml
 import qualified LambdaHeights.Menu                  as Menu
-import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Table                 as Table
 import           LambdaHeights.Types.Config
-import qualified LambdaHeights.Types.Loop            as Loop
 import qualified LambdaHeights.Types.ReplayMenuState as ReplayMenu
 import qualified LambdaHeights.Types.ReplayState     as Replay
 import qualified LambdaHeights.Types.Table           as Table

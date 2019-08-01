@@ -1,13 +1,13 @@
 module LambdaHeights.Render where
 
+import           ComposeEngine.Loop
+import           ComposeEngine.RenderContext
+import           ComposeEngine.Types.Loop
 import qualified Control.Monad.IO.Class      as M
 import qualified Control.Monad.Reader        as M
 import qualified Data.Text                   as T
 import           Data.Word
 import           Foreign.C.Types
-import           LambdaHeights.Loop
-import           LambdaHeights.RenderContext
-import           LambdaHeights.Types.Loop
 import           Linear.V2
 import           Linear.V4
 import qualified SDL

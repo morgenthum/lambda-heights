@@ -1,12 +1,12 @@
 module LambdaHeights.Pause where
 
+import           ComposeEngine.RenderContext
+import qualified ComposeEngine.Types.Loop       as Loop
 import qualified Control.Monad.Reader           as M
 import qualified LambdaHeights.Menu             as Menu
 import           LambdaHeights.Render
-import           LambdaHeights.RenderContext
 import qualified LambdaHeights.Table            as Table
 import           LambdaHeights.Types.Config
-import qualified LambdaHeights.Types.Loop       as Loop
 import qualified LambdaHeights.Types.PauseState as Pause
 import           Linear.V4
 import qualified SDL

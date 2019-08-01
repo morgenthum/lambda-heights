@@ -1,7 +1,7 @@
 module LambdaHeights.Update where
 
+import           ComposeEngine.Types.Loop
 import           Control.Monad.State
-import           LambdaHeights.Types.Loop
 
 updateOneFinished
   :: Update s1 r1 e1 -> Update s2 r2 e2 -> Update (s1, s2) (Maybe r1, Maybe r2) (e1, e2)

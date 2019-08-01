@@ -2,7 +2,7 @@ resolver: lts-13.23
 
 packages:
 - lambda-heights
-#- lambda-heights-app
+- lambda-heights-app
 - lambda-heights-app-win
 
 extra-deps:

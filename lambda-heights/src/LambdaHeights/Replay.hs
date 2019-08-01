@@ -6,18 +6,18 @@ module LambdaHeights.Replay
   )
 where
 
+import           ComposeEngine.RenderContext
+import qualified ComposeEngine.Types.Loop        as Loop
+import qualified ComposeEngine.Types.Timer       as Timer
 import qualified Control.Monad.Reader            as M
 import qualified Control.Monad.State             as M
 import           Data.Time
 import qualified LambdaHeights.Play              as Play
 import           LambdaHeights.Render
-import           LambdaHeights.RenderContext
 import           LambdaHeights.Scale
 import qualified LambdaHeights.Types.Events      as Events
-import qualified LambdaHeights.Types.Loop        as Loop
 import qualified LambdaHeights.Types.PlayState   as Play
 import qualified LambdaHeights.Types.ReplayState as Replay
-import qualified LambdaHeights.Types.Timer       as Timer
 import           Linear.V4
 
 filePath :: UTCTime -> String
