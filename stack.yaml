@@ -1,7 +1,10 @@
 resolver: lts-13.23
 
 packages:
-- lambda-heights-client
-- lambda-heights-client-generic
-- lambda-heights-client-windows
-- lambda-heights-core
+- lambda-heights
+#- lambda-heights-app
+- lambda-heights-app-win
+
+extra-deps:
+- git: https://github.com/morgenthum/compose-engine
+  commit: 24e0dd5cdd5b3ae87a302466fcb1483f3875206a

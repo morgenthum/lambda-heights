@@ -1,4 +1,4 @@
-name:                lambda-heights-client-generic
+name:                lambda-heights-app-win
 version:             1.2.0
 github:              "morgenthum/lambda-heights"
 license:             BSD3
@@ -10,8 +10,7 @@ description:         Please see the README on GitHub at <https://github.com/morg
 
 dependencies:
   - base >=4.7 && <5
-  - file-embed >= 0.0.11
-  - lambda-heights-client
+  - lambda-heights
   - sdl2 >= 2.4.1.0
   - sdl2-ttf >= 2.1.0
 
