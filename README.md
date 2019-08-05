@@ -23,6 +23,10 @@ Lambda-Heights is a fast paced game. You play a small lambda letter which can ju
 - Double your jump impulse by having a velocity higher than 750.
 - If you are jumping and the bottom of the player is inside a layer, you can jump again, which results in very high jumps.
 
+## Implementation
+
+See the [IMPLEMENTATION.md](IMPLEMENTATION.md) file for implementation details.
+
 ## Build
 
 You need the following software installed on your machine to build lambda-heights yourself.
