@@ -1,1 +1,1 @@
-find src -name '*.hs' | xargs graphmod -q -p | xdot -
+find lambda-heights/src -name '*.hs' | xargs graphmod -q -p | xdot -

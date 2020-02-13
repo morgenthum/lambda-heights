@@ -1,13 +1,14 @@
 module LambdaHeights.Types.PauseState where
 
-import           LambdaHeights.Types.Table
-import           Linear.V2
+import LambdaHeights.Types.Table
+import Linear.V2
 
-data State s = State {
-  pausedState :: s,
-  menu        :: Table,
-  reason      :: Maybe ExitReason
-}
+data State s
+  = State
+      { pausedState :: s,
+        menu :: Table,
+        reason :: Maybe ExitReason
+      }
 
 data ExitReason = Exit | Resume
 

@@ -1,12 +1,13 @@
 module LambdaHeights.Types.ReplayMenuState where
 
-import           LambdaHeights.Types.Table
-import           Linear.V2
+import LambdaHeights.Types.Table
+import Linear.V2
 
-data State = State {
-  table    :: Table,
-  viewport :: TableViewport
-}
+data State
+  = State
+      { table :: Table,
+        viewport :: TableViewport
+      }
 
 newState :: Table -> State
 newState t =

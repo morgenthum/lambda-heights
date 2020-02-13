@@ -1,8 +1,8 @@
 module Main where
 
-import qualified LambdaHeights.Game         as Game
-import           LambdaHeights.Types.Config
-import qualified SDL.Font                   as SDLF
+import qualified LambdaHeights.Game as Game
+import LambdaHeights.Types.Config
+import qualified SDL.Font as SDLF
 
 main :: IO ()
 main = do

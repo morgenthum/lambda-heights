@@ -1,17 +1,17 @@
 module LambdaHeights.Render where
 
-import           ComposeEngine.Loop
-import           ComposeEngine.RenderContext
-import           ComposeEngine.Types.Loop
-import qualified Control.Monad.IO.Class      as M
-import qualified Control.Monad.Reader        as M
-import qualified Data.Text                   as T
-import           Data.Word
-import           Foreign.C.Types
-import           Linear.V2
-import           Linear.V4
+import ComposeEngine.Loop
+import ComposeEngine.RenderContext
+import ComposeEngine.Types.Loop
+import qualified Control.Monad.IO.Class as M
+import qualified Control.Monad.Reader as M
+import qualified Data.Text as T
+import Data.Word
+import Foreign.C.Types
+import Linear.V2
+import Linear.V4
 import qualified SDL
-import qualified SDL.Font                    as SDLF
+import qualified SDL.Font as SDLF
 
 renderFrame :: (M.MonadIO m) => RenderContext -> V4 Word8 -> Render m s -> Render m s
 renderFrame (_, renderer) color render = do
@@ -24,7 +24,7 @@ renderFrame (_, renderer) color render = do
 
 renderBoth :: (M.Monad m) => Render m s1 -> Render m s2 -> Render m (s1, s2)
 renderBoth r1 r2 = do
-  timer    <- askRenderTimer
+  timer <- askRenderTimer
   (s1, s2) <- askRenderState
   M.lift $ M.runReaderT r1 (timer, s1)
   M.lift $ M.runReaderT r2 (timer, s2)

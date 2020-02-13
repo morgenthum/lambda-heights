@@ -2,26 +2,26 @@
 
 ## Description
 
-Lambda-Heights is a fast paced game. You play a small lambda letter which can jump and move left and right. You need to jump onto layers to move upwards. Meanwhile the screen also moves upward - so you need to hold the velocity. If the bottom of the screen touches the player, the game is over.
+Lambda-Heights is a fast paced game. You play a small lambda letter which can move and jump around. You need to jump onto layers to move upwards. Meanwhile the screen also moves upward - so you need to hold the velocity. If the bottom of the screen touches the player, the game is over.
 
 ![Ingame screenshot](https://github.com/morgenthum/lambda-heights/blob/master/screenshot.png "Ingame")
 
 ## Features
 
-- Games are always recorded to the local disk.
-- Watch your games again by choosing the replay in the replay menu.
+- Games are recorded to the local disk, so you can watch your games again by choosing the replay in the replay menu.
+- You can adjust the update rate by pressing plus (+) or minus (-) during a replay, which results in slower or faster motion.
 
 ## Controls
 
 - A or left arrow = Move left
 - D or right arrow = Move right
-- Space = Jump
+- W, space or up arrow = Jump
 - Esc = Pause / Exit
 
 ### Jump tricks
 
 - Double your jump impulse by having a velocity higher than 750.
-- If you are jumping and the bottom of the player is inside a layer, you can jump again, which results in very high jumps.
+- If you are jumping and the bottom of the player is inside a layer, you can jump again, which results in a very high jump.
 
 ## Implementation
 
@@ -49,7 +49,7 @@ brew install sdl2_gfx
 
 #### Linux
 
-I think you will have no problems to find the SDL2 packages in the package manager of your linux distribution.
+I think you will have no problems to find the SDL2 packages in the package manager of your distribution.
 
 #### Windows
 

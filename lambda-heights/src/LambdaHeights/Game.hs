@@ -1,49 +1,51 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module LambdaHeights.Game
-  ( init
-  , destroy
-  , start
+  ( init,
+    destroy,
+    start,
   )
 where
 
-import           ComposeEngine.Loop
-import           ComposeEngine.RenderContext
-import qualified ComposeEngine.Types.Loop            as Loop
-import qualified ComposeEngine.Types.Timer           as Timer
-import           Control.Concurrent.Async
-import           Control.Concurrent.STM.TChan
-import           Control.Monad.Extra
-import           Control.Monad.IO.Class
-import           Control.Monad.Reader
-import           Data.Time
-import qualified LambdaHeights.MainMenu              as MainMenu
-import qualified LambdaHeights.Menu                  as Menu
-import qualified LambdaHeights.Pause                 as Pause
-import qualified LambdaHeights.Play                  as Play
-import qualified LambdaHeights.Render                as Render
-import qualified LambdaHeights.Replay                as Replay
-import qualified LambdaHeights.ReplayMenu            as ReplayMenu
-import qualified LambdaHeights.Score                 as Score
-import           LambdaHeights.Serialize
-import           LambdaHeights.Types.Config
-import qualified LambdaHeights.Types.Events          as Events
-import qualified LambdaHeights.Types.GameState       as Game
-import qualified LambdaHeights.Types.MainMenuState   as MainMenu
-import qualified LambdaHeights.Types.PauseState      as Pause
-import qualified LambdaHeights.Types.Player          as Play
-import qualified LambdaHeights.Types.PlayState       as Play
+import ComposeEngine.Loop
+import ComposeEngine.RenderContext
+import qualified ComposeEngine.Types.Loop as Loop
+import qualified ComposeEngine.Types.Timer as Timer
+import Control.Concurrent.Async
+import Control.Concurrent.STM.TChan
+import Control.Monad.Extra
+import Control.Monad.IO.Class
+import Control.Monad.Reader
+import Data.Time
+import qualified LambdaHeights.MainMenu as MainMenu
+import qualified LambdaHeights.Menu as Menu
+import qualified LambdaHeights.Pause as Pause
+import qualified LambdaHeights.Play as Play
+import qualified LambdaHeights.Render as Render
+import qualified LambdaHeights.Replay as Replay
+import qualified LambdaHeights.ReplayMenu as ReplayMenu
+import qualified LambdaHeights.Score as Score
+import LambdaHeights.Serialize
+import LambdaHeights.Types.Config
+import qualified LambdaHeights.Types.Events as Events
+import qualified LambdaHeights.Types.GameState as Game
+import qualified LambdaHeights.Types.MainMenuState as MainMenu
+import qualified LambdaHeights.Types.PauseState as Pause
+import qualified LambdaHeights.Types.PlayState as Play
+import qualified LambdaHeights.Types.Player as Play
 import qualified LambdaHeights.Types.ReplayMenuState as ReplayMenu
-import qualified LambdaHeights.Types.ReplayState     as Replay
-import qualified LambdaHeights.Types.ScoreState      as Score
-import qualified LambdaHeights.Update                as Update
-import           Linear.V4
-import           Prelude                             hiding (init)
+import qualified LambdaHeights.Types.ReplayState as Replay
+import LambdaHeights.Types.Score
+import qualified LambdaHeights.Types.ScoreState as Score
+import qualified LambdaHeights.Update as Update
+import Linear.V4
 import qualified SDL
-import qualified SDL.Font                            as SDLF
-import           System.Directory
+import qualified SDL.Font as SDLF
+import System.Directory
+import Prelude hiding (init)
 
 type PlayLoopState m = LoopState m Play.State Play.Result ()
+
 type ReplayLoopState m = LoopState m Replay.State Replay.Result ()
 
 menuTimer :: (MonadIO m) => m Timer.LoopTimer
@@ -69,21 +71,21 @@ destroy = do
 start :: Config -> IO ()
 start config = do
   ctx <- createContext "Lambda-Heights"
-  _   <- runReaderT (startState ctx Game.Menu) config
+  _ <- runReaderT (startState ctx Game.Menu) config
   deleteContext ctx
 
 startState :: RenderContext -> Game.State -> ConfigReader Game.State
-startState _   Game.Exit   = return Game.Exit
-startState ctx Game.Menu   = startMenu ctx >>= startState ctx
-startState ctx Game.Play   = startGame ctx >>= startState ctx
+startState _ Game.Exit = return Game.Exit
+startState ctx Game.Menu = startMenu ctx >>= startState ctx
+startState ctx Game.Play = startGame ctx >>= startState ctx
 startState ctx Game.Replay = startReplayMenu ctx >>= startState ctx
 
 startMenu :: RenderContext -> ConfigReader Game.State
 startMenu ctx = do
-  timer  <- menuTimer
+  timer <- menuTimer
   config <- Menu.createConfig
-  let render = Render.renderFrame ctx (V4 0 0 0 255) $ MainMenu.render ctx config
-  let loop   = timedLoop Menu.keyInput MainMenu.update noOutput render
+  let render = Render.renderFrame ctx (V4 0 0 0 255) (MainMenu.render ctx config)
+  let loop = timedLoop Menu.keyInput MainMenu.update noOutput render
   liftIO $ startLoop timer MainMenu.newState loop
 
 startGame :: RenderContext -> ConfigReader Game.State
@@ -91,80 +93,80 @@ startGame ctx = do
   time <- liftIO getCurrentTime
   zone <- liftIO getCurrentTimeZone
   let localTime = utcToLocalTime zone time
-  channel    <- liftIO newTChanIO
+  channel <- liftIO newTChanIO
   playConfig <- Play.createConfig
-  let filePath      = Replay.filePath time
-  let output        = Play.output localTime filePath channel
-  let playRenderer = Render.renderFrame ctx (V4 30 30 30 255) $ Play.render ctx playConfig
+  let filePath = Replay.filePath time
+  let descWriter = Play.writeDescription filePath (Play.createDescription localTime filePath)
+  let output = Play.output descWriter channel
+  let playRenderer = Render.renderFrame ctx (V4 30 30 30 255) (Play.render ctx playConfig)
   let pauseRenderer = Play.render ctx playConfig
   let gameLoop = timedLoop Play.keyInput Play.update output playRenderer
   startGameLoop ctx filePath channel Play.newState gameLoop pauseRenderer
     >>= startScoreWithReplay ctx (filePath ++ ".dat")
 
-startGameLoop
-  :: RenderContext
-  -> FilePath
-  -> TChan (Maybe [Events.PlayerEvent])
-  -> Play.State
-  -> PlayLoopState IO
-  -> Loop.Render IO Play.State
-  -> ConfigReader Score.Score
+startGameLoop ::
+  RenderContext ->
+  FilePath ->
+  TChan (Maybe [Events.PlayerEvent]) ->
+  Play.State ->
+  PlayLoopState IO ->
+  Loop.Render IO Play.State ->
+  ConfigReader Score
 startGameLoop ctx filePath channel state loop pauseRenderer = do
-  timer  <- playTimer
+  timer <- playTimer
   handle <- liftIO $ async $ serialize (fromTChan channel) (toFile $ filePath ++ ".dat")
-  result <- liftIO $ startLoop timer state loop
+  result <- liftIO (startLoop timer state loop)
   let state' = Play.state result
-  liftIO $ wait handle
-  let score = Play.score $ Play.player state'
+  let score = Play.score (Play.player state')
+  liftIO (wait handle)
   case Play.reason result of
     Play.Finished -> return score
-    Play.Paused   -> do
+    Play.Paused -> do
       let pauseState = Pause.newState state'
       reason <- startPause ctx pauseState pauseRenderer
       case reason of
         Pause.Resume -> startGameLoop ctx filePath channel state' loop pauseRenderer
-        Pause.Exit   -> return score
+        Pause.Exit -> return score
 
 startPause :: RenderContext -> Pause.State s -> Loop.Render IO s -> ConfigReader Pause.ExitReason
 startPause ctx state proxyRenderer = do
-  timer       <- liftIO menuTimer
+  timer <- liftIO menuTimer
   pauseConfig <- Pause.createConfig
-  let renderer = Render.renderFrame ctx (V4 0 0 0 255) $ Pause.render ctx pauseConfig proxyRenderer
-  let loop     = timedLoop Menu.keyInput Pause.update noOutput renderer
+  let renderer = Render.renderFrame ctx (V4 0 0 0 255) (Pause.render ctx pauseConfig proxyRenderer)
+      loop = timedLoop Menu.keyInput Pause.update noOutput renderer
   liftIO $ startLoop timer state loop
 
-startScore :: RenderContext -> Score.Score -> ConfigReader Game.State
+startScore :: RenderContext -> Score -> ConfigReader Game.State
 startScore ctx score = do
-  timer  <- liftIO menuTimer
+  timer <- liftIO menuTimer
   config <- Menu.createConfig
-  let render = Render.renderFrame ctx (V4 0 0 0 255) $ Score.render ctx config
-  let loop   = timedLoop Menu.keyInput Score.update noOutput render
+  let render = Render.renderFrame ctx (V4 0 0 0 255) (Score.render ctx config)
+      loop = timedLoop Menu.keyInput Score.update noOutput render
   _ <- liftIO $ startLoop timer (Score.newState score) loop
   return Game.Menu
 
-startScoreWithReplay :: RenderContext -> FilePath -> Score.Score -> ConfigReader Game.State
+startScoreWithReplay :: RenderContext -> FilePath -> Score -> ConfigReader Game.State
 startScoreWithReplay ctx filePath score = do
-  let xs = liftIO $ deserializeFromFile filePath
+  let xs = liftIO (deserializeFromFile filePath)
   maybeM (return Game.Menu) (startScoreWithReplayLoop ctx score) xs
 
-startScoreWithReplayLoop
-  :: RenderContext -> Score.Score -> [[Events.PlayerEvent]] -> ConfigReader Game.State
+startScoreWithReplayLoop ::
+  RenderContext -> Score -> [[Events.PlayerEvent]] -> ConfigReader Game.State
 startScoreWithReplayLoop ctx score events = do
-  timer        <- liftIO scoreTimer
+  timer <- liftIO scoreTimer
   replayConfig <- Play.createConfig
-  scoreConfig  <- Menu.createConfig
+  scoreConfig <- Menu.createConfig
   let renderReplay = Replay.render ctx replayConfig
-  let renderScore  = Score.render ctx scoreConfig
-  let render =
-        Render.renderFrame ctx (V4 30 30 30 255) $ Render.renderBoth renderReplay renderScore
-  let update = Update.updateOneFinished Replay.update Score.update
-  let loop = timedLoop scoreWithReplayInput update noOutput render
-  let replayState = Replay.State Play.newState events
-  let scoreState  = Score.newState score
+      renderScore = Score.render ctx scoreConfig
+      render = Render.renderFrame ctx (V4 30 30 30 255) (Render.renderBoth renderReplay renderScore)
+      update = Update.updateOneFinished Replay.update Score.update
+      loop = timedLoop scoreWithReplayInput update noOutput render
+      replayState = Replay.State Play.newState events
+      scoreState = Score.newState score
   (_, scoreResult) <- startLoop timer (replayState, scoreState) loop
   case scoreResult of
     Nothing -> startScore ctx score
-    Just _  -> return Game.Menu
+    Just _ -> return Game.Menu
 
 scoreWithReplayInput :: ConfigReader ([Events.ControlEvent], [SDL.Event])
 scoreWithReplayInput = do
@@ -173,45 +175,45 @@ scoreWithReplayInput = do
 
 startReplayMenu :: RenderContext -> ConfigReader Game.State
 startReplayMenu ctx = do
-  timer  <- liftIO menuTimer
-  table  <- liftIO $ ReplayMenu.buildTable <$> ReplayMenu.loadReplayFiles
+  timer <- liftIO menuTimer
+  table <- liftIO $ ReplayMenu.buildTable <$> ReplayMenu.loadReplayFiles
   config <- ReplayMenu.createConfig
-  let state  = ReplayMenu.newState table
-  let render = Render.renderFrame ctx (V4 0 0 0 255) $ ReplayMenu.render ctx config
-  let loop = timedLoop Menu.keyInput ReplayMenu.update noOutput render
-  filePath <- liftIO $ startLoop timer state loop
+  let state = ReplayMenu.newState table
+      render = Render.renderFrame ctx (V4 0 0 0 255) (ReplayMenu.render ctx config)
+      loop = timedLoop Menu.keyInput ReplayMenu.update noOutput render
+  filePath <- liftIO (startLoop timer state loop)
   maybe (return Game.Menu) (`startReplayFromFile` ctx) filePath
 
 startReplayFromFile :: FilePath -> RenderContext -> ConfigReader Game.State
 startReplayFromFile replayFilePath ctx = do
-  let xs = liftIO $ deserializeFromFile replayFilePath
+  let xs = liftIO (deserializeFromFile replayFilePath)
   maybeM (return Game.Menu) (`startReplay` ctx) xs
 
 startReplay :: [[Events.PlayerEvent]] -> RenderContext -> ConfigReader Game.State
 startReplay events ctx = do
   config <- Play.createConfig
-  let renderReplay = Render.renderFrame ctx (V4 30 30 30 255) $ Replay.render ctx config
-  let loop = timedLoop Replay.input Replay.update noOutput renderReplay
-  let state        = Replay.State Play.newState events
-  let renderPause  = Play.render ctx config
+  let renderReplay = Render.renderFrame ctx (V4 30 30 30 255) (Replay.render ctx config)
+      loop = timedLoop Replay.input Replay.update noOutput renderReplay
+      state = Replay.State Play.newState events
+      renderPause = Play.render ctx config
   startReplayLoop ctx state loop renderPause >>= startScore ctx
 
-startReplayLoop
-  :: RenderContext
-  -> Replay.State
-  -> ReplayLoopState IO
-  -> Loop.Render IO Play.State
-  -> ConfigReader Score.Score
+startReplayLoop ::
+  RenderContext ->
+  Replay.State ->
+  ReplayLoopState IO ->
+  Loop.Render IO Play.State ->
+  ConfigReader Score
 startReplayLoop ctx state loop pauseRenderer = do
-  timer  <- liftIO playTimer
-  result <- liftIO $ startLoop timer state loop
+  timer <- liftIO playTimer
+  result <- liftIO (startLoop timer state loop)
   let state' = Replay.state result
-  let score = Play.score $ Play.player $ Replay.playState state'
+  let score = Play.score $ Play.player (Replay.playState state')
   case Replay.reason result of
     Play.Finished -> return score
-    Play.Paused   -> do
-      let pauseState = Pause.newState $ Replay.playState state'
+    Play.Paused -> do
+      let pauseState = Pause.newState (Replay.playState state')
       reason <- startPause ctx pauseState pauseRenderer
       case reason of
         Pause.Resume -> startReplayLoop ctx state' loop pauseRenderer
-        Pause.Exit   -> return score
+        Pause.Exit -> return score

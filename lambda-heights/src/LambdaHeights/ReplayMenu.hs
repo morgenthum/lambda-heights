@@ -2,23 +2,24 @@
 
 module LambdaHeights.ReplayMenu where
 
-import qualified ComposeEngine.Types.Loop            as Loop
-import           ComposeEngine.RenderContext
-import qualified Control.Monad.IO.Class              as M
-import qualified Control.Monad.Reader                as M
-import           Data.Either
-import           Data.List
-import qualified Data.Text                           as T
-import           Data.Yaml
-import qualified LambdaHeights.Menu                  as Menu
-import qualified LambdaHeights.Table                 as Table
-import           LambdaHeights.Types.Config
+import ComposeEngine.RenderContext
+import qualified ComposeEngine.Types.Loop as Loop
+import qualified Control.Monad.IO.Class as M
+import qualified Control.Monad.Reader as M
+import Data.Either
+import Data.List
+import qualified Data.Text as T
+import Data.Yaml
+import qualified LambdaHeights.Menu as Menu
+import qualified LambdaHeights.Table as Table
+import LambdaHeights.Types.Config
 import qualified LambdaHeights.Types.ReplayMenuState as ReplayMenu
-import qualified LambdaHeights.Types.ReplayState     as Replay
-import qualified LambdaHeights.Types.Table           as Table
-import           Linear.V2
+import qualified LambdaHeights.Types.ReplayState as Replay
+import LambdaHeights.Types.Score
+import qualified LambdaHeights.Types.Table as Table
+import Linear.V2
 import qualified SDL
-import           System.Directory
+import System.Directory
 
 createConfig :: ConfigReader Menu.RenderConfig
 createConfig = Menu.RenderConfig <$> M.asks metaFont <*> M.asks metaFont
@@ -34,18 +35,19 @@ filterPacked f = map T.unpack . filter f . map T.pack
 
 buildTable :: [Replay.Description] -> Table.Table
 buildTable xs =
-  let texts    = tableHeader : ensureRows (map toList xs)
+  let texts = tableHeader : ensureRows (map toList xs)
       selected = V2 2 1
-  in  Table.newTable texts selected
+   in Table.newTable texts selected
 
 toList :: Replay.Description -> [String]
 toList x =
   let durationSec = realToFrac (Replay.duration x) / 1000 :: Float
-  in  [ Replay.fileName x
-      , show $ Replay.time x
-      , show durationSec
-      , show $ Replay.score x
-      , show $ Replay.version x
+      Score score = Replay.score x
+   in [ Replay.fileName x,
+        show $ Replay.time x,
+        show durationSec,
+        show score,
+        show $ Replay.version x
       ]
 
 tableHeader :: [String]
@@ -66,19 +68,19 @@ update :: Loop.Update ReplayMenu.State (Maybe String) [SDL.Event]
 update events = do
   state <- Loop.getUpdateState
   case Menu.update updateSelection id events $ ReplayMenu.table state of
-    Left  result -> Loop.putUpdateResult result
-    Right table  -> Loop.putUpdateState $ updateViewport $ state { ReplayMenu.table = table }
+    Left result -> Loop.putUpdateResult result
+    Right table -> Loop.putUpdateState $ updateViewport $ state {ReplayMenu.table = table}
 
 updateViewport :: ReplayMenu.State -> ReplayMenu.State
 updateViewport state =
   let viewport = Table.updatePageViewport (ReplayMenu.table state) (ReplayMenu.viewport state)
-  in  state { ReplayMenu.viewport = viewport }
+   in state {ReplayMenu.viewport = viewport}
 
 render :: (M.MonadIO m) => RenderContext -> Menu.RenderConfig -> Loop.Render m ReplayMenu.State
 render ctx config = do
   state <- Loop.askRenderState
-  let table    = ReplayMenu.table state
+  let table = ReplayMenu.table state
   let viewport = ReplayMenu.viewport state
-  let table'   = Table.viewportTable viewport table
+  let table' = Table.viewportTable viewport table
   view <- Table.newTableView (Menu.font config) table'
   Menu.render ctx config view
