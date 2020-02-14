@@ -1,5 +1,7 @@
 # Lambda-Heights
 
+![](https://github.com/morgenthum/lambda-heights/workflows/stack/badge.svg)
+
 ## Description
 
 Lambda-Heights is a fast paced game. You play a small lambda letter which can move and jump around. You need to jump onto layers to move upwards. Meanwhile the screen also moves upward - so you need to hold the velocity. If the bottom of the screen touches the player, the game is over.
