@@ -1,0 +1,50 @@
+name: stack
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+  schedule:
+    - cron: "00 15 * * *"
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        ghc: ["8.6.5"]
+        cabal: ["3.0"]
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-haskell@v1
+      with:
+        ghc-version: ${{ matrix.ghc }}
+        cabal-version: ${{ matrix.cabal }}
+
+    - name: Display stack version & PATH env
+      run: |
+        stack --version
+        echo ${PATH}
+
+    - name: Cache ~/.stack
+      uses: actions/cache@v1.1.2
+      with:
+        path: ~/.stack
+        key: v1-stack
+
+    - name: Install libralies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev libsdl2-gfx-dev libsdl2-ttf-dev
+
+    - name: Install dependencies
+      run: stack test --only-dependencies --system-ghc
+
+    - name: Build
+      run: |
+        stack build --fast --system-ghc
+        stack install --fast --system-ghc
